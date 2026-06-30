@@ -133,12 +133,13 @@
     background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
     padding:12px;box-shadow:0 6px 18px -14px rgba(64,42,128,.4);
   }
-  .cell{display:flex;flex-direction:column;justify-content:center;min-width:0}
+  .cell{display:flex;flex-direction:column;justify-content:flex-start;min-width:0}
   .clabel{display:none;font-family:'Fredoka',sans-serif;font-weight:600;font-size:.68rem;
     text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
 
   /* base cell */
-  .base .word{font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.18rem;line-height:1.1}
+  .base .word{font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.18rem;line-height:1.1;
+    min-height:44px;display:flex;align-items:center}
   .base .es{color:var(--accent-dark);font-weight:700;font-size:.86rem;margin-top:2px}
 
   /* given (locked) cell */
