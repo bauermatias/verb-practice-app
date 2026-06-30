@@ -33,7 +33,31 @@
     -webkit-text-size-adjust:100%;
     padding:0 16px calc(96px + env(safe-area-inset-bottom));
   }
-  .wrap{max-width:880px;margin:0 auto}
+  .wrap{max-width:880px;margin:0 auto;position:relative;z-index:1}
+
+  /* ---------- Expert mode: ember & lightning ---------- */
+  body.expert-mode{
+    background:
+      radial-gradient(900px 520px at 12% -8%, rgba(255,96,28,.40) 0%, transparent 55%),
+      radial-gradient(900px 620px at 110% 0%, rgba(124,60,255,.42) 0%, transparent 50%),
+      radial-gradient(700px 500px at 50% 120%, rgba(255,180,60,.18) 0%, transparent 60%),
+      linear-gradient(160deg,#2a1740,#3c1d1e);
+  }
+  body.expert-mode h1{color:#fff;text-shadow:0 2px 18px rgba(255,120,40,.45)}
+  body.expert-mode .sub{color:#f6dcc8}
+  body.expert-mode .badge{background:rgba(255,255,255,.12);color:#ffd9b8;border-color:rgba(255,255,255,.28)}
+  body.expert-mode .col-head span{color:#ffba84}
+  body.expert-mode footer{color:#d6c7ee}
+  body.expert-mode .actionbar{background:linear-gradient(180deg,rgba(38,22,58,0),rgba(38,22,58,.94) 38%)}
+  body.expert-mode .mini-score{color:#d6c7ee}
+
+  #fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .fx-ico{position:absolute;line-height:1;opacity:.14;filter:saturate(1.25);
+    animation:flicker 3s ease-in-out infinite;will-change:transform,opacity}
+  @keyframes flicker{
+    0%,100%{opacity:.09;transform:translateY(0) scale(1) rotate(-3deg)}
+    50%{opacity:.22;transform:translateY(-12px) scale(1.1) rotate(3deg)}
+  }
 
   /* ---------- Header ---------- */
   header{padding:26px 4px 10px;text-align:center}
@@ -62,9 +86,9 @@
     border-radius:999px;padding:4px;box-shadow:var(--shadow);
   }
   .seg button{
-    font-family:'Fredoka',sans-serif;font-weight:600;font-size:.95rem;
+    font-family:'Fredoka',sans-serif;font-weight:600;font-size:.92rem;
     border:0;background:transparent;color:var(--muted);
-    padding:9px 18px;border-radius:999px;cursor:pointer;transition:.18s;
+    padding:9px 15px;border-radius:999px;cursor:pointer;transition:.18s;white-space:nowrap;
   }
   .seg button .lvl{display:block;font-size:.68rem;font-weight:500;opacity:.8;margin-top:1px}
   .seg button[aria-pressed="true"]{
@@ -214,6 +238,7 @@
 </style>
 </head>
 <body>
+<div id="fx" aria-hidden="true"></div>
 <div class="wrap">
   <header>
     <span class="badge">🚀 English practice</span>
@@ -225,6 +250,7 @@
     <div class="seg" role="group" aria-label="Difficulty">
       <button id="easyBtn" aria-pressed="true" onclick="setMode('easy')">Easy<span class="lvl">1 hueco</span></button>
       <button id="hardBtn" aria-pressed="false" onclick="setMode('hard')">Hard<span class="lvl">2 huecos</span></button>
+      <button id="expertBtn" aria-pressed="false" onclick="setMode('expert')">Expert<span class="lvl">solo español</span></button>
     </div>
     <button class="btn" onclick="newGame()">🔀 New game</button>
   </div>
@@ -291,39 +317,78 @@ let mode = 'easy';
 
 function setMode(m){
   mode = m;
-  document.getElementById('easyBtn').setAttribute('aria-pressed', m==='easy');
-  document.getElementById('hardBtn').setAttribute('aria-pressed', m==='hard');
+  ['easy','hard','expert'].forEach(k=>
+    document.getElementById(k+'Btn').setAttribute('aria-pressed', m===k));
+  document.body.classList.toggle('expert-mode', m==='expert');
+  setFx(m==='expert');
   newGame();
+}
+
+// Scatter faint fire & lightning watermarks behind the page in expert mode.
+function setFx(on){
+  const fx = document.getElementById('fx');
+  fx.innerHTML='';
+  if(!on) return;
+  const icons=['🔥','⚡','🔥','⚡','💥','🔥','⚡'];
+  for(let i=0;i<18;i++){
+    const s=document.createElement('span');
+    s.className='fx-ico';
+    s.textContent=icons[i%icons.length];
+    s.style.left=Math.random()*100+'vw';
+    s.style.top=Math.random()*100+'vh';
+    s.style.fontSize=(34+Math.random()*70)+'px';
+    s.style.animationDelay=(Math.random()*3)+'s';
+    s.style.animationDuration=(2.4+Math.random()*2.8)+'s';
+    fx.appendChild(s);
+  }
 }
 
 // Decide which columns are blank for each verb.
 function planBlanks(){
   return VERBS.map(()=>{
-    if(mode==='hard') return ['past','pp'];
-    return [Math.random()<0.5 ? 'past' : 'pp'];   // easy: one random blank
+    if(mode==='expert') return ['base','past','pp'];   // remember everything from Spanish
+    if(mode==='hard')   return ['past','pp'];
+    return [Math.random()<0.5 ? 'past' : 'pp'];          // easy: one random blank
   });
+}
+
+function fieldLabel(field){
+  return field==='base' ? 'Base form' : field==='past' ? 'Past simple' : 'Past participle';
 }
 
 function staticCell(field, text){
   return `<div class="cell">
-      <span class="clabel">${field==='past'?'Past simple':'Past participle'}</span>
+      <span class="clabel">${fieldLabel(field)}</span>
       <div class="given">${text}</div>
     </div>`;
 }
 
-function inputCell(v, field, idx){
-  const label = field==='past' ? 'Past simple' : 'Past participle';
-  return `<div class="cell">
-      <span class="clabel">${label}</span>
-      <div class="field" id="f-${idx}-${field}">
+function fieldMarkup(v, field, idx){
+  return `<div class="field" id="f-${idx}-${field}">
         <input type="text" inputmode="text" autocomplete="off" autocorrect="off"
                autocapitalize="none" spellcheck="false"
-               aria-label="${label} of ${v.base}"
+               aria-label="${fieldLabel(field)} for &quot;${v.es}&quot;"
                data-idx="${idx}" data-field="${field}" placeholder="…" />
         <button class="hint-btn" title="Ver respuesta" aria-label="Reveal answer"
                 onclick="reveal(${idx},'${field}')">💡</button>
         <span class="mark"></span>
-      </div>
+      </div>`;
+}
+
+function inputCell(v, field, idx){
+  return `<div class="cell">
+      <span class="clabel">${fieldLabel(field)}</span>
+      ${fieldMarkup(v, field, idx)}
+    </div>`;
+}
+
+// Base column always shows the Spanish meaning; the English word is an input only in Expert.
+function baseCell(v, idx, blank){
+  const top = blank ? fieldMarkup(v,'base',idx) : `<div class="word">${v.base}</div>`;
+  return `<div class="cell base">
+      <span class="clabel">Base form</span>
+      ${top}
+      <div class="es">${v.es}</div>
     </div>`;
 }
 
@@ -334,11 +399,7 @@ function render(blanks){
     const pastCell = isBlank('past') ? inputCell(v,'past',i) : staticCell('past', v.past);
     const ppCell   = isBlank('pp')   ? inputCell(v,'pp',i)   : staticCell('pp',   v.pp);
     return `<div class="row">
-        <div class="cell base">
-          <span class="clabel">Base form</span>
-          <div class="word">${v.base}</div>
-          <div class="es">${v.es}</div>
-        </div>
+        ${baseCell(v, i, isBlank('base'))}
         ${pastCell}
         ${ppCell}
       </div>`;
@@ -442,8 +503,9 @@ function celebrate(){
     setTimeout(()=>c.remove(),3600);
   }
   document.getElementById('winMsg').textContent =
-    mode==='hard' ? 'Hard mode, all correct. ¡Crack total! 🤩'
-                  : 'You got every verb right. ¡Excelente! 🌟';
+    mode==='expert' ? 'Las 3 formas de memoria, solo con el español. ¡Sos una leyenda! 🐉'
+    : mode==='hard' ? 'Hard mode, all correct. ¡Crack total! 🤩'
+                    : 'You got every verb right. ¡Excelente! 🌟';
   document.getElementById('overlay').classList.add('show');
 }
 function hideWin(){ document.getElementById('overlay').classList.remove('show'); }
