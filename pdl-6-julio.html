@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Historieta del Abuelo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Baloo+2:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFF6E0;
+    --ink:#1A1A2E;
+    --red:#E5484D;
+    --blue:#1D7A85;
+    --yellow:#FFC93C;
+    --purple:#6B4E9E;
+    --green:#3FA34D;
+    --panel-shadow: 6px 6px 0 var(--ink);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle, rgba(26,26,46,0.07) 1.2px, transparent 1.2px) 0 0/16px 16px,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Baloo 2', sans-serif;
+    min-height:100vh;
+    padding:16px;
+  }
+  .app{
+    max-width:760px;
+    margin:0 auto;
+  }
+  h1,h2,h3, .comic-font{
+    font-family:'Bangers', cursive;
+    letter-spacing:1px;
+  }
+  /* ---------- Cover / Header ---------- */
+  .cover{
+    background:var(--ink);
+    color:var(--paper);
+    border:4px solid var(--ink);
+    border-radius:10px;
+    padding:22px 20px 18px;
+    text-align:center;
+    position:relative;
+    box-shadow: var(--panel-shadow);
+    margin-bottom:18px;
+    overflow:hidden;
+  }
+  .cover::before{
+    content:"";
+    position:absolute; inset:0;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.04) 0 10px, transparent 10px 20px);
+    pointer-events:none;
+  }
+  .cover h1{
+    font-size:2.6rem;
+    margin:0 0 4px;
+    color:var(--yellow);
+    text-shadow: 3px 3px 0 var(--red);
+    line-height:1;
+  }
+  .cover p{
+    margin:4px 0 0;
+    font-size:1rem;
+    opacity:0.9;
+  }
+  .issue-badge{
+    display:inline-block;
+    background:var(--red);
+    color:var(--paper);
+    font-family:'Bangers', cursive;
+    padding:3px 12px;
+    border-radius:20px;
+    font-size:0.85rem;
+    margin-bottom:8px;
+    transform:rotate(-3deg);
+  }
+
+  /* ---------- Tabs ---------- */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .tab{
+    flex:1 1 auto;
+    min-width:100px;
+    background:var(--paper);
+    border:3px solid var(--ink);
+    border-radius:8px 8px 0 0;
+    padding:10px 8px;
+    text-align:center;
+    cursor:pointer;
+    font-family:'Bangers', cursive;
+    font-size:0.95rem;
+    color:var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    transition:transform 0.12s ease;
+    position:relative;
+  }
+  .tab:hover{ transform:translateY(-2px); }
+  .tab.active{
+    background:var(--yellow);
+  }
+  .tab .num{
+    display:block;
+    font-size:0.7rem;
+    font-family:'Baloo 2';
+    font-weight:800;
+    opacity:0.7;
+  }
+  .tab .score-pill{
+    position:absolute;
+    top:-10px; right:-6px;
+    background:var(--green);
+    color:white;
+    font-family:'Baloo 2';
+    font-weight:800;
+    font-size:0.65rem;
+    padding:2px 6px;
+    border-radius:10px;
+    border:2px solid var(--ink);
+    display:none;
+  }
+  .tab .score-pill.show{ display:inline-block; }
+
+  /* ---------- Panels ---------- */
+  .panel{
+    background:white;
+    border:4px solid var(--ink);
+    border-radius:10px;
+    padding:20px;
+    box-shadow: var(--panel-shadow);
+    margin-bottom:18px;
+  }
+  .panel h2{
+    font-size:1.6rem;
+    color:var(--purple);
+    margin-top:0;
+    border-bottom:3px dashed var(--purple);
+    padding-bottom:6px;
+  }
+  .panel h3{
+    color:var(--blue);
+    font-size:1.25rem;
+    margin-bottom:6px;
+  }
+  .story p{
+    line-height:1.7;
+    font-size:1.05rem;
+  }
+  .story .tense-a{ color:var(--red); font-weight:800; }
+  .story .tense-b{ color:var(--blue); font-weight:800; }
+  .story .tense-c{ color:var(--purple); font-weight:800; }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px;
+    margin:10px 0 18px;
+    font-size:0.85rem;
+  }
+  .legend span{
+    display:inline-flex; align-items:center; gap:5px;
+    background:var(--paper);
+    border:2px solid var(--ink);
+    border-radius:20px;
+    padding:3px 10px;
+  }
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .dot.a{background:var(--red);} .dot.b{background:var(--blue);} .dot.c{background:var(--purple);}
+
+  /* ---------- Explanation cards ---------- */
+  .tense-cards{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .tense-card{
+    border:3px solid var(--ink);
+    border-radius:8px;
+    padding:12px 14px;
+    background:var(--paper);
+  }
+  .tense-card h3{ margin:0 0 4px; }
+  .tense-card .ejemplo{
+    font-style:italic;
+    background:white;
+    border-left:4px solid var(--ink);
+    padding:6px 10px;
+    margin-top:8px;
+    border-radius:4px;
+  }
+
+  /* ---------- Quiz engine ---------- */
+  .quiz-progress{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:10px; font-weight:800; color:var(--purple);
+  }
+  .bar-track{
+    background:#eee; border:2px solid var(--ink); border-radius:10px;
+    height:14px; overflow:hidden; margin-bottom:16px;
+  }
+  .bar-fill{
+    height:100%; background:var(--green); width:0%;
+    transition:width 0.3s ease;
+  }
+  .question-box{
+    background:var(--paper);
+    border:3px solid var(--ink);
+    border-radius:10px;
+    padding:16px;
+    position:relative;
+    margin-bottom:14px;
+  }
+  .question-box::after{
+    content:"";
+    position:absolute;
+    left:26px; bottom:-14px;
+    border-width:14px 10px 0 0;
+    border-style:solid;
+    border-color:var(--ink) transparent transparent transparent;
+  }
+  .question-box::before{
+    content:"";
+    position:absolute;
+    left:29px; bottom:-9px;
+    border-width:11px 7px 0 0;
+    border-style:solid;
+    border-color:var(--paper) transparent transparent transparent;
+    z-index:1;
+  }
+  .question-text{
+    font-size:1.08rem;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .sub-text{
+    font-size:0.9rem;
+    color:#555;
+    margin-bottom:10px;
+  }
+  .options{
+    display:grid;
+    gap:8px;
+    margin-top:10px;
+  }
+  .option-btn{
+    text-align:left;
+    background:white;
+    border:3px solid var(--ink);
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:'Baloo 2', sans-serif;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+    transition: all 0.12s ease;
+  }
+  .option-btn:hover:not(:disabled){
+    background:var(--yellow);
+    transform:translateX(3px);
+  }
+  .option-btn:disabled{ cursor:default; }
+  .option-btn.correct{ background:var(--green); color:white; }
+  .option-btn.incorrect{ background:var(--red); color:white; }
+  .feedback{
+    margin-top:12px;
+    font-weight:800;
+    padding:10px 12px;
+    border-radius:8px;
+    display:none;
+  }
+  .feedback.show{ display:block; }
+  .feedback.ok{ background:#dff5df; color:#256b2f; border:2px solid var(--green); }
+  .feedback.bad{ background:#fbe1e2; color:#8f2226; border:2px solid var(--red); }
+  .next-btn{
+    margin-top:14px;
+    font-family:'Bangers', cursive;
+    font-size:1.1rem;
+    letter-spacing:1px;
+    background:var(--ink);
+    color:var(--yellow);
+    border:none;
+    padding:10px 22px;
+    border-radius:24px;
+    cursor:pointer;
+    display:none;
+  }
+  .next-btn.show{ display:inline-block; }
+  .next-btn:hover{ background:var(--purple); }
+
+  .action-btn{
+    font-family:'Bangers', cursive;
+    font-size:1.1rem;
+    background:var(--red);
+    color:white;
+    border:none;
+    padding:10px 24px;
+    border-radius:24px;
+    cursor:pointer;
+    letter-spacing:1px;
+  }
+  .action-btn:hover{ background:var(--purple); }
+
+  /* ---------- Comic elements gallery (chapter 3) ---------- */
+  .gallery{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  @media(max-width:520px){ .gallery{ grid-template-columns:1fr; } }
+  .element-card{
+    border:3px solid var(--ink);
+    border-radius:8px;
+    padding:10px;
+    background:var(--paper);
+    text-align:center;
+  }
+  .element-card svg{ width:100%; height:80px; }
+  .element-card h4{
+    font-family:'Bangers', cursive;
+    color:var(--blue);
+    margin:6px 0 2px;
+    font-size:1.05rem;
+  }
+  .element-card p{
+    font-size:0.82rem;
+    margin:0;
+    line-height:1.3;
+  }
+
+  /* ---------- Result screen ---------- */
+  .result-screen{
+    text-align:center;
+  }
+  .result-screen .big-score{
+    font-family:'Bangers', cursive;
+    font-size:3rem;
+    color:var(--red);
+    text-shadow:2px 2px 0 var(--ink);
+  }
+  .stars{ font-size:2rem; margin:8px 0; }
+
+  .final-cert{
+    text-align:center;
+    background:var(--ink);
+    color:var(--paper);
+    border:5px double var(--yellow);
+    border-radius:10px;
+    padding:26px 18px;
+  }
+  .final-cert h2{
+    color:var(--yellow);
+    font-size:2rem;
+    border:none;
+  }
+  .final-cert .medal{ font-size:3rem; }
+  .final-cert .subs{ display:flex; justify-content:center; gap:18px; flex-wrap:wrap; margin-top:14px;}
+  .final-cert .subs div{
+    background:rgba(255,255,255,0.08);
+    border:2px solid var(--yellow);
+    border-radius:8px;
+    padding:8px 14px;
+    min-width:110px;
+  }
+  .final-cert .subs .n{ font-family:'Bangers',cursive; font-size:1.4rem; color:var(--yellow); }
+
+  footer{
+    text-align:center;
+    font-size:0.75rem;
+    color:#888;
+    margin-top:18px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="cover">
+    <div class="issue-badge">EDICIÓN ESPECIAL Nº1</div>
+    <h1>LA HISTORIETA<br>DEL ABUELO</h1>
+    <p>Comprensión lectora · Tiempos verbales · El mundo de las historietas</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-ch="1" onclick="goToChapter(1)">
+      <span class="num">Capítulo 1</span>
+      Comprensión lectora
+      <span class="score-pill" id="pill-1"></span>
+    </div>
+    <div class="tab" data-ch="2" onclick="goToChapter(2)">
+      <span class="num">Capítulo 2</span>
+      Tiempos verbales
+      <span class="score-pill" id="pill-2"></span>
+    </div>
+    <div class="tab" data-ch="3" onclick="goToChapter(3)">
+      <span class="num">Capítulo 3</span>
+      Las historietas
+      <span class="score-pill" id="pill-3"></span>
+    </div>
+  </div>
+
+  <div id="content"></div>
+
+  <footer>Hecho con 💛 para practicar leyendo, conjugando y dibujando viñetas.</footer>
+</div>
+
+<script>
+/* =========================================================
+   DATA
+   ========================================================= */
+
+const story = [
+  {t:"Hacía tres años que la abuela Elsa había fallecido, y desde entonces nadie <span class='tense-c'>había subido</span> al altillo de la casa. Esa tarde de domingo <span class='tense-b'>llovía</span> fuerte y Tomás, aburrido, <span class='tense-a'>decidió</span> explorar."},
+  {t:"El altillo <span class='tense-b'>estaba</span> lleno de polvo y <span class='tense-b'>olía</span> a madera vieja. En un rincón, Tomás <span class='tense-a'>encontró</span> una caja de metal oxidada. Su abuelo la <span class='tense-c'>había escondido</span> allí mucho tiempo atrás, y nunca le <span class='tense-c'>había contado</span> a nadie qué guardaba dentro."},
+  {t:"Con las manos temblorosas, Tomás <span class='tense-a'>abrió</span> la caja. Adentro <span class='tense-a'>apareció</span> una historieta amarillenta llamada <em>El Relámpago Rojo</em>. Las hojas <span class='tense-b'>crujían</span> como galletas viejas cada vez que las <span class='tense-b'>daba vuelta</span>."},
+  {t:"Tomás <span class='tense-a'>bajó</span> corriendo a mostrarle el hallazgo a su abuelo. El abuelo <span class='tense-a'>sonrió</span> y le <span class='tense-a'>explicó</span> que él mismo <span class='tense-c'>había dibujado</span> esa historieta cuando <span class='tense-b'>tenía</span> apenas doce años, en un cuaderno que su maestra le <span class='tense-c'>había regalado</span> por su cumpleaños."},
+  {t:"Esa noche, abuelo y nieto <span class='tense-a'>leyeron</span> juntos cada viñeta. El abuelo le <span class='tense-a'>contó</span> que, de chico, <span class='tense-b'>quería</span> ser dibujante de historietas, aunque después <span class='tense-a'>se convirtió</span> en carpintero. Tomás <span class='tense-a'>prometió</span> terminar la historia que su abuelo <span class='tense-c'>había dejado</span> a la mitad."}
+];
+
+const readingQuestions = [
+  {
+    q:"¿Por qué nadie había subido al altillo en tres años?",
+    opts:["Porque estaba cerrado con llave","Porque la abuela Elsa había fallecido","Porque Tomás tenía miedo","Porque estaba en refacciones"],
+    correct:1
+  },
+  {
+    q:"¿Qué encontró Tomás dentro de la caja de metal?",
+    opts:["Fotos familiares","Herramientas de carpintería","Una historieta vieja llamada 'El Relámpago Rojo'","Cartas del abuelo"],
+    correct:2
+  },
+  {
+    q:"¿Quién había dibujado la historieta?",
+    opts:["La maestra de Tomás","El abuelo, cuando tenía doce años","Tomás, de más chico","Un amigo del abuelo"],
+    correct:1
+  },
+  {
+    q:"¿Con qué se relacionaba el sueño de infancia del abuelo?",
+    opts:["Ser carpintero","Ser maestro","Ser dibujante de historietas","Ser piloto"],
+    correct:2
+  },
+  {
+    q:"¿Qué le prometió Tomás a su abuelo al final?",
+    opts:["Guardar el secreto de la caja","Terminar la historieta que había quedado a la mitad","Aprender carpintería","Regalarle un cuaderno nuevo"],
+    correct:1
+  },
+  {
+    q:"En la frase 'las hojas crujían como galletas viejas', ¿qué recurso usa el autor?",
+    opts:["Una comparación","Una onomatopeya","Un diálogo","Un cartucho"],
+    correct:0
+  }
+];
+
+const tenseInfo = [
+  {
+    name:"Pretérito perfecto simple",
+    color:"a",
+    desc:"Cuenta una acción que <b>ya terminó</b> en el pasado, algo que pasó una sola vez y ya está cerrado. Es el tiempo que hace avanzar la historia.",
+    ejemplo:"Tomás <b>encontró</b> una caja. / El abuelo <b>sonrió</b>."
+  },
+  {
+    name:"Pretérito imperfecto",
+    color:"b",
+    desc:"Describe cómo <b>eran</b> las cosas, o acciones que se repetían o estaban en desarrollo en el pasado, sin decir cuándo terminaron.",
+    ejemplo:"El altillo <b>estaba</b> lleno de polvo. / El abuelo <b>quería</b> ser dibujante."
+  },
+  {
+    name:"Pretérito pluscuamperfecto",
+    color:"c",
+    desc:"Cuenta una acción que ya <b>había pasado antes</b> de otra acción pasada. Se forma con 'había' + participio (había + -ado/-ido).",
+    ejemplo:"El abuelo <b>había escondido</b> la caja mucho tiempo atrás."
+  }
+];
+
+const tenseQuestions = [
+  {q:"«Nadie <b>había subido</b> al altillo en tres años.»<br>¿Qué tiempo verbal es?", opts:["Pretérito perfecto simple","Pretérito imperfecto","Pretérito pluscuamperfecto"], correct:2},
+  {q:"«Esa tarde <b>llovía</b> fuerte.»<br>¿Qué tiempo verbal es?", opts:["Pretérito perfecto simple","Pretérito imperfecto","Pretérito pluscuamperfecto"], correct:1},
+  {q:"«Tomás <b>decidió</b> explorar el altillo.»<br>¿Qué tiempo verbal es?", opts:["Pretérito perfecto simple","Pretérito imperfecto","Pretérito pluscuamperfecto"], correct:0},
+  {q:"«El abuelo la <b>había escondido</b> allí mucho tiempo atrás.»<br>¿Qué tiempo verbal es?", opts:["Pretérito perfecto simple","Pretérito imperfecto","Pretérito pluscuamperfecto"], correct:2},
+  {q:"«Las hojas <b>crujían</b> como galletas viejas.»<br>¿Qué tiempo verbal es?", opts:["Pretérito perfecto simple","Pretérito imperfecto","Pretérito pluscuamperfecto"], correct:1},
+  {q:"«Tomás <b>bajó</b> corriendo a mostrarle el hallazgo.»<br>¿Qué tiempo verbal es?", opts:["Pretérito perfecto simple","Pretérito imperfecto","Pretérito pluscuamperfecto"], correct:0},
+  {
+    q:"Completá: «Cuando Tomás llegó al altillo, ya ___ mucho polvo acumulado.»",
+    sub:"Pista: es una acción anterior a otra acción pasada.",
+    opts:["se acumuló","se había acumulado","se acumulaba"], correct:1
+  },
+  {
+    q:"Completá: «De chico, el abuelo ___ ser dibujante de historietas.»",
+    sub:"Pista: describe un deseo que duraba en el pasado, sin decir cuándo terminó.",
+    opts:["quiso","había querido","quería"], correct:2
+  },
+  {
+    q:"Completá: «Al final, Tomás le ___ a su abuelo que terminaría la historia.»",
+    sub:"Pista: es una acción puntual que hace avanzar la historia.",
+    opts:["prometía","prometió","había prometido"], correct:1
+  },
+  {
+    q:"Completá: «Cuando el abuelo se la mostró, ya la ___ diez veces.»",
+    sub:"Pista: acción terminada antes que otra acción pasada.",
+    opts:["leyó","leía","había leído"], correct:2
+  }
+];
+
+const comicElements = [
+  {name:"Viñeta", svg:`<rect x="10" y="10" width="80" height="60" fill="none" stroke="black" stroke-width="4"/>`, desc:"Cada uno de los recuadros donde se dibuja una escena de la historia."},
+  {name:"Globo de diálogo", svg:`<ellipse cx="50" cy="35" rx="38" ry="24" fill="white" stroke="black" stroke-width="4"/><polygon points="30,55 40,55 22,72" fill="white" stroke="black" stroke-width="4"/>`, desc:"Forma redondeada con un piquito que sale de la boca del personaje que habla."},
+  {name:"Globo de pensamiento", svg:`<ellipse cx="50" cy="32" rx="36" ry="22" fill="white" stroke="black" stroke-width="4"/><circle cx="28" cy="58" r="6" fill="white" stroke="black" stroke-width="3"/><circle cx="18" cy="70" r="3.5" fill="white" stroke="black" stroke-width="3"/>`, desc:"Tiene forma de nube con burbujitas: muestra lo que el personaje piensa, no lo que dice."},
+  {name:"Globo de grito", svg:`<polygon points="50,6 60,26 78,14 70,34 92,34 72,46 84,64 62,54 56,76 46,56 26,66 34,46 12,42 32,30 22,10 42,22" fill="white" stroke="black" stroke-width="3"/>`, desc:"Forma de estrella filosa: se usa para gritos, sorpresas o ruidos fuertes."},
+  {name:"Onomatopeya", svg:`<text x="50" y="45" font-family="Bangers, sans-serif" font-size="28" text-anchor="middle" fill="black" transform="rotate(-8 50 45)">¡PUM!</text>`, desc:"Palabra que imita un sonido, como CRAC, PUM o RIIING."},
+  {name:"Cartucho", svg:`<rect x="6" y="18" width="88" height="24" fill="#FFC93C" stroke="black" stroke-width="4"/><text x="50" y="34" font-family="'Baloo 2'" font-size="10" text-anchor="middle" fill="black">Mientras tanto...</text>`, desc:"Recuadro (fuera de los globos) donde el narrador cuenta algo que las imágenes no muestran."}
+];
+
+const comicQuestions = [
+  {q:"¿Cómo se llama cada recuadro de una historieta?", opts:["Cartucho","Viñeta","Onomatopeya"], correct:1},
+  {q:"Si un personaje está pensando (sin hablar), ¿qué tipo de globo se usa?", opts:["Globo de diálogo","Globo de pensamiento","Globo de grito"], correct:1},
+  {q:"«¡CRASH!» escrito en letras grandes dentro de una viñeta es un ejemplo de:", opts:["Onomatopeya","Cartucho","Globo de diálogo"], correct:0},
+  {q:"¿Para qué sirve el cartucho en una historieta?", opts:["Para mostrar lo que piensa un personaje","Para que el narrador aclare algo que la imagen no muestra","Para dibujar el fondo"], correct:1},
+  {q:"Un globo con forma de estrella filosa (picos) generalmente indica:", opts:["Un pensamiento tranquilo","Un grito o un sonido fuerte","Un cartel de la calle"], correct:1},
+  {q:"¿Quién escribe el guion (los diálogos y la historia) de una historieta?", opts:["El guionista","El impresor","El librero"], correct:0},
+  {q:"¿Quién se encarga de dibujar las viñetas de una historieta?", opts:["El dibujante","El narrador","El editor"], correct:0},
+  {q:"El orden en que se leen las viñetas de una historieta es, generalmente:", opts:["De abajo hacia arriba","De izquierda a derecha y de arriba hacia abajo","Al azar"], correct:1}
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let currentChapter = 1;
+let scores = {1:null, 2:null, 3:null}; // {correct, total}
+let quizState = {}; // per chapter: {index, correct, answered}
+
+/* =========================================================
+   RENDER HELPERS
+   ========================================================= */
+function goToChapter(n){
+  currentChapter = n;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', +t.dataset.ch===n));
+  render();
+}
+
+function updatePill(ch){
+  const pill = document.getElementById('pill-'+ch);
+  if(scores[ch]){
+    pill.textContent = scores[ch].correct+'/'+scores[ch].total;
+    pill.classList.add('show');
+  }
+}
+
+function render(){
+  const el = document.getElementById('content');
+  if(currentChapter===1) el.innerHTML = renderChapter1();
+  if(currentChapter===2) el.innerHTML = renderChapter2();
+  if(currentChapter===3) el.innerHTML = renderChapter3();
+}
+
+/* =========================================================
+   CHAPTER 1: Reading comprehension
+   ========================================================= */
+function renderChapter1(){
+  if(!quizState[1]) quizState[1] = {index:0, correct:0, answered:false, showStory:true};
+  const st = quizState[1];
+
+  if(st.showStory){
+    return `
+      <div class="panel story">
+        <h2>📖 La historieta del abuelo</h2>
+        <div class="legend">
+          <span><span class="dot a"></span> pretérito perfecto simple</span>
+          <span><span class="dot b"></span> pretérito imperfecto</span>
+          <span><span class="dot c"></span> pretérito pluscuamperfecto</span>
+        </div>
+        ${story.map(p=>`<p>${p.t}</p>`).join('')}
+        <p style="font-size:0.85rem;color:#666;">👀 Fijate en los colores: más adelante vamos a usar esta misma historia para practicar los tiempos verbales.</p>
+        <button class="action-btn" onclick="startReadingQuiz()">¡Empezar las preguntas! →</button>
+      </div>`;
+  }
+
+  return renderQuizBlock(1, readingQuestions, "¿Qué tanto entendiste?");
+}
+
+function startReadingQuiz(){
+  quizState[1].showStory = false;
+  render();
+}
+
+/* =========================================================
+   CHAPTER 2: Verb tenses
+   ========================================================= */
+function renderChapter2(){
+  if(!quizState[2]) quizState[2] = {index:0, correct:0, answered:false, showIntro:true};
+  const st = quizState[2];
+
+  if(st.showIntro){
+    return `
+      <div class="panel">
+        <h2>🕰️ Los tres tiempos secretos</h2>
+        <p>En una narración, usamos distintos tiempos del pasado para contar distintas cosas. ¡Repasemos con ejemplos de la historia del abuelo!</p>
+        <div class="tense-cards">
+          ${tenseInfo.map(t=>`
+            <div class="tense-card">
+              <h3><span class="dot ${t.color}"></span> ${t.name}</h3>
+              <p>${t.desc}</p>
+              <div class="ejemplo">${t.ejemplo}</div>
+            </div>
+          `).join('')}
+        </div>
+        <button class="action-btn" onclick="startTenseQuiz()">¡A practicar! →</button>
+      </div>`;
+  }
+
+  return renderQuizBlock(2, tenseQuestions, "Identificá y completá");
+}
+
+function startTenseQuiz(){
+  quizState[2].showIntro = false;
+  render();
+}
+
+/* =========================================================
+   CHAPTER 3: Comic characteristics
+   ========================================================= */
+function renderChapter3(){
+  if(!quizState[3]) quizState[3] = {index:0, correct:0, answered:false, showIntro:true};
+  const st = quizState[3];
+
+  if(st.showIntro){
+    return `
+      <div class="panel">
+        <h2>🎨 El mundo de las historietas</h2>
+        <p>Como la que encontró Tomás, todas las historietas se arman con estos elementos:</p>
+        <div class="gallery">
+          ${comicElements.map(e=>`
+            <div class="element-card">
+              <svg viewBox="0 0 100 80">${e.svg}</svg>
+              <h4>${e.name}</h4>
+              <p>${e.desc}</p>
+            </div>
+          `).join('')}
+        </div>
+        <button class="action-btn" onclick="startComicQuiz()">¡A jugar! →</button>
+      </div>`;
+  }
+
+  return renderQuizBlock(3, comicQuestions, "¿Cuánto sabés de historietas?");
+}
+
+function startComicQuiz(){
+  quizState[3].showIntro = false;
+  render();
+}
+
+/* =========================================================
+   GENERIC QUIZ RENDERER
+   ========================================================= */
+function renderQuizBlock(ch, questions, title){
+  const st = quizState[ch];
+
+  if(st.index >= questions.length){
+    scores[ch] = {correct: st.correct, total: questions.length};
+    updatePill(ch);
+    return renderResultScreen(ch, questions.length);
+  }
+
+  const q = questions[st.index];
+  const pct = Math.round((st.index/questions.length)*100);
+
+  return `
+    <div class="panel">
+      <h2>${title}</h2>
+      <div class="quiz-progress">
+        <span>Pregunta ${st.index+1} de ${questions.length}</span>
+        <span>✅ ${st.correct}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+
+      <div class="question-box">
+        <div class="question-text">${q.q}</div>
+        ${q.sub ? `<div class="sub-text">${q.sub}</div>` : ''}
+        <div class="options" id="opts-${ch}">
+          ${q.opts.map((o,i)=>`<button class="option-btn" onclick="answer(${ch}, ${i})">${o}</button>`).join('')}
+        </div>
+        <div class="feedback" id="fb-${ch}"></div>
+      </div>
+      <button class="next-btn" id="next-${ch}" onclick="nextQuestion(${ch})">Siguiente →</button>
+    </div>`;
+}
+
+function answer(ch, idx){
+  const questions = ch===1?readingQuestions:(ch===2?tenseQuestions:comicQuestions);
+  const st = quizState[ch];
+  if(st.answered) return;
+  st.answered = true;
+  const q = questions[st.index];
+  const buttons = document.querySelectorAll(`#opts-${ch} .option-btn`);
+  buttons.forEach(b=>b.disabled=true);
+
+  const fb = document.getElementById(`fb-${ch}`);
+  if(idx===q.correct){
+    st.correct++;
+    buttons[idx].classList.add('correct');
+    fb.textContent = "¡Correcto! 🎉";
+    fb.className = "feedback show ok";
+  } else {
+    buttons[idx].classList.add('incorrect');
+    buttons[q.correct].classList.add('correct');
+    fb.textContent = "¡Casi! La respuesta correcta era: " + q.opts[q.correct];
+    fb.className = "feedback show bad";
+  }
+  document.getElementById(`next-${ch}`).classList.add('show');
+}
+
+function nextQuestion(ch){
+  quizState[ch].index++;
+  quizState[ch].answered = false;
+  render();
+}
+
+function renderResultScreen(ch, total){
+  const st = quizState[ch];
+  const pct = Math.round((st.correct/total)*100);
+  let msg, stars;
+  if(pct>=90){ msg="¡Sos un historietista experto! 🏆"; stars="⭐⭐⭐"; }
+  else if(pct>=70){ msg="¡Muy bien hecho! 💪"; stars="⭐⭐"; }
+  else if(pct>=50){ msg="¡Vas por buen camino! Seguí practicando."; stars="⭐"; }
+  else { msg="¡Repasemos de nuevo, vos podés!"; stars="✨"; }
+
+  const allDone = scores[1] && scores[2] && scores[3];
+
+  return `
+    <div class="panel result-screen">
+      <h2>Capítulo ${ch} completado</h2>
+      <div class="big-score">${st.correct} / ${total}</div>
+      <div class="stars">${stars}</div>
+      <p>${msg}</p>
+      <button class="action-btn" onclick="restartChapter(${ch})">🔁 Repetir capítulo</button>
+    </div>
+    ${allDone ? renderFinalCert() : ''}
+  `;
+}
+
+function restartChapter(ch){
+  quizState[ch] = {index:0, correct:0, answered:false, showIntro:true, showStory:true};
+  scores[ch] = null;
+  updatePill(ch);
+  render();
+}
+
+function renderFinalCert(){
+  const total = scores[1].total+scores[2].total+scores[3].total;
+  const correct = scores[1].correct+scores[2].correct+scores[3].correct;
+  return `
+    <div class="final-cert">
+      <div class="medal">🏅</div>
+      <h2>¡CERTIFICADO DE HISTORIETISTA!</h2>
+      <p>Completaste los tres capítulos de "La historieta del abuelo".</p>
+      <div class="subs">
+        <div><div class="n">${scores[1].correct}/${scores[1].total}</div>Lectura</div>
+        <div><div class="n">${scores[2].correct}/${scores[2].total}</div>Verbos</div>
+        <div><div class="n">${scores[3].correct}/${scores[3].total}</div>Historietas</div>
+      </div>
+      <p style="margin-top:14px;">Puntaje total: <b>${correct} / ${total}</b></p>
+    </div>
+  `;
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+render();
+</script>
+</body>
+</html>
