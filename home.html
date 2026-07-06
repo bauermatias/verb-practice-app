@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Practice Hub · English Verbs</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg-1:#efe9fb; --bg-2:#fdf0e6;
+  --ink:#2a2342; --muted:#8b83a6;
+  --primary:#6c4de0; --primary-dark:#4f35b5;
+  --accent:#ff8a3d; --accent-dark:#e9701f;
+  --morning:#2d8fe0; --morning-dark:#1f6cb0; --morning-bg:#e6f2fc; --morning-line:#aed4f4;
+  --afternoon:#ff8a3d; --afternoon-dark:#e9701f; --afternoon-bg:#fff1e6; --afternoon-line:#ffd2ac;
+  --card:#ffffff; --line:#e7e2f3;
+  --radius:20px; --shadow:0 10px 30px -12px rgba(64,42,128,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 600px at 15% -10%, #ffe6d2 0%, transparent 55%),
+    radial-gradient(1000px 700px at 110% 0%, #e3d8ff 0%, transparent 50%),
+    linear-gradient(160deg,var(--bg-1),var(--bg-2));
+  background-attachment:fixed;
+  min-height:100vh;
+  -webkit-text-size-adjust:100%;
+  padding:0 16px 48px;
+}
+.wrap{max-width:880px;margin:0 auto}
+
+header{padding:48px 4px 16px;text-align:center}
+.badge{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:'Fredoka',sans-serif;font-weight:600;font-size:.8rem;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--primary-dark);
+  background:#fff;border:1.5px solid var(--line);border-radius:999px;
+  padding:6px 14px;box-shadow:var(--shadow)
+}
+h1{
+  font-family:'Fredoka',sans-serif;font-weight:700;
+  font-size:clamp(2.1rem,7vw,3.2rem);line-height:1.05;margin:.4em 0 .15em;
+  letter-spacing:-.01em;
+}
+h1 .star{color:var(--accent)}
+.sub{color:var(--muted);font-weight:600;margin:0 auto;font-size:clamp(.95rem,2.6vw,1.1rem);max-width:520px}
+
+.sections{
+  display:grid;grid-template-columns:1fr 1fr;gap:22px;
+  margin-top:36px;
+}
+@media (max-width:700px){
+  .sections{grid-template-columns:1fr}
+}
+
+.section-card{
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:26px 22px 28px;
+  display:flex;flex-direction:column;gap:14px;
+}
+
+.section-head{display:flex;align-items:center;gap:12px}
+.section-icon{
+  width:52px;height:52px;border-radius:16px;display:grid;place-items:center;
+  font-size:1.6rem;flex:0 0 auto;
+}
+.morning .section-icon{background:var(--morning-bg);color:var(--morning)}
+.afternoon .section-icon{background:var(--afternoon-bg);color:var(--afternoon)}
+
+.section-title{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.35rem;margin:0}
+.morning .section-title{color:var(--morning-dark)}
+.afternoon .section-title{color:var(--afternoon-dark)}
+
+.section-tag{
+  font-family:'Fredoka',sans-serif;font-weight:600;font-size:.72rem;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted);margin:0;
+}
+
+.link-list{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+
+.activity-link{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.05rem;
+  text-decoration:none;color:var(--ink);
+  background:#f9f7fd;border:1.5px solid var(--line);border-radius:14px;
+  padding:14px 16px;transition:.15s;
+}
+.morning .activity-link:hover{border-color:var(--morning-line);background:var(--morning-bg);color:var(--morning-dark);transform:translateY(-1px)}
+.afternoon .activity-link:hover{border-color:var(--afternoon-line);background:var(--afternoon-bg);color:var(--afternoon-dark);transform:translateY(-1px)}
+.activity-link:active{transform:translateY(0)}
+.activity-link .arrow{font-size:1.2rem;transition:.15s}
+.activity-link:hover .arrow{transform:translateX(3px)}
+
+footer{text-align:center;color:var(--muted);font-weight:600;font-size:.85rem;padding:36px 0 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="badge">🚀 English practice</span>
+    <h1>Practice Hub <span class="star">★</span></h1>
+    <p class="sub">Elegí tu turno y arrancá a practicar. ¡Vamos que se puede!</p>
+  </header>
+
+  <div class="sections">
+
+    <div class="section-card morning">
+      <div class="section-head">
+        <div class="section-icon">🌅</div>
+        <div>
+          <p class="section-tag">Mañana</p>
+          <h2 class="section-title">Turno Mañana</h2>
+        </div>
+      </div>
+      <div class="link-list">
+        <a class="activity-link" href="tm/pdl/historietas.html">
+          Historietas
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="section-card afternoon">
+      <div class="section-head">
+        <div class="section-icon">🌇</div>
+        <div>
+          <p class="section-tag">Tarde</p>
+          <h2 class="section-title">Turno Tarde</h2>
+        </div>
+      </div>
+      <div class="link-list">
+        <a class="activity-link" href="tt/irregular-verbs.html">
+          Irregular Verbs
+          <span class="arrow">→</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>Hecho con ♥ para practicar inglés</footer>
+</div>
+</body>
+</html>
