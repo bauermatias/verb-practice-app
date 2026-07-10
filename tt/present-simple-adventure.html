@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Robo-Routine: Present Simple Academy</title>
+<style>
+@font-face {
+  font-family: 'system-round';
+  src: local('Arial Rounded MT Bold');
+}
+:root{
+  --bg:#161A34;
+  --bg2:#1F2547;
+  --card:#262C55;
+  --card-hi:#30386B;
+  --blue:#4CC9F0;
+  --yellow:#FFD166;
+  --coral:#FF6B6B;
+  --mint:#06D6A0;
+  --text:#F1F0FB;
+  --dim:#A9AEDC;
+  --radius:18px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:radial-gradient(circle at 20% -10%, #2A3167 0%, var(--bg) 55%);
+  color:var(--text);
+  font-family:'Segoe UI Rounded','SF Pro Rounded',system-round,'Trebuchet MS',sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:16px;
+  overflow-x:hidden;
+}
+h1,h2,h3{margin:0;}
+button{font-family:inherit;cursor:pointer;}
+.wrap{width:100%;max-width:560px;display:flex;flex-direction:column;gap:16px;}
+
+/* ---------- Header / brand ---------- */
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;}
+.brand-title{font-size:1.5rem;font-weight:800;letter-spacing:0.5px;text-align:center;}
+.brand-title span{color:var(--yellow);}
+.brand-sub{text-align:center;color:var(--dim);font-size:0.85rem;margin-top:-8px;}
+
+/* ---------- Robot mascot ---------- */
+.robot-stage{display:flex;flex-direction:column;align-items:center;position:relative;min-height:150px;justify-content:flex-end;padding-top:8px;}
+.robot{position:relative;width:110px;transition:transform .25s;}
+.antenna{width:4px;height:18px;background:var(--dim);margin:0 auto;border-radius:2px;position:relative;}
+.antenna::after{content:'';position:absolute;top:-9px;left:-4px;width:12px;height:12px;border-radius:50%;background:var(--coral);box-shadow:0 0 10px var(--coral);}
+.robot-head{width:86px;height:64px;background:var(--blue);border-radius:20px;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center;gap:14px;transition:background .3s;}
+.robot-eye{width:13px;height:13px;border-radius:50%;background:var(--bg);transition:all .2s;}
+.robot-body{width:104px;height:52px;background:var(--yellow);border-radius:16px;margin:6px auto 0;position:relative;transition:background .3s;}
+.robot-body::before{content:'';position:absolute;left:14px;right:14px;top:12px;bottom:12px;background:rgba(22,26,52,0.25);border-radius:8px;}
+.robot.state-happy .robot-head{background:var(--mint);}
+.robot.state-happy{animation:bounce .5s ease;}
+.robot.state-happy .robot-eye{height:6px;border-radius:0 0 8px 8px;transform:translateY(3px);}
+.robot.state-sad .robot-head{background:var(--coral);}
+.robot.state-sad{animation:shake .45s ease;}
+.robot.state-sad .robot-eye{height:13px;transform:rotate(20deg) scaleX(0.6);}
+@keyframes bounce{0%{transform:translateY(0);}30%{transform:translateY(-14px);}55%{transform:translateY(0);}75%{transform:translateY(-6px);}100%{transform:translateY(0);}}
+@keyframes shake{0%,100%{transform:translateX(0) rotate(0);}20%{transform:translateX(-6px) rotate(-4deg);}40%{transform:translateX(6px) rotate(4deg);}60%{transform:translateX(-4px) rotate(-2deg);}80%{transform:translateX(4px) rotate(2deg);}}
+.speech{
+  position:relative;
+  background:var(--card);
+  border-radius:14px;
+  padding:8px 14px;
+  font-size:0.85rem;
+  color:var(--dim);
+  width:min(260px, 82vw);
+  text-align:center;
+  margin:0 auto 14px;
+  min-height:18px;
+  border:1px solid rgba(255,255,255,0.06);
+}
+.speech::after{
+  content:'';
+  position:absolute;
+  left:50%;
+  bottom:-8px;
+  transform:translateX(-50%);
+  width:14px;
+  height:14px;
+  background:var(--card);
+  border-right:1px solid rgba(255,255,255,0.06);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  clip-path:polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* ---------- Cards & buttons ---------- */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:18px;
+  border:1px solid rgba(255,255,255,0.05);
+}
+.btn{
+  border:none;
+  background:var(--card-hi);
+  color:var(--text);
+  padding:14px 16px;
+  border-radius:14px;
+  font-size:1rem;
+  font-weight:700;
+  transition:transform .12s, background .15s;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.btn:active{transform:scale(0.97);}
+.btn.selected{background:var(--blue);color:var(--bg);}
+.btn-primary{background:var(--mint);color:var(--bg);justify-content:center;font-size:1.05rem;}
+.btn-primary:disabled{opacity:0.4;}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.15);justify-content:center;color:var(--dim);}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mode-grid .btn{flex-direction:column;align-items:flex-start;gap:2px;}
+.mode-grid .btn small{color:var(--dim);font-weight:500;font-size:0.72rem;}
+.mode-grid .btn.selected small{color:rgba(22,26,52,0.7);}
+.diff-row{display:flex;gap:8px;}
+.diff-row .btn{flex:1;justify-content:center;padding:10px;font-size:0.9rem;}
+
+/* ---------- Game screen ---------- */
+.topbar{display:flex;justify-content:space-between;align-items:center;font-size:0.85rem;color:var(--dim);}
+.progress-track{height:8px;background:var(--bg2);border-radius:6px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--mint));width:0%;transition:width .3s;}
+.stat-pill{background:var(--bg2);padding:5px 10px;border-radius:999px;font-weight:700;}
+.stat-pill.streak{color:var(--yellow);}
+
+.q-card{min-height:110px;display:flex;flex-direction:column;justify-content:center;gap:10px;}
+.q-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:700;}
+.q-prompt{font-size:1.25rem;font-weight:700;line-height:1.4;}
+.q-blank{color:var(--yellow);}
+
+.options{display:flex;flex-direction:column;gap:10px;}
+.opt-btn{text-align:left;justify-content:flex-start;font-size:1rem;}
+.opt-btn.correct{background:var(--mint);color:var(--bg);}
+.opt-btn.wrong{background:var(--coral);color:var(--bg);}
+.opt-btn:disabled{opacity:0.85;}
+
+.order-answer{
+  min-height:54px;
+  background:var(--bg2);
+  border-radius:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px;
+  align-items:center;
+}
+.order-answer .chip{background:var(--blue);color:var(--bg);}
+.order-bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.chip{
+  padding:8px 12px;
+  border-radius:10px;
+  background:var(--card-hi);
+  font-weight:700;
+  font-size:0.95rem;
+  border:none;
+  color:var(--text);
+}
+.chip.placeholder{opacity:0.3;font-weight:400;font-size:0.8rem;}
+
+.feedback{
+  font-size:0.9rem;
+  font-weight:700;
+  text-align:center;
+  min-height:22px;
+  color:var(--mint);
+}
+.feedback.wrong{color:var(--coral);}
+
+/* ---------- Notebook / cheat sheet ---------- */
+.notebook-toggle{position:fixed;top:14px;right:14px;background:var(--card);border:1px solid rgba(255,255,255,0.1);border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;z-index:5;}
+.modal-bg{position:fixed;inset:0;background:rgba(10,12,26,0.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:10;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border-radius:20px;padding:20px;max-width:480px;width:100%;max-height:82vh;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);}
+.modal h3{margin-bottom:10px;color:var(--yellow);}
+.rule-block{background:var(--bg2);border-radius:12px;padding:12px;margin-bottom:10px;}
+.rule-block b{color:var(--blue);}
+.rule-block .es{color:var(--dim);font-size:0.8rem;display:block;margin-top:4px;}
+.freq-bar{display:flex;height:14px;border-radius:8px;overflow:hidden;margin:10px 0;}
+.freq-bar div{flex:1;display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:800;color:var(--bg);}
+
+/* ---------- End screen ---------- */
+.stars{font-size:2.6rem;text-align:center;letter-spacing:6px;}
+.result-msg{text-align:center;font-size:1.1rem;font-weight:700;}
+.result-sub{text-align:center;color:var(--dim);font-size:0.9rem;}
+
+.confetti-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:20;}
+.confetti-piece{position:absolute;font-size:1.3rem;top:-30px;animation:fall 1.1s ease-in forwards;}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg);opacity:0.2;}}
+
+.hidden{display:none !important;}
+footer{color:var(--dim);font-size:0.7rem;text-align:center;margin-top:auto;padding:14px 0 4px;}
+</style>
+</head>
+<body>
+
+<button class="notebook-toggle" onclick="openNotebook()">📓</button>
+
+<div class="wrap">
+
+  <div class="brand">
+  </div>
+  <h1 class="brand-title">🤖 Robo-Routine <span>Academy</span></h1>
+  <p class="brand-sub">Teach your robot how humans do things every day</p>
+
+  <div class="robot-stage">
+    <div class="speech" id="speech">Hi! I'm B33P. I'm learning about human routines. Help me practice!</div>
+    <div class="robot" id="robot">
+      <div class="antenna"></div>
+      <div class="robot-head"><div class="robot-eye"></div><div class="robot-eye"></div></div>
+      <div class="robot-body"></div>
+    </div>
+  </div>
+
+  <!-- ============ START SCREEN ============ -->
+  <div id="screen-start" class="card">
+    <h3 style="margin-bottom:10px;">Choose a mission</h3>
+    <div class="mode-grid" id="modeGrid"></div>
+
+    <h3 style="margin:16px 0 10px;">Choose your level</h3>
+    <div class="diff-row" id="diffRow"></div>
+
+    <button class="btn btn-primary" style="width:100%;margin-top:16px;" id="startBtn" onclick="startGame()">Start mission 🚀</button>
+  </div>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <div id="screen-game" class="hidden">
+    <div class="topbar">
+      <span class="stat-pill" id="scorePill">⭐ 0</span>
+      <span class="stat-pill streak" id="streakPill">🔥 0</span>
+      <span class="stat-pill" id="countPill">1 / 10</span>
+    </div>
+    <div class="progress-track" style="margin-top:8px;"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="card q-card" style="margin-top:14px;">
+      <div class="q-label" id="qLabel">Affirmative</div>
+      <div class="q-prompt" id="qPrompt">Loading…</div>
+
+      <div id="mcArea" class="options hidden"></div>
+
+      <div id="orderArea" class="hidden">
+        <div class="order-answer" id="orderAnswer"><span class="chip placeholder">tap the words below in order…</span></div>
+        <div class="order-bank" id="orderBank"></div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:10px;" onclick="clearOrder()">↺ Clear</button>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <button class="btn btn-primary" id="checkBtn" style="width:100%;" onclick="handlePrimaryAction()" disabled>Check ✔</button>
+  </div>
+
+  <!-- ============ END SCREEN ============ -->
+  <div id="screen-end" class="card hidden">
+    <div class="stars" id="starsEl">⭐⭐⭐</div>
+    <p class="result-msg" id="resultMsg">Great job!</p>
+    <p class="result-sub" id="resultSub">8 / 10 correct</p>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="backToStart()">Choose new mission 🔁</button>
+  </div>
+
+</div>
+
+<div class="modal-bg" id="notebookBg">
+  <div class="modal">
+    <h3>📓 B33P's Notebook</h3>
+    <div class="rule-block">
+      <b>Affirmative ✅</b> — I / You / We / They + verb. He / She / It + verb <b>-s</b>.
+      <span class="es">Ej: She watches TV. They watch TV.</span>
+    </div>
+    <div class="rule-block">
+      <b>Negative 🚫</b> — I/You/We/They + <b>don't</b> + verb. He/She/It + <b>doesn't</b> + verb.
+      <span class="es">Ej: I don't like coffee. She doesn't like coffee.</span>
+    </div>
+    <div class="rule-block">
+      <b>Questions ❓</b> — <b>Do</b> + I/you/we/they + verb...? <b>Does</b> + he/she/it + verb...?
+      <span class="es">Ej: Do you play tennis? Does she play tennis?</span>
+    </div>
+    <div class="rule-block">
+      <b>Adverbs of frequency ⏰</b> — go before the main verb, but after am/is/are.
+      <span class="es">Ej: She always plays. She is always happy.</span>
+      <div class="freq-bar">
+        <div style="background:var(--mint);">always 100%</div>
+        <div style="background:var(--blue);">usually 80%</div>
+        <div style="background:var(--yellow);">sometimes 40%</div>
+        <div style="background:var(--coral);">never 0%</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:6px;" onclick="closeNotebook()">Got it!</button>
+  </div>
+</div>
+
+<footer>Made for practicing present simple &amp; adverbs of frequency</footer>
+
+<script>
+/* ================= DATA ================= */
+const BANK = {
+  affirmative: [
+    {p:"She ___ TV every afternoon.", c:"watches", w:["watch","watching"]},
+    {p:"My brother ___ football on Saturdays.", c:"plays", w:["play","playing"]},
+    {p:"I ___ my homework after school.", c:"do", w:["does","doing"]},
+    {p:"The cat ___ a lot during the day.", c:"sleeps", w:["sleep","sleeping"]},
+    {p:"We ___ pizza on Fridays.", c:"eat", w:["eats","eating"]},
+    {p:"He ___ to school by bus.", c:"goes", w:["go","going"]},
+    {p:"They ___ their bikes in the park.", c:"ride", w:["rides","riding"]},
+    {p:"My mom ___ breakfast every morning.", c:"makes", w:["make","making"]},
+    {p:"You ___ English very well.", c:"speak", w:["speaks","speaking"]},
+    {p:"Leo ___ his teeth twice a day.", c:"brushes", w:["brush","brushing"]},
+    {p:"My dad ___ the newspaper every day.", c:"reads", w:["read","reading"]},
+    {p:"The dog ___ a lot when it's happy.", c:"barks", w:["bark","barking"]}
+  ],
+  negative: [
+    {p:"She ___ carrots.", c:"doesn't like", w:["don't like","not likes"]},
+    {p:"I ___ coffee.", c:"don't drink", w:["doesn't drink","not drink"]},
+    {p:"They ___ in the rain.", c:"don't play", w:["doesn't play","don't plays"]},
+    {p:"He ___ his room.", c:"doesn't clean", w:["don't clean","doesn't cleans"]},
+    {p:"We ___ meat.", c:"don't eat", w:["doesn't eat","don't eats"]},
+    {p:"It ___ at night.", c:"doesn't rain", w:["don't rain","doesn't rains"]},
+    {p:"My sister ___ spiders.", c:"doesn't like", w:["don't like","doesn't likes"]},
+    {p:"You ___ your homework on time.", c:"don't finish", w:["doesn't finish","don't finishes"]},
+    {p:"The baby ___ vegetables.", c:"doesn't eat", w:["doesn't eats","don't eat"]},
+    {p:"My friends ___ video games at school.", c:"don't play", w:["doesn't play","don't plays"]},
+    {p:"She ___ early on weekends.", c:"doesn't wake up", w:["don't wake up","doesn't wakes up"]},
+    {p:"We ___ the bus on Sundays.", c:"don't take", w:["doesn't take","don't takes"]}
+  ],
+  questionsMC: [
+    {p:"___ she like chocolate?", c:"Does", w:["Do","Is"]},
+    {p:"___ you play tennis?", c:"Do", w:["Does","Are"]},
+    {p:"___ they live in Buenos Aires?", c:"Do", w:["Does","Is"]},
+    {p:"___ your dad work on Saturdays?", c:"Does", w:["Do","Is"]},
+    {p:"___ the store open at 9?", c:"Does", w:["Do","Is"]},
+    {p:"___ we need an umbrella today?", c:"Do", w:["Does","Is"]},
+    {p:"___ your cat sleep a lot?", c:"Does", w:["Do","Is"]},
+    {p:"___ I need my jacket?", c:"Do", w:["Does","Am"]}
+  ],
+  questionsOrder: [
+    {p:"Build the question: you / like / pizza", words:["Do","you","like","pizza","?"]},
+    {p:"Build the question: she / play / the piano", words:["Does","she","play","the","piano","?"]},
+    {p:"Build the question: they / watch / cartoons", words:["Do","they","watch","cartoons","?"]},
+    {p:"Build the question: he / do / his homework", words:["Does","he","do","his","homework","?"]},
+    {p:"Build the question: your friends / study / English", words:["Do","your","friends","study","English","?"]},
+    {p:"Build the question: the movie / start / at 8", words:["Does","the","movie","start","at","8","?"]}
+  ],
+  adverbFreq: [
+    {p:"Ana walks to school 7 days a week. She ___ walks to school.", c:"always"},
+    {p:"Tom watches cartoons only on Saturday and Sunday. He ___ watches cartoons.", c:"sometimes"},
+    {p:"My dad never smokes, not even once. He ___ smokes.", c:"never"},
+    {p:"Leo does his homework right after school 5 or 6 days a week. He ___ does his homework early.", c:"usually"},
+    {p:"My little sister eats candy every single day. She ___ eats candy.", c:"always"},
+    {p:"My grandma eats fast food once in a while, maybe once a month. She ___ eats fast food.", c:"sometimes"},
+    {p:"We go to the beach almost every weekend in summer. We ___ go to the beach.", c:"usually"},
+    {p:"I never eat spiders! I ___ eat spiders.", c:"never"},
+    {p:"Mia helps her mom cook maybe twice a week. She ___ helps her mom.", c:"sometimes"},
+    {p:"My grandpa wakes up at 6 am every single day. He ___ wakes up at 6.", c:"always"},
+    {p:"My friends play football after school most days. They ___ play football.", c:"usually"},
+    {p:"It never snows in Buenos Aires. It ___ snows here.", c:"never"}
+  ],
+  adverbOrder: [
+    {p:"Build the sentence: she / always / play / tennis", words:["She","always","plays","tennis"]},
+    {p:"Build the sentence: he / is / usually / tired", words:["He","is","usually","tired"]},
+    {p:"Build the sentence: they / never / eat / meat", words:["They","never","eat","meat"]},
+    {p:"Build the sentence: we / are / sometimes / late", words:["We","are","sometimes","late"]},
+    {p:"Build the sentence: I / usually / wake up / early", words:["I","usually","wake","up","early"]},
+    {p:"Build the sentence: it / is / always / cold / here", words:["It","is","always","cold","here"]}
+  ]
+};
+
+const ADVERB_OPTIONS = ["always","usually","sometimes","never"];
+
+const MODES = {
+  affirmative: {label:"Affirmative", emoji:"✅", desc:"He/She/It + verb-s", build:(diff)=>shuffle(BANK.affirmative).slice(0,countFor(diff))},
+  negative:    {label:"Negative", emoji:"🚫", desc:"don't / doesn't", build:(diff)=>shuffle(BANK.negative).slice(0,countFor(diff))},
+  questions:   {label:"Questions", emoji:"❓", desc:"Do / Does...?", build:(diff)=>{
+                  let pool = diff==='easy' ? [...BANK.questionsMC] : [...BANK.questionsMC, ...BANK.questionsOrder];
+                  return shuffle(pool).slice(0,countFor(diff));
+                }},
+  adverbs:     {label:"Adverbs", emoji:"⏰", desc:"always/usually/sometimes/never", build:(diff)=>{
+                  let pool = diff==='easy' ? [...BANK.adverbFreq] : [...BANK.adverbFreq, ...BANK.adverbOrder];
+                  return shuffle(pool).slice(0,countFor(diff));
+                }},
+  mixed:       {label:"Everything Mix", emoji:"🌟", desc:"a bit of everything", build:(diff)=>{
+                  let pool = [...BANK.affirmative, ...BANK.negative, ...BANK.questionsMC, ...BANK.adverbFreq];
+                  if(diff!=='easy') pool = pool.concat(BANK.questionsOrder, BANK.adverbOrder);
+                  return shuffle(pool).slice(0, diff==='easy'?10:diff==='medium'?14:18);
+                }}
+};
+
+function countFor(diff){ return diff==='easy'?8:diff==='medium'?10:12; }
+
+/* ================= STATE ================= */
+let state = {
+  mode:null, difficulty:'medium',
+  questions:[], idx:0, score:0, streak:0, correctCount:0,
+  orderChosen:[], orderRemaining:[], lastPicked:null
+};
+
+/* ================= AUDIO ================= */
+let actx;
+function ctx(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function tone(freq, start, dur, type='sine', vol=0.18){
+  const c = ctx();
+  const o = c.createOscillator();
+  const g = c.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.value = vol;
+  o.connect(g); g.connect(c.destination);
+  const t0 = c.currentTime + start;
+  g.gain.setValueAtTime(vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.001, t0+dur);
+  o.start(t0); o.stop(t0+dur+0.02);
+}
+function playCorrect(){ tone(523,0,.12); tone(659,.1,.12); tone(784,.2,.22); }
+function playWrong(){ tone(220,0,.18,'sawtooth',0.12); tone(160,.12,.22,'sawtooth',0.1); }
+function playClick(){ tone(440,0,.05,'square',0.06); }
+function playWin(){ [523,659,784,1046].forEach((f,i)=>tone(f,i*0.11,.18)); }
+
+/* ================= UTIL ================= */
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+function el(id){ return document.getElementById(id); }
+function setRobot(state_){
+  const r = el('robot');
+  r.classList.remove('state-happy','state-sad');
+  if(state_) r.classList.add(state_);
+  setTimeout(()=>r.classList.remove('state-happy','state-sad'), 550);
+}
+function say(text){ el('speech').textContent = text; }
+
+/* ================= START SCREEN SETUP ================= */
+const modeGrid = el('modeGrid');
+Object.entries(MODES).forEach(([key,m])=>{
+  const b = document.createElement('button');
+  b.className = 'btn';
+  b.innerHTML = `<span>${m.emoji} ${m.label}</span><small>${m.desc}</small>`;
+  b.onclick = ()=>{
+    document.querySelectorAll('#modeGrid .btn').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    state.mode = key;
+    playClick();
+    el('startBtn').disabled = false;
+  };
+  modeGrid.appendChild(b);
+});
+
+const diffRow = el('diffRow');
+[['easy','Easy 🟢'],['medium','Medium 🟡'],['hard','Hard 🔴']].forEach(([key,label])=>{
+  const b = document.createElement('button');
+  b.className = 'btn' + (key==='medium' ? ' selected' : '');
+  b.textContent = label;
+  b.onclick = ()=>{
+    document.querySelectorAll('#diffRow .btn').forEach(x=>x.classList.remove('selected'));
+    b.classList.add('selected');
+    state.difficulty = key;
+    playClick();
+  };
+  diffRow.appendChild(b);
+});
+el('startBtn').disabled = true;
+
+/* ================= GAME FLOW ================= */
+function startGame(){
+  if(!state.mode) return;
+  state.questions = MODES[state.mode].build(state.difficulty);
+  state.idx = 0; state.score = 0; state.streak = 0; state.correctCount = 0;
+  el('screen-start').classList.add('hidden');
+  el('screen-end').classList.add('hidden');
+  el('screen-game').classList.remove('hidden');
+  say(`Let's practice ${MODES[state.mode].label.toLowerCase()}! You've got this.`);
+  renderQuestion();
+}
+
+function updateTopbar(){
+  el('scorePill').textContent = `⭐ ${state.score}`;
+  el('streakPill').textContent = `🔥 ${state.streak}`;
+  el('countPill').textContent = `${state.idx+1} / ${state.questions.length}`;
+  el('progressFill').style.width = `${(state.idx/state.questions.length)*100}%`;
+}
+
+function labelForQuestion(q){
+  if(BANK.affirmative.includes(q)) return 'Affirmative ✅';
+  if(BANK.negative.includes(q)) return 'Negative 🚫';
+  if(BANK.questionsMC.includes(q) || BANK.questionsOrder.includes(q)) return 'Questions ❓';
+  if(BANK.adverbFreq.includes(q) || BANK.adverbOrder.includes(q)) return 'Adverbs of frequency ⏰';
+  return 'Practice';
+}
+
+function renderQuestion(){
+  const q = state.questions[state.idx];
+  updateTopbar();
+  el('qLabel').textContent = labelForQuestion(q);
+  el('feedback').textContent = '';
+  el('feedback').classList.remove('wrong');
+  el('checkBtn').textContent = 'Check ✔';
+  el('checkBtn').disabled = true;
+  state.lastPicked = null;
+
+  const isOrder = !!q.words;
+  el('mcArea').classList.toggle('hidden', isOrder);
+  el('orderArea').classList.toggle('hidden', !isOrder);
+
+  el('qPrompt').innerHTML = q.p.replace('___', '<span class="q-blank">____</span>');
+
+  if(isOrder){
+    state.orderChosen = [];
+    state.orderRemaining = shuffle(q.words);
+    renderOrderUI();
+  } else {
+    const isAdverb = BANK.adverbFreq.includes(q);
+    const opts = isAdverb ? shuffle(ADVERB_OPTIONS) : shuffle([q.c, ...q.w]);
+    const area = el('mcArea');
+    area.innerHTML = '';
+    opts.forEach(optText=>{
+      const b = document.createElement('button');
+      b.className = 'btn opt-btn';
+      b.textContent = optText;
+      b.onclick = ()=>pickMC(b, optText, q.c);
+      area.appendChild(b);
+    });
+  }
+}
+
+function pickMC(btn, text, correct){
+  if(state.lastPicked) return;
+  state.lastPicked = text;
+  playClick();
+  document.querySelectorAll('#mcArea .opt-btn').forEach(b=>b.disabled=true);
+  if(text === correct){
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#mcArea .opt-btn').forEach(b=>{ if(b.textContent===correct) b.classList.add('correct'); });
+  }
+  el('checkBtn').disabled = false;
+  el('checkBtn').dataset.pendingResult = (text===correct) ? '1':'0';
+}
+
+function renderOrderUI(){
+  const ansEl = el('orderAnswer');
+  const bankEl = el('orderBank');
+  ansEl.innerHTML = state.orderChosen.length
+    ? state.orderChosen.map((w,i)=>`<button class="chip" onclick="removeChip(${i})">${w}</button>`).join('')
+    : '<span class="chip placeholder">tap the words below in order…</span>';
+  bankEl.innerHTML = state.orderRemaining.map((w,i)=>`<button class="chip" onclick="addChip(${i})">${w}</button>`).join('');
+  el('checkBtn').disabled = state.orderChosen.length === 0;
+}
+function addChip(i){
+  playClick();
+  state.orderChosen.push(state.orderRemaining[i]);
+  state.orderRemaining.splice(i,1);
+  renderOrderUI();
+}
+function removeChip(i){
+  playClick();
+  state.orderRemaining.push(state.orderChosen[i]);
+  state.orderChosen.splice(i,1);
+  renderOrderUI();
+}
+function clearOrder(){
+  const q = state.questions[state.idx];
+  state.orderChosen = [];
+  state.orderRemaining = shuffle(q.words);
+  renderOrderUI();
+}
+function joinWords(arr){
+  let out = '';
+  arr.forEach(w=>{
+    if(w==='?' || w==='.') out += w;
+    else out += (out ? ' ' : '') + w;
+  });
+  return out;
+}
+
+function handlePrimaryAction(){
+  const btnState = el('checkBtn').textContent;
+  if(btnState.startsWith('Check')){
+    submitAnswer();
+  } else {
+    nextStep();
+  }
+}
+
+function submitAnswer(){
+  const q = state.questions[state.idx];
+  let correct;
+  if(q.words){
+    correct = joinWords(state.orderChosen).toLowerCase() === joinWords(q.words).toLowerCase();
+    document.querySelectorAll('#orderBank .chip, #orderAnswer .chip').forEach(c=>c.disabled=true);
+  } else {
+    correct = el('checkBtn').dataset.pendingResult === '1';
+  }
+
+  if(correct){
+    state.score += 10 + (state.streak>=2 ? 5 : 0);
+    state.streak += 1;
+    state.correctCount += 1;
+    el('feedback').textContent = pickPraise();
+    el('feedback').classList.remove('wrong');
+    setRobot('state-happy');
+    playCorrect();
+    confettiBurst();
+    say(pickRobotHappy());
+  } else {
+    state.streak = 0;
+    const correctText = q.words ? joinWords(q.words) : q.c;
+    el('feedback').textContent = `Not quite — the answer is: "${correctText}"`;
+    el('feedback').classList.add('wrong');
+    setRobot('state-sad');
+    playWrong();
+    say(pickRobotSad());
+  }
+  updateTopbar();
+  el('checkBtn').textContent = (state.idx < state.questions.length-1) ? 'Next ➜' : 'See results 🏁';
+  el('checkBtn').disabled = false;
+}
+
+function nextStep(){
+  state.idx += 1;
+  if(state.idx >= state.questions.length){
+    endGame();
+  } else {
+    renderQuestion();
+  }
+}
+
+function pickPraise(){
+  return shuffle(['Awesome! 🎉','Great job! ⭐','Correct! 💫','You nailed it! 🙌','Perfect! ✨']).at(0);
+}
+function pickRobotHappy(){
+  return shuffle([
+    "Beep boop! My routine circuits are charging up!",
+    "Yes! I understand humans a little better now.",
+    "You're a great teacher!",
+    "Logging that into my memory banks!"
+  ]).at(0);
+}
+function pickRobotSad(){
+  return shuffle([
+    "Hmm, my circuits got confused. Let's check the notebook!",
+    "Oops! Try the next one, I believe in you.",
+    "That's okay, robots make mistakes too!"
+  ]).at(0);
+}
+
+function endGame(){
+  el('screen-game').classList.add('hidden');
+  el('screen-end').classList.remove('hidden');
+  const pct = state.correctCount / state.questions.length;
+  let stars = pct>=0.9 ? 3 : pct>=0.7 ? 2 : pct>=0.5 ? 1 : 0;
+  el('starsEl').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  el('resultSub').textContent = `${state.correctCount} / ${state.questions.length} correct · ${state.score} points`;
+  const msgs = [
+    "B33P is ready to explore the human world!",
+    "Great practice — try another mission!",
+    "Every mistake helps B33P learn faster!",
+    "Keep going, you're building a great routine!"
+  ];
+  el('resultMsg').textContent = stars>=2 ? "Mission complete! 🚀" : "Mission finished — keep practicing!";
+  say(msgs[Math.floor(Math.random()*msgs.length)]);
+  if(stars===3){ playWin(); confettiBurst(18); setRobot('state-happy'); }
+}
+
+function backToStart(){
+  el('screen-end').classList.add('hidden');
+  el('screen-start').classList.remove('hidden');
+  say("Ready for another mission? Pick one below!");
+}
+
+/* ================= CONFETTI ================= */
+function confettiBurst(n=10){
+  let layer = document.getElementById('confettiLayer');
+  if(!layer){
+    layer = document.createElement('div');
+    layer.id = 'confettiLayer';
+    layer.className = 'confetti-layer';
+    document.body.appendChild(layer);
+  }
+  const emojis = ['✨','⭐','🎉','💫','🟡','🔵'];
+  for(let i=0;i<n;i++){
+    const s = document.createElement('span');
+    s.className = 'confetti-piece';
+    s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left = Math.random()*100+'vw';
+    s.style.animationDuration = (0.8+Math.random()*0.8)+'s';
+    s.style.fontSize = (0.9+Math.random()*0.8)+'rem';
+    layer.appendChild(s);
+    setTimeout(()=>s.remove(), 1800);
+  }
+}
+
+/* ================= NOTEBOOK MODAL ================= */
+function openNotebook(){ el('notebookBg').classList.add('open'); playClick(); }
+function closeNotebook(){ el('notebookBg').classList.remove('open'); }
+el('notebookBg').addEventListener('click', (e)=>{ if(e.target.id==='notebookBg') closeNotebook(); });
+</script>
+</body>
+</html>
