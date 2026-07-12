@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Trivia de Tablas - Vidas</title>
+<style>
+  :root{
+    --bg1:#1b1140; --bg2:#3a1e6d; --bg3:#6a2c91;
+    --card:#241455; --card-light:#33217a;
+    --accent:#ffd23f; --accent2:#ff5d8f; --green:#3ddc84; --red:#ff5d5d;
+    --ink:#fff;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;font-family:'Segoe UI',Verdana,sans-serif;overflow:hidden;
+    background:radial-gradient(circle at 30% 20%,var(--bg3),var(--bg2) 45%,var(--bg1) 90%); color:var(--ink);}
+  #stars{position:fixed;inset:0;z-index:0;}
+  .star{position:absolute;background:#fff;border-radius:50%;opacity:.7;animation:tw 2.5s infinite ease-in-out;}
+  @keyframes tw{0%,100%{opacity:.2;}50%{opacity:1;}}
+
+  #app{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;}
+  #topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;}
+  .pill{background:rgba(255,255,255,.12);border-radius:20px;padding:6px 14px;font-weight:700;font-size:14px;}
+  #muteBtn{background:rgba(255,255,255,.12);border:none;border-radius:50%;width:40px;height:40px;font-size:18px;color:#fff;cursor:pointer;}
+
+  .screen{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:16px;text-align:center;}
+  .screen.active{display:flex;}
+
+  h1{font-size:clamp(24px,7vw,38px);margin:0 0 6px;}
+  .subtitle{opacity:.8;font-size:14px;max-width:420px;margin-bottom:16px;}
+
+  .card{background:var(--card);border-radius:22px;padding:20px;max-width:460px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.4);}
+
+  .mode-row{display:flex;gap:10px;margin-bottom:16px;}
+  .mode-btn{flex:1;padding:14px 6px;border-radius:14px;border:2px solid var(--card-light);background:var(--card-light);color:#fff;font-weight:700;cursor:pointer;font-size:14px;}
+  .mode-btn.selected{border-color:var(--accent);background:linear-gradient(135deg,var(--accent2),var(--accent));color:#241455;}
+
+  .tables-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0;}
+  .table-chip{padding:10px 0;border-radius:12px;border:2px solid var(--card-light);background:var(--card-light);font-weight:800;font-size:16px;cursor:pointer;color:#fff;}
+  .table-chip.selected{background:var(--green);border-color:var(--green);color:#0d2b1a;}
+  .row-btns{display:flex;gap:8px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;}
+  .mini-btn{padding:8px 14px;border-radius:12px;border:none;background:rgba(255,255,255,.15);font-weight:700;cursor:pointer;color:#fff;font-size:13px;}
+
+  .big-btn{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#241455;border:none;border-radius:18px;padding:16px 34px;font-size:19px;font-weight:900;cursor:pointer;box-shadow:0 6px 0 #a83a5f; margin-top:6px;}
+  .big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #a83a5f;}
+
+  /* Game */
+  #gameScreen{justify-content:flex-start;padding-top:10px;}
+  #hearts{display:flex;gap:6px;font-size:26px;margin-bottom:6px;}
+  .heart.lost{filter:grayscale(1);opacity:.3;}
+  #hud2{display:flex;gap:16px;font-weight:700;font-size:14px;opacity:.9;margin-bottom:10px;}
+
+  #question{font-size:clamp(34px,10vw,58px);font-weight:900;margin:18px 0 24px;}
+
+  #options{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:420px;}
+  .opt-btn{padding:20px 8px;font-size:26px;font-weight:800;border-radius:18px;border:none;background:var(--card-light);color:#fff;box-shadow:0 5px 0 #1a0f42;cursor:pointer;}
+  .opt-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #1a0f42;}
+  .opt-btn.correct{background:var(--green);color:#0d2b1a;box-shadow:0 5px 0 #1c7a4e;}
+  .opt-btn.wrong{background:var(--red);color:#3a0000;box-shadow:0 5px 0 #a12e2e;}
+
+  /* Expert mode keypad */
+  #answerDisplay{font-size:44px;font-weight:900;min-height:60px;background:var(--card-light);border-radius:16px;padding:6px 20px;margin-bottom:16px;min-width:140px;}
+  #keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;width:100%;}
+  .key-btn{padding:16px 0;font-size:24px;font-weight:800;border-radius:14px;border:none;background:var(--card-light);color:#fff;box-shadow:0 4px 0 #1a0f42;cursor:pointer;}
+  .key-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #1a0f42;}
+  .key-btn.ok{background:var(--green);color:#0d2b1a;box-shadow:0 4px 0 #1c7a4e;}
+  .key-btn.del{background:var(--red);color:#3a0000;box-shadow:0 4px 0 #a12e2e;}
+
+  .stats{display:flex;gap:16px;justify-content:center;margin:14px 0;flex-wrap:wrap;}
+  .stat{background:var(--card-light);border-radius:14px;padding:10px 18px;}
+  .stat b{display:block;font-size:24px;}
+  .stat span{font-size:12px;opacity:.7;}
+
+  #confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:50;}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div id="app">
+  <div id="topbar">
+    <div class="pill">💜 Trivia de Tablas</div>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <!-- START -->
+  <div class="screen active" id="startScreen">
+    <h1>Trivia con Vidas</h1>
+    <p class="subtitle">Respondé bien las multiplicaciones antes de quedarte sin corazones. ¡En Modo Experto tenés que escribir vos el resultado!</p>
+    <div class="card">
+      <div class="mode-row">
+        <button class="mode-btn selected" data-mode="multiple" id="modeMultiple">🔘 Selección múltiple</button>
+        <button class="mode-btn" data-mode="expert" id="modeExpert">✍️ Modo Experto</button>
+      </div>
+      <div class="row-btns">
+        <button class="mini-btn" id="selAll">Todas (2-12)</button>
+        <button class="mini-btn" id="selFacil">Fáciles (2,5,10)</button>
+        <button class="mini-btn" id="selNone">Ninguna</button>
+      </div>
+      <div class="tables-grid" id="tablesGrid"></div>
+      <button class="big-btn" id="startBtn">¡Empezar! 💫</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="gameScreen">
+    <div id="hearts"></div>
+    <div id="hud2">
+      <span id="hudScore">Puntos: 0</span>
+      <span id="hudStreak">🔥 Racha: 0</span>
+    </div>
+    <div id="question">6 × 7</div>
+    <div id="options"></div>
+    <div id="expertArea" style="display:none;flex-direction:column;align-items:center;">
+      <div id="answerDisplay">&nbsp;</div>
+      <div id="keypad"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="resultScreen">
+    <div style="font-size:70px;">💔</div>
+    <h1>¡Se acabaron las vidas!</h1>
+    <p class="subtitle" id="resultMsg">Buen intento, seguí practicando.</p>
+    <div class="stats">
+      <div class="stat"><b id="statScore">0</b><span>Respuestas correctas</span></div>
+      <div class="stat"><b id="statBest">0</b><span>Mejor racha</span></div>
+    </div>
+    <button class="big-btn" id="retryBtn">Jugar de nuevo</button>
+  </div>
+</div>
+<canvas id="confettiCanvas"></canvas>
+
+<script>
+/* Estrellas de fondo */
+const starsDiv = document.getElementById('stars');
+for(let i=0;i<60;i++){
+  const s = document.createElement('div');
+  s.className='star';
+  const size = Math.random()*2.5+1;
+  s.style.width=size+'px'; s.style.height=size+'px';
+  s.style.left = Math.random()*100+'%';
+  s.style.top = Math.random()*100+'%';
+  s.style.animationDelay = (Math.random()*2.5)+'s';
+  starsDiv.appendChild(s);
+}
+
+/* Sonido */
+let audioCtx=null;
+let muted = localStorage.getItem('trivia_muted')==='1';
+function ctx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function beep(freq,dur,type='sine',vol=.2,delay=0){
+  if(muted) return;
+  const c=ctx(); const o=c.createOscillator(); const g=c.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=vol;
+  o.connect(g); g.connect(c.destination);
+  const t=c.currentTime+delay;
+  o.start(t); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.stop(t+dur+.02);
+}
+function sndCorrect(){ beep(660,.12,'sine',.25); beep(880,.14,'sine',.2,.08); }
+function sndWrong(){ beep(160,.3,'sawtooth',.22); }
+function sndLoseHeart(){ beep(120,.35,'square',.18); }
+function sndGameOver(){ [400,320,260,200].forEach((f,i)=>beep(f,.25,'triangle',.2,i*.15)); }
+function sndMilestone(){ [523,659,784,1047].forEach((f,i)=>beep(f,.18,'triangle',.2,i*.1)); }
+document.getElementById('muteBtn').onclick=()=>{
+  muted=!muted; localStorage.setItem('trivia_muted', muted?'1':'0');
+  document.getElementById('muteBtn').textContent = muted?'🔇':'🔊';
+};
+document.getElementById('muteBtn').textContent = muted?'🔇':'🔊';
+
+/* Estado */
+let mode = 'multiple';
+let selectedTables = new Set([2,3,4,5,6,7,8,9,10,11,12]);
+let hearts = 3;
+let score = 0, streak = 0, bestStreak = 0;
+let currentQ = null;
+let expertInput = '';
+
+/* Selección de modo */
+document.getElementById('modeMultiple').onclick=()=>{
+  mode='multiple';
+  document.getElementById('modeMultiple').classList.add('selected');
+  document.getElementById('modeExpert').classList.remove('selected');
+};
+document.getElementById('modeExpert').onclick=()=>{
+  mode='expert';
+  document.getElementById('modeExpert').classList.add('selected');
+  document.getElementById('modeMultiple').classList.remove('selected');
+};
+
+/* Grilla de tablas */
+const tablesGrid = document.getElementById('tablesGrid');
+for(let n=2;n<=12;n++){
+  const btn=document.createElement('button');
+  btn.className='table-chip selected'; btn.textContent=n; btn.dataset.n=n;
+  btn.onclick=()=>{
+    if(selectedTables.has(n)){selectedTables.delete(n); btn.classList.remove('selected');}
+    else{selectedTables.add(n); btn.classList.add('selected');}
+  };
+  tablesGrid.appendChild(btn);
+}
+document.getElementById('selAll').onclick=()=>{
+  selectedTables=new Set([2,3,4,5,6,7,8,9,10,11,12]);
+  document.querySelectorAll('.table-chip').forEach(b=>b.classList.add('selected'));
+};
+document.getElementById('selFacil').onclick=()=>{
+  selectedTables=new Set([2,5,10]);
+  document.querySelectorAll('.table-chip').forEach(b=>b.classList.toggle('selected', selectedTables.has(Number(b.dataset.n))));
+};
+document.getElementById('selNone').onclick=()=>{
+  selectedTables=new Set();
+  document.querySelectorAll('.table-chip').forEach(b=>b.classList.remove('selected'));
+};
+
+/* Teclado modo experto */
+const keypad = document.getElementById('keypad');
+const keys = ['1','2','3','4','5','6','7','8','9','del','0','ok'];
+keys.forEach(k=>{
+  const b=document.createElement('button');
+  b.className='key-btn'+(k==='ok'?' ok':k==='del'?' del':'');
+  b.textContent = k==='del' ? '⌫' : k==='ok' ? '✓' : k;
+  b.onclick=()=>{
+    if(k==='del'){ expertInput = expertInput.slice(0,-1); }
+    else if(k==='ok'){ submitExpertAnswer(); return; }
+    else { if(expertInput.length<3) expertInput += k; }
+    document.getElementById('answerDisplay').textContent = expertInput || '\u00A0';
+  };
+  keypad.appendChild(b);
+});
+
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function genOptions(a,b,correct){
+  const set=new Set([correct]);
+  const candidates=[a*(b+1),a*(b-1),(a+1)*b,(a-1)*b,correct+a,correct-a,correct+b,correct-b,a+b];
+  candidates.sort(()=>Math.random()-.5);
+  for(const c of candidates){ if(set.size>=4) break; if(c>0 && c!==correct) set.add(c); }
+  while(set.size<4){ const r=correct+randInt(-8,8); if(r>0) set.add(r); }
+  return [...set].sort(()=>Math.random()-.5);
+}
+
+function newQuestion(){
+  const tables=[...selectedTables];
+  if(tables.length===0) tables.push(2,3,4,5);
+  const a = tables[randInt(0,tables.length-1)];
+  const b = randInt(1,12);
+  currentQ = {a,b,correct:a*b, options: genOptions(a,b,a*b)};
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderHearts(){
+  const div = document.getElementById('hearts');
+  div.innerHTML='';
+  for(let i=0;i<3;i++){
+    const s = document.createElement('span');
+    s.className = 'heart' + (i<hearts?'':' lost');
+    s.textContent = '❤️';
+    div.appendChild(s);
+  }
+}
+
+document.getElementById('startBtn').onclick=()=>{
+  hearts=3; score=0; streak=0; bestStreak=0;
+  renderHearts();
+  document.getElementById('hudScore').textContent='Puntos: 0';
+  document.getElementById('hudStreak').textContent='🔥 Racha: 0';
+  document.getElementById('options').style.display = mode==='multiple' ? 'grid' : 'none';
+  document.getElementById('expertArea').style.display = mode==='expert' ? 'flex' : 'none';
+  showScreen('gameScreen');
+  askQuestion();
+};
+document.getElementById('retryBtn').onclick=()=> showScreen('startScreen');
+
+function askQuestion(){
+  newQuestion();
+  document.getElementById('question').textContent = `${currentQ.a} × ${currentQ.b}`;
+  if(mode==='multiple'){
+    const optsDiv = document.getElementById('options');
+    optsDiv.innerHTML='';
+    currentQ.options.forEach(opt=>{
+      const b=document.createElement('button');
+      b.className='opt-btn'; b.textContent=opt;
+      b.onclick=()=>answerMultiple(opt,b);
+      optsDiv.appendChild(b);
+    });
+  } else {
+    expertInput='';
+    document.getElementById('answerDisplay').textContent='\u00A0';
+  }
+}
+
+function registerResult(isCorrect){
+  if(isCorrect){
+    score++; streak++; bestStreak=Math.max(bestStreak,streak);
+    document.getElementById('hudScore').textContent = `Puntos: ${score}`;
+    document.getElementById('hudStreak').textContent = `🔥 Racha: ${streak}`;
+    sndCorrect();
+    if(streak>0 && streak%5===0) sndMilestone();
+  } else {
+    streak=0;
+    hearts--;
+    renderHearts();
+    document.getElementById('hudStreak').textContent = `🔥 Racha: 0`;
+    sndWrong();
+    sndLoseHeart();
+  }
+}
+
+function answerMultiple(opt, btn){
+  document.querySelectorAll('.opt-btn').forEach(b=>b.onclick=null);
+  const isCorrect = opt===currentQ.correct;
+  if(isCorrect){ btn.classList.add('correct'); }
+  else{
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt-btn').forEach(b=>{ if(Number(b.textContent)===currentQ.correct) b.classList.add('correct'); });
+  }
+  registerResult(isCorrect);
+  setTimeout(()=>{
+    if(hearts<=0) finishGame();
+    else askQuestion();
+  }, 700);
+}
+
+function submitExpertAnswer(){
+  if(expertInput==='') return;
+  const val = Number(expertInput);
+  const isCorrect = val === currentQ.correct;
+  document.getElementById('answerDisplay').style.color = isCorrect ? '#3ddc84' : '#ff5d5d';
+  if(!isCorrect){
+    document.getElementById('answerDisplay').textContent = `${expertInput} (era ${currentQ.correct})`;
+  }
+  registerResult(isCorrect);
+  setTimeout(()=>{
+    document.getElementById('answerDisplay').style.color='';
+    if(hearts<=0) finishGame();
+    else askQuestion();
+  }, 900);
+}
+
+function finishGame(){
+  document.getElementById('statScore').textContent = score;
+  document.getElementById('statBest').textContent = bestStreak;
+  let msg = 'Buen intento, seguí practicando.';
+  if(score>=20) msg='¡Impresionante puntaje! Sos una máquina de multiplicar.';
+  else if(score>=10) msg='¡Muy bien! Cada vez más rápido con las tablas.';
+  document.getElementById('resultMsg').textContent = msg;
+  showScreen('resultScreen');
+  sndGameOver();
+  if(score>=15) launchConfetti();
+}
+
+/* Confetti */
+const confettiCanvas = document.getElementById('confettiCanvas');
+const cctx = confettiCanvas.getContext('2d');
+function resizeCanvas(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
+function launchConfetti(){
+  const colors=['#ffd23f','#ff5d8f','#3ddc84','#5da8ff'];
+  const pieces = Array.from({length:110},()=>({
+    x:Math.random()*confettiCanvas.width, y:-20-Math.random()*200,
+    w:6+Math.random()*6, h:8+Math.random()*8, speed:2+Math.random()*3,
+    rot:Math.random()*360, rotSpeed:(Math.random()-.5)*10,
+    color:colors[randInt(0,colors.length-1)]
+  }));
+  let frame=0;
+  function loop(){
+    frame++;
+    cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+    let alive=false;
+    pieces.forEach(p=>{
+      p.y+=p.speed; p.rot+=p.rotSpeed;
+      if(p.y<confettiCanvas.height+20) alive=true;
+      cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot*Math.PI/180);
+      cctx.fillStyle=p.color; cctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); cctx.restore();
+    });
+    if(alive && frame<260) requestAnimationFrame(loop);
+    else cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  }
+  loop();
+}
+</script>
+</body>
+</html>

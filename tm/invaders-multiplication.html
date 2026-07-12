@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Invasores de las Tablas</title>
+<style>
+  :root{
+    --bg1:#02030f; --bg2:#0a1029; --nebula:#241a4d;
+    --accent:#33e1ff; --accent2:#ff3d7f; --green:#3ddc84; --red:#ff5d5d; --gold:#ffd23f;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{margin:0;height:100%;font-family:'Segoe UI',Verdana,sans-serif;overflow:hidden;background:var(--bg1);color:#fff;}
+  #stars{position:fixed;inset:0;z-index:0;}
+  .star{position:absolute;background:#fff;border-radius:50%;animation:tw 3s infinite ease-in-out;}
+  @keyframes tw{0%,100%{opacity:.2;}50%{opacity:1;}}
+
+  #app{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;}
+  #topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;}
+  .pill{background:rgba(255,255,255,.1);border-radius:20px;padding:6px 14px;font-weight:700;font-size:13px;}
+  #muteBtn{background:rgba(255,255,255,.1);border:none;border-radius:50%;width:38px;height:38px;font-size:17px;color:#fff;cursor:pointer;}
+
+  .screen{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:14px;text-align:center;}
+  .screen.active{display:flex;}
+  h1{font-size:clamp(22px,7vw,36px);margin:0 0 6px; text-shadow:0 0 12px var(--accent);}
+  .subtitle{opacity:.8;font-size:14px;max-width:420px;margin-bottom:14px;}
+  .card{background:rgba(20,16,50,.9);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:18px;max-width:460px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.5);}
+
+  .tables-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;}
+  .table-chip{padding:10px 0;border-radius:12px;border:2px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);font-weight:800;font-size:15px;cursor:pointer;color:#fff;}
+  .table-chip.selected{background:var(--accent);border-color:var(--accent);color:#031018;}
+  .row-btns{display:flex;gap:8px;justify-content:center;margin-bottom:10px;flex-wrap:wrap;}
+  .mini-btn{padding:8px 14px;border-radius:12px;border:none;background:rgba(255,255,255,.1);font-weight:700;cursor:pointer;color:#fff;font-size:12px;}
+  .big-btn{background:linear-gradient(135deg,var(--accent2),var(--gold));color:#1a0a20;border:none;border-radius:18px;padding:15px 32px;font-size:18px;font-weight:900;cursor:pointer;box-shadow:0 6px 0 #a13a5f;margin-top:6px;}
+  .big-btn:active{transform:translateY(4px);box-shadow:0 2px 0 #a13a5f;}
+
+  /* Game */
+  #gameScreen{justify-content:flex-start;padding:8px;}
+  #gameHud{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:560px;margin-bottom:6px;font-weight:800;font-size:14px;}
+  #lives{font-size:22px;letter-spacing:4px;}
+  #questionBar{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:14px;
+    padding:10px 20px;font-size:clamp(24px,7vw,36px);font-weight:900;margin-bottom:8px;color:var(--gold);
+    text-shadow:0 0 10px rgba(255,210,63,.6);
+  }
+  #playfield{
+    position:relative;width:100%;max-width:560px;flex:1;min-height:280px;
+    background:linear-gradient(180deg,rgba(36,26,77,.4),rgba(2,3,15,.6));
+    border:1px solid rgba(255,255,255,.1);border-radius:16px;overflow:hidden;
+  }
+  .danger-line{position:absolute;bottom:46px;left:0;right:0;height:2px;background:repeating-linear-gradient(90deg,rgba(255,61,127,.7) 0 10px,transparent 10px 20px);}
+  .ship{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:34px;filter:drop-shadow(0 0 8px var(--accent));}
+  .invader{
+    position:absolute;top:-60px;width:56px;height:56px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;
+    background:radial-gradient(circle at 35% 30%,#4d3a99,#241a4d);
+    border:2px solid var(--accent); color:#fff; cursor:pointer;
+    box-shadow:0 0 14px rgba(51,225,255,.5);
+  }
+  .invader.correctFlash{background:var(--green)!important;border-color:#1c7a4e;box-shadow:0 0 20px var(--green);}
+  .invader.wrongFlash{background:var(--red)!important;border-color:#a12e2e;box-shadow:0 0 20px var(--red);}
+  .explosion{position:absolute;font-size:36px;pointer-events:none;animation:pop .5s ease forwards;}
+  @keyframes pop{0%{transform:scale(.4);opacity:1;}100%{transform:scale(1.6);opacity:0;}}
+
+  .stats{display:flex;gap:16px;justify-content:center;margin:14px 0;flex-wrap:wrap;}
+  .stat{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 18px;}
+  .stat b{display:block;font-size:24px;}
+  .stat span{font-size:12px;opacity:.7;}
+
+  #confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:50;}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div id="app">
+  <div id="topbar">
+    <div class="pill">👾 Invasores</div>
+    <button id="muteBtn">🔊</button>
+  </div>
+
+  <!-- START -->
+  <div class="screen active" id="startScreen">
+    <h1>Invasores de las Tablas</h1>
+    <p class="subtitle">Tocá el número correcto antes de que cruce la línea roja. ¡La velocidad sube a medida que sumás puntos!</p>
+    <div class="card">
+      <div class="row-btns">
+        <button class="mini-btn" id="selAll">Todas (2-12)</button>
+        <button class="mini-btn" id="selFacil">Fáciles (2,5,10)</button>
+        <button class="mini-btn" id="selNone">Ninguna</button>
+      </div>
+      <div class="tables-grid" id="tablesGrid"></div>
+      <button class="big-btn" id="startBtn">¡Despegar! 🚀</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="gameScreen">
+    <div id="gameHud">
+      <span id="lives">🚀🚀🚀</span>
+      <span id="hudScore">Puntos: 0</span>
+      <span id="hudLevel">Nivel 1</span>
+    </div>
+    <div id="questionBar">6 × 7 = ?</div>
+    <div id="playfield">
+      <div class="danger-line"></div>
+      <div class="ship">🛰️</div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="resultScreen">
+    <div style="font-size:70px;">🛸💥</div>
+    <h1>¡Invasión terminada!</h1>
+    <p class="subtitle" id="resultMsg">Buen trabajo, comandante.</p>
+    <div class="stats">
+      <div class="stat"><b id="statScore">0</b><span>Puntos</span></div>
+      <div class="stat"><b id="statLevel">1</b><span>Nivel alcanzado</span></div>
+    </div>
+    <button class="big-btn" id="retryBtn">Jugar de nuevo</button>
+  </div>
+</div>
+<canvas id="confettiCanvas"></canvas>
+
+<script>
+/* Estrellas */
+const starsDiv=document.getElementById('stars');
+for(let i=0;i<80;i++){
+  const s=document.createElement('div'); s.className='star';
+  const size=Math.random()*2+1;
+  s.style.width=size+'px'; s.style.height=size+'px';
+  s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*100+'%';
+  s.style.animationDelay=(Math.random()*3)+'s';
+  starsDiv.appendChild(s);
+}
+
+/* Sonido */
+let audioCtx=null;
+let muted = localStorage.getItem('invasores_muted')==='1';
+function ctx(){ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+function beep(freq,dur,type='sine',vol=.2,delay=0){
+  if(muted) return;
+  const c=ctx(); const o=c.createOscillator(); const g=c.createGain();
+  o.type=type; o.frequency.value=freq; g.gain.value=vol;
+  o.connect(g); g.connect(c.destination);
+  const t=c.currentTime+delay;
+  o.start(t); g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.stop(t+dur+.02);
+}
+function sndShootOk(){ beep(880,.08,'square',.2); beep(1200,.1,'square',.15,.05); }
+function sndShootWrong(){ beep(140,.25,'sawtooth',.2); }
+function sndMiss(){ beep(100,.3,'square',.2); }
+function sndLevelUp(){ [523,659,784,1047].forEach((f,i)=>beep(f,.16,'triangle',.2,i*.1)); }
+function sndGameOver(){ [400,320,260,180].forEach((f,i)=>beep(f,.25,'triangle',.2,i*.15)); }
+document.getElementById('muteBtn').onclick=()=>{
+  muted=!muted; localStorage.setItem('invasores_muted', muted?'1':'0');
+  document.getElementById('muteBtn').textContent = muted?'🔇':'🔊';
+};
+document.getElementById('muteBtn').textContent = muted?'🔇':'🔊';
+
+/* Estado */
+let selectedTables = new Set([2,3,4,5,6,7,8,9,10,11,12]);
+let lives=3, score=0, level=1;
+let currentQ=null;
+let invaders=[];
+let rafId=null;
+let lastTime=0;
+let playing=false;
+
+const tablesGrid=document.getElementById('tablesGrid');
+for(let n=2;n<=12;n++){
+  const btn=document.createElement('button');
+  btn.className='table-chip selected'; btn.textContent=n; btn.dataset.n=n;
+  btn.onclick=()=>{
+    if(selectedTables.has(n)){selectedTables.delete(n); btn.classList.remove('selected');}
+    else{selectedTables.add(n); btn.classList.add('selected');}
+  };
+  tablesGrid.appendChild(btn);
+}
+document.getElementById('selAll').onclick=()=>{
+  selectedTables=new Set([2,3,4,5,6,7,8,9,10,11,12]);
+  document.querySelectorAll('.table-chip').forEach(b=>b.classList.add('selected'));
+};
+document.getElementById('selFacil').onclick=()=>{
+  selectedTables=new Set([2,5,10]);
+  document.querySelectorAll('.table-chip').forEach(b=>b.classList.toggle('selected', selectedTables.has(Number(b.dataset.n))));
+};
+document.getElementById('selNone').onclick=()=>{
+  selectedTables=new Set();
+  document.querySelectorAll('.table-chip').forEach(b=>b.classList.remove('selected'));
+};
+
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function genWrongs(a,b,correct,count){
+  const set=new Set();
+  const candidates=[a*(b+1),a*(b-1),(a+1)*b,(a-1)*b,correct+a,correct-a,correct+b,correct-b,a+b];
+  candidates.sort(()=>Math.random()-.5);
+  for(const c of candidates){ if(set.size>=count) break; if(c>0 && c!==correct) set.add(c); }
+  while(set.size<count){ const r=correct+randInt(-9,9); if(r>0 && r!==correct) set.add(r); }
+  return [...set];
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderLives(){
+  document.getElementById('lives').textContent = '🚀'.repeat(Math.max(lives,0)) + '　'.repeat(3-Math.max(lives,0));
+}
+
+document.getElementById('startBtn').onclick=()=>{
+  lives=3; score=0; level=1;
+  renderLives();
+  document.getElementById('hudScore').textContent='Puntos: 0';
+  document.getElementById('hudLevel').textContent='Nivel 1';
+  showScreen('gameScreen');
+  playing=true;
+  spawnRound();
+  lastTime=performance.now();
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId=requestAnimationFrame(loop);
+};
+document.getElementById('retryBtn').onclick=()=> showScreen('startScreen');
+
+function currentFallSpeed(){
+  // px per second, increases with level
+  return 40 + (level-1)*12;
+}
+
+function spawnRound(){
+  const playfield=document.getElementById('playfield');
+  document.querySelectorAll('.invader').forEach(el=>el.remove());
+  invaders=[];
+
+  const tables=[...selectedTables];
+  if(tables.length===0) tables.push(2,3,4,5);
+  const a=tables[randInt(0,tables.length-1)];
+  const b=randInt(1,12);
+  const correct=a*b;
+  currentQ={a,b,correct};
+  document.getElementById('questionBar').textContent = `${a} × ${b} = ?`;
+
+  const numWrong = level<3 ? 2 : 3;
+  const wrongs = genWrongs(a,b,correct,numWrong);
+  const values = [correct, ...wrongs].sort(()=>Math.random()-.5);
+
+  const fw = playfield.clientWidth;
+  const slotW = fw/values.length;
+  values.forEach((val,i)=>{
+    const el=document.createElement('div');
+    el.className='invader';
+    el.textContent=val;
+    const x = slotW*i + slotW/2 - 28 + (Math.random()*16-8);
+    el.style.left = Math.max(4,Math.min(fw-60,x))+'px';
+    el.style.top='-60px';
+    el.onclick=()=>hitInvader(inv, el);
+    playfield.appendChild(el);
+    const inv = {el, y:-60, x:parseFloat(el.style.left), correct: val===correct, value:val, speed: currentFallSpeed()*(0.9+Math.random()*0.3)};
+    el.onclick=()=>hitInvader(inv, el);
+    invaders.push(inv);
+  });
+}
+
+function explode(x,y,emoji){
+  const playfield=document.getElementById('playfield');
+  const ex=document.createElement('div');
+  ex.className='explosion'; ex.textContent=emoji;
+  ex.style.left=x+'px'; ex.style.top=y+'px';
+  playfield.appendChild(ex);
+  setTimeout(()=>ex.remove(),500);
+}
+
+function hitInvader(inv, el){
+  if(!playing || inv.hit) return;
+  inv.hit=true;
+  if(inv.correct){
+    el.classList.add('correctFlash');
+    sndShootOk();
+    score++;
+    document.getElementById('hudScore').textContent=`Puntos: ${score}`;
+    explode(inv.x+10, inv.y+10, '✨');
+    const newLevel = Math.floor(score/5)+1;
+    if(newLevel!==level){ level=newLevel; document.getElementById('hudLevel').textContent=`Nivel ${level}`; sndLevelUp(); }
+    setTimeout(()=>{ if(playing) spawnRound(); }, 400);
+  } else {
+    el.classList.add('wrongFlash');
+    sndShootWrong();
+    explode(inv.x+10, inv.y+10, '💢');
+    loseLife();
+    setTimeout(()=>{ el.remove(); invaders=invaders.filter(i=>i!==inv); },300);
+  }
+}
+
+function loseLife(){
+  lives--;
+  renderLives();
+  if(lives<=0){ endGame(); }
+}
+
+function loop(ts){
+  if(!playing) return;
+  const dt = (ts-lastTime)/1000;
+  lastTime=ts;
+  const playfield=document.getElementById('playfield');
+  const dangerY = playfield.clientHeight - 46;
+
+  invaders.forEach(inv=>{
+    if(inv.hit) return;
+    inv.y += inv.speed*dt;
+    inv.el.style.top = inv.y+'px';
+    if(inv.y >= dangerY && !inv.passed){
+      inv.passed=true;
+      if(inv.correct){
+        sndMiss();
+        explode(inv.x+10, dangerY, '💥');
+        inv.el.remove();
+        loseLife();
+        if(playing) setTimeout(()=>{ if(playing) spawnRound(); }, 500);
+      } else {
+        inv.el.remove();
+      }
+    }
+  });
+
+  rafId=requestAnimationFrame(loop);
+}
+
+function endGame(){
+  playing=false;
+  if(rafId) cancelAnimationFrame(rafId);
+  document.querySelectorAll('.invader').forEach(el=>el.remove());
+  document.getElementById('statScore').textContent=score;
+  document.getElementById('statLevel').textContent=level;
+  let msg='Buen trabajo, comandante.';
+  if(score>=20) msg='¡Impresionante! Defendiste la galaxia como un experto en tablas.';
+  else if(score>=10) msg='¡Muy bien! Cada vez más rápido esquivando invasores.';
+  document.getElementById('resultMsg').textContent=msg;
+  showScreen('resultScreen');
+  sndGameOver();
+  if(score>=15) launchConfetti();
+}
+
+/* Confetti */
+const confettiCanvas=document.getElementById('confettiCanvas');
+const cctx=confettiCanvas.getContext('2d');
+function resizeCanvas(){ confettiCanvas.width=innerWidth; confettiCanvas.height=innerHeight; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
+function launchConfetti(){
+  const colors=['#33e1ff','#ff3d7f','#3ddc84','#ffd23f'];
+  const pieces=Array.from({length:110},()=>({
+    x:Math.random()*confettiCanvas.width, y:-20-Math.random()*200,
+    w:6+Math.random()*6, h:8+Math.random()*8, speed:2+Math.random()*3,
+    rot:Math.random()*360, rotSpeed:(Math.random()-.5)*10,
+    color:colors[randInt(0,colors.length-1)]
+  }));
+  let frame=0;
+  function loopC(){
+    frame++;
+    cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+    let alive=false;
+    pieces.forEach(p=>{
+      p.y+=p.speed; p.rot+=p.rotSpeed;
+      if(p.y<confettiCanvas.height+20) alive=true;
+      cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot*Math.PI/180);
+      cctx.fillStyle=p.color; cctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); cctx.restore();
+    });
+    if(alive && frame<260) requestAnimationFrame(loopC);
+    else cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  }
+  loopC();
+}
+</script>
+</body>
+</html>
