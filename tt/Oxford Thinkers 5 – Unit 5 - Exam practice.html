@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thinkers 5 – Exam practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#F4EFFF; --surface:#FFFFFF; --ink:#24164A; --muted:#6A5F8A;
+  --primary:#6B3FD4; --primary-2:#8C66F0; --on-primary:#FFFFFF;
+  --accent:#FF8A1F; --accent-soft:#FFE8D2; --on-accent:#2B1400;
+  --good:#138A5A; --good-soft:#DCF4E8; --bad:#C92F45; --bad-soft:#FBE1E5;
+  --line:#E2D8F8; --chip:#ECE5FC;
+  --road:#8E88A6; --block:#ECE6FB; --grass:#A6DCAE;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#170F2C; --surface:#231840; --ink:#EEE8FF; --muted:#B3A8D6;
+    --primary:#A88BFF; --primary-2:#C3AEFF; --on-primary:#1A1033;
+    --accent:#FF9E45; --accent-soft:#3D2614; --on-accent:#2B1400;
+    --good:#4FD39A; --good-soft:#163829; --bad:#FF7A8C; --bad-soft:#40182A;
+    --line:#3A2C63; --chip:#2F2254;
+    --road:#5E5880; --block:#2E2350; --grass:#2F6B43;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#170F2C; --surface:#231840; --ink:#EEE8FF; --muted:#B3A8D6;
+  --primary:#A88BFF; --primary-2:#C3AEFF; --on-primary:#1A1033;
+  --accent:#FF9E45; --accent-soft:#3D2614; --on-accent:#2B1400;
+  --good:#4FD39A; --good-soft:#163829; --bad:#FF7A8C; --bad-soft:#40182A;
+  --line:#3A2C63; --chip:#2F2254;
+  --road:#5E5880; --block:#2E2350; --grass:#2F6B43;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:17px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.display{font-family:'Fredoka','Nunito',system-ui,sans-serif; font-weight:600}
+button{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:12px}
+.wrap{max-width:780px; margin:0 auto; padding:16px 18px 56px}
+
+/* top bar */
+.top{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 0 8px}
+.brand{display:flex; align-items:center; gap:10px; background:none; border:0; cursor:pointer; padding:4px 0;
+  font-family:'Fredoka',sans-serif; font-weight:700; font-size:1.1rem; color:var(--primary)}
+.brand .logo{width:40px; height:40px; border-radius:13px; background:var(--primary); color:var(--on-primary);
+  display:grid; place-items:center; font-size:1.25rem; transform:rotate(-6deg)}
+.iconbtn{width:44px; height:44px; border-radius:14px; border:2px solid var(--line); background:var(--surface);
+  cursor:pointer; font-size:1.2rem; display:grid; place-items:center}
+
+/* home */
+.hero{padding:22px 0 8px}
+.hero h1{font-size:clamp(2.2rem,7vw,3.4rem); line-height:1.02; margin:0 0 12px; color:var(--ink); letter-spacing:-.5px}
+.hero h1 .five{display:inline-grid; place-items:center; width:1.15em; height:1.15em; border-radius:.32em;
+  background:var(--accent); color:var(--on-accent); transform:rotate(5deg); margin-left:.08em}
+.hero p{color:var(--muted); margin:0 0 22px; max-width:58ch}
+.exam-card{width:100%; display:flex; align-items:center; gap:16px; text-align:left; cursor:pointer;
+  background:var(--accent); color:var(--on-accent); border:0; border-radius:26px; padding:20px 22px;
+  box-shadow:0 6px 0 #C4600B}
+.exam-card:active{transform:translateY(3px); box-shadow:0 3px 0 #C4600B}
+.exam-card .big{font-size:2.4rem}
+.exam-card .t{display:block; font-family:'Fredoka',sans-serif; font-size:1.45rem; font-weight:700; line-height:1.1}
+.exam-card .s{display:block; font-weight:600; opacity:.85}
+.exam-card .stars{margin-left:auto; font-size:1.3rem}
+.section-title{font-size:1.2rem; margin:34px 0 12px; color:var(--primary)}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(165px,1fr)); gap:12px}
+.card{background:var(--surface); border:2px solid var(--line); border-radius:22px; padding:16px 16px 14px;
+  text-align:left; cursor:pointer; display:flex; flex-direction:column; gap:4px; min-height:150px}
+.card:hover{border-color:var(--primary-2)}
+.card .emoji{font-size:2rem; line-height:1}
+.card h3{margin:6px 0 0; font-size:1.18rem}
+.card .sub{color:var(--muted); font-size:.92rem; line-height:1.35}
+.card .meta{margin-top:auto; padding-top:8px; font-size:.9rem; color:var(--muted)}
+.stars{color:var(--accent); letter-spacing:2px; font-size:1.05rem}
+.stars.none{color:var(--muted); letter-spacing:0; font-size:.88rem}
+
+/* lesson */
+.lesson-head{display:flex; align-items:center; gap:14px; margin:18px 0 14px}
+.lesson-head .emoji{font-size:2.6rem}
+.lesson-head h1{margin:0; font-size:clamp(1.7rem,5vw,2.3rem); line-height:1.1}
+.lesson-head p{margin:2px 0 0; color:var(--muted)}
+.lesson{background:var(--surface); border:2px solid var(--line); border-radius:22px; padding:6px 20px 10px}
+.lesson h4{font-family:'Fredoka',sans-serif; font-weight:600; font-size:1.05rem; color:var(--primary); margin:16px 0 4px}
+.lesson ul{margin:4px 0 8px; padding-left:20px}
+.lesson li{margin:3px 0}
+.lesson table{border-collapse:collapse; margin:6px 0 10px}
+.lesson td{padding:3px 14px 3px 0}
+.lesson .ex{background:var(--chip); border-radius:12px; padding:8px 12px; margin:8px 0}
+.actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
+.btn{background:var(--primary); color:var(--on-primary); border:0; border-radius:16px; padding:13px 22px;
+  font-weight:800; cursor:pointer; font-size:1.02rem}
+.btn.ghost{background:var(--chip); color:var(--primary)}
+.btn.orange{background:var(--accent); color:var(--on-accent)}
+
+/* quiz */
+.qhead{display:flex; align-items:center; gap:12px; margin:8px 0 10px; font-weight:700}
+.link{background:none; border:0; color:var(--primary); cursor:pointer; padding:6px 0; font-weight:800}
+.qhead .count{margin-left:auto; color:var(--muted)}
+.qhead .score{background:var(--good-soft); color:var(--good); border-radius:999px; padding:2px 12px}
+.bar{height:12px; background:var(--chip); border-radius:999px; overflow:hidden}
+.bar span{display:block; height:100%; background:linear-gradient(90deg,var(--primary),var(--accent)); border-radius:999px; transition:width .35s ease}
+.qcard{background:var(--surface); border:2px solid var(--line); border-radius:26px; padding:20px; margin-top:16px}
+.qtag{display:inline-block; background:var(--chip); color:var(--primary); border-radius:999px; padding:2px 12px;
+  font-weight:800; font-size:.85rem; margin:0 0 10px}
+.visual{display:flex; justify-content:center; margin:4px 0 12px}
+.prompt{font-family:'Nunito',sans-serif; font-weight:700; font-size:clamp(1.15rem,3.6vw,1.4rem); line-height:1.4; margin:0 0 16px}
+.prompt i{font-style:italic; font-weight:600; color:var(--primary)}
+.prompt .small{display:block; font-size:.8em; font-weight:600; color:var(--muted); margin-bottom:4px}
+.prompt .small.after{margin:6px 0 0}
+.gap{display:inline-block; min-width:3.2em; border-bottom:3px solid var(--accent); text-align:center; color:transparent}
+.word{font-family:'Fredoka',sans-serif; font-size:2.6rem; font-weight:600; letter-spacing:1px; text-align:center}
+.word .gap{min-width:1.6em; color:transparent}
+.word .em{display:block; font-size:2.4rem; margin-bottom:4px}
+.options{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+.options.stack{grid-template-columns:1fr}
+.options.shirts{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:520px){ .options.shirts{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.opt{background:var(--surface); border:2px solid var(--line); border-radius:18px; padding:14px 12px; cursor:pointer;
+  font-weight:800; font-size:1.06rem; text-align:center; box-shadow:0 4px 0 var(--line); min-height:56px}
+.options.stack .opt{text-align:left; padding-left:18px}
+.opt:hover:not(:disabled){border-color:var(--primary-2)}
+.opt:active:not(:disabled){transform:translateY(2px); box-shadow:0 2px 0 var(--line)}
+.opt:disabled{cursor:default}
+.opt.correct{background:var(--good-soft); border-color:var(--good); box-shadow:0 4px 0 var(--good)}
+.opt.wrong{background:var(--bad-soft); border-color:var(--bad); box-shadow:0 4px 0 var(--bad)}
+.opt svg{display:block; margin:0 auto; max-width:100%; height:auto}
+.typeform{display:flex; gap:10px; flex-wrap:wrap}
+.answer{flex:1 1 220px; font:inherit; font-weight:700; font-size:1.2rem; padding:12px 16px; border-radius:16px;
+  border:2px solid var(--line); background:var(--bg); color:var(--ink)}
+.answer:focus{outline:none; border-color:var(--primary)}
+.answer.correct{border-color:var(--good); background:var(--good-soft)}
+.answer.wrong{border-color:var(--bad); background:var(--bad-soft)}
+.feedback{border-radius:18px; padding:14px 16px; margin-top:16px; display:flex; flex-direction:column; gap:6px}
+.feedback.ok{background:var(--good-soft)}
+.feedback.no{background:var(--bad-soft)}
+.feedback .head{font-family:'Fredoka',sans-serif; font-size:1.25rem; font-weight:600}
+.feedback.ok .head{color:var(--good)}
+.feedback.no .head{color:var(--bad)}
+.feedback p{margin:0}
+.feedback svg{vertical-align:middle}
+.feedback .btn{align-self:flex-start; margin-top:6px}
+
+/* map */
+.map{width:100%; max-width:520px; height:auto; display:block}
+.m-bg{fill:var(--surface)}
+.m-block{fill:var(--block); stroke:var(--line); stroke-width:1.5}
+.m-grass{fill:var(--grass)}
+.m-road{fill:var(--road)}
+.m-dash{stroke:#fff; stroke-width:1.6; stroke-dasharray:7 6; opacity:.75}
+.m-emoji{font-size:24px}
+.m-label{font-family:'Nunito',sans-serif; font-weight:800; font-size:11.5px; fill:var(--ink)}
+.m-road-label{font-family:'Nunito',sans-serif; font-weight:800; font-size:9.5px; fill:#fff; letter-spacing:.3px}
+
+/* result */
+.result{text-align:center; padding:26px 20px}
+.result .bigscore{font-family:'Fredoka',sans-serif; font-size:clamp(3.4rem,14vw,5rem); font-weight:700; line-height:1; color:var(--primary)}
+.result .bigscore small{font-size:.45em; color:var(--muted)}
+.result .rstars{font-size:3rem; letter-spacing:8px; margin:10px 0 6px}
+.result .rstars span{display:inline-block; color:var(--line)}
+.result .rstars span.on{color:var(--accent); animation:pop .5s cubic-bezier(.3,1.6,.5,1) both}
+.result .rstars span.on:nth-child(2){animation-delay:.18s}
+.result .rstars span.on:nth-child(3){animation-delay:.36s}
+@keyframes pop{from{transform:scale(0) rotate(-40deg)} to{transform:scale(1) rotate(0)}}
+.result .msg{font-weight:700; font-size:1.1rem; margin:0 auto 6px; max-width:40ch}
+.result .actions{justify-content:center}
+.mistakes{text-align:left; margin-top:22px}
+.mistakes h3{margin:0 0 8px; font-size:1.15rem}
+.mistakes ol{margin:0; padding-left:22px}
+.mistakes li{margin:0 0 10px}
+.mistakes .q{display:block; color:var(--muted); font-weight:600}
+.mistakes .a{font-weight:800; color:var(--good)}
+.mistakes .gap{color:transparent}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+(function(){
+"use strict";
+var app = document.getElementById('app');
+
+/* ---------- helpers ---------- */
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t;} return a; }
+function pick(a,n){ return shuffle(a).slice(0,n); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function gap(s){ return s.replace(/___/g,'<span class="gap">___</span>'); }
+function norm(s){ return String(s).toLowerCase().replace(/[’‘`]/g,"'").replace(/[.!?¿¡,"]/g,'').replace(/\s+/g,' ').trim(); }
+function mc(prompt, answer, distractors, explain, extra){
+  var q={type:'mc', prompt:gap(prompt), answer:answer, options:shuffle([answer].concat(distractors)), explain:explain||''};
+  for(var k in (extra||{})) q[k]=extra[k]; return q;
+}
+function mcFixed(prompt, answer, options, explain, extra){
+  var q=mc(prompt, answer, [], explain, extra); q.options=options.slice(); return q;
+}
+function tq(prompt, answers, explain, extra){
+  answers=[].concat(answers);
+  var q={type:'type', prompt:gap(prompt), answers:answers, answer:answers[0], explain:explain||''};
+  for(var k in (extra||{})) q[k]=extra[k]; return q;
+}
+
+/* ---------- storage ---------- */
+var STORE='thinkers5-u4u5-v1';
+function loadBest(){ try{ return JSON.parse(localStorage.getItem(STORE)||'{}')||{}; }catch(e){ return {}; } }
+function saveBest(id,pct){ try{ var b=loadBest(); if(b[id]===undefined||pct>b[id]){ b[id]=pct; localStorage.setItem(STORE,JSON.stringify(b)); } }catch(e){} }
+var muted=false;
+try{ muted = localStorage.getItem(STORE+'-muted')==='1'; }catch(e){}
+
+/* ---------- sound ---------- */
+var actx=null;
+function tone(freqs,dur){
+  if(muted) return; dur=dur||0.12;
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    var t=actx.currentTime;
+    freqs.forEach(function(f,i){
+      var o=actx.createOscillator(), g=actx.createGain();
+      o.type='triangle'; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t+i*dur);
+      g.gain.exponentialRampToValueAtTime(0.2,t+i*dur+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+i*dur+dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t+i*dur); o.stop(t+i*dur+dur+0.03);
+    });
+  }catch(e){}
+}
+var sfx={ ok:function(){tone([660,880]);}, no:function(){tone([300,210],0.16);}, win:function(){tone([523,659,784,1047],0.13);} };
+
+/* ---------- visuals ---------- */
+var svgId=0;
+var SHIRT='M30 16 L42 10 Q50 19 58 10 L70 16 L90 34 L78 46 L71 40 L71 92 L29 92 L29 40 L22 46 L10 34 Z';
+function shirt(kind,size){
+  var id='pt'+(++svgId); size=size||120;
+  var base={spotted:'#4F64B0',striped:'#2F8574',checked:'#B33B52',floral:'#7E57C6',ripped:'#47678A',bright:'#FF2E93'}[kind];
+  var defs='', fill=base, extra='';
+  if(kind==='spotted') defs='<pattern id="'+id+'" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="'+base+'"/><circle cx="6" cy="6" r="2.7" fill="#fff"/></pattern>';
+  if(kind==='striped') defs='<pattern id="'+id+'" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="'+base+'"/><rect width="10" height="4.5" fill="#fff"/></pattern>';
+  if(kind==='checked') defs='<pattern id="'+id+'" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#fff"/><rect width="7" height="14" fill="'+base+'" opacity=".7"/><rect width="14" height="7" fill="'+base+'" opacity=".7"/></pattern>';
+  if(kind==='floral') defs='<pattern id="'+id+'" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="'+base+'"/><g fill="#FFD0E6"><circle cx="10" cy="6.4" r="2.7"/><circle cx="13.6" cy="10" r="2.7"/><circle cx="10" cy="13.6" r="2.7"/><circle cx="6.4" cy="10" r="2.7"/></g><circle cx="10" cy="10" r="2" fill="#FFC531"/></pattern>';
+  if(defs) fill='url(#'+id+')';
+  if(kind==='ripped') extra='<g fill="none" stroke="#18202e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M37 50 l5 4 -4 5 6 3 -3 6"/><path d="M53 70 l6 2 -2 5 6 2"/><path d="M57 29 l4 4 -3 4"/></g>';
+  if(kind==='bright') extra='<g stroke="#FFD600" stroke-width="3" stroke-linecap="round"><path d="M6 12 l6 5"/><path d="M94 12 l-6 5"/><path d="M50 1 v5"/></g>';
+  return '<svg viewBox="0 0 100 100" width="'+size+'" height="'+size+'" role="img" aria-label="T-shirt"><defs>'+defs+'</defs><path d="'+SHIRT+'" fill="'+fill+'" stroke="#18202e" stroke-width="2" stroke-linejoin="round"/>'+extra+'</svg>';
+}
+
+function townMap(){
+  function place(x,y,w,h,emoji,name,cls){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="10" class="'+(cls||'m-block')+'"/>'+
+      '<text x="'+(x+w/2)+'" y="'+(y+h/2-2)+'" class="m-emoji" text-anchor="middle">'+emoji+'</text>'+
+      '<text x="'+(x+w/2)+'" y="'+(y+h/2+22)+'" class="m-label" text-anchor="middle">'+name+'</text>';
+  }
+  var zebra=[129,135,141,147].map(function(y){return '<rect x="238" y="'+y+'" width="20" height="3.6" fill="#fff"/>';}).join('');
+  return '<svg class="map" viewBox="0 0 440 280" role="img" aria-label="Town map. Long Road goes from the star to a roundabout. Park Street crosses it at the traffic lights, Hill Street at the roundabout.">'+
+    '<rect width="440" height="280" rx="16" class="m-bg"/>'+
+    place(8,8,112,112,'🏫','School')+
+    place(8,160,112,112,'🅿️','Car park')+
+    place(160,8,66,112,'🏛️','Museum')+
+    place(234,8,66,112,'🎭','Theatre')+
+    place(160,160,66,112,'📚','Library')+
+    place(234,160,66,112,'☕','Café')+
+    place(340,8,92,112,'🏥','Hospital')+
+    place(340,160,92,112,'🌳','Park','m-grass')+
+    '<rect x="0" y="126" width="440" height="28" class="m-road"/>'+
+    '<rect x="126" y="0" width="28" height="280" class="m-road"/>'+
+    '<rect x="306" y="0" width="28" height="280" class="m-road"/>'+
+    '<line x1="0" y1="140" x2="440" y2="140" class="m-dash"/>'+
+    '<line x1="140" y1="0" x2="140" y2="280" class="m-dash"/>'+
+    '<line x1="320" y1="0" x2="320" y2="280" class="m-dash"/>'+
+    zebra+
+    '<circle cx="320" cy="140" r="27" class="m-road"/>'+
+    '<circle cx="320" cy="140" r="12" class="m-grass"/>'+
+    '<g transform="translate(133 129)"><rect width="14" height="23" rx="4" fill="#1d1d1d"/><circle cx="7" cy="5" r="2.6" fill="#ff4d4d"/><circle cx="7" cy="11.5" r="2.6" fill="#ffc531"/><circle cx="7" cy="18" r="2.6" fill="#3ddc84"/></g>'+
+    '<polygon points="18,130.5 20.4,136.8 26.6,137.2 21.8,141.2 23.3,147.3 18,144 12.7,147.3 14.2,141.2 9.4,137.2 15.6,136.8" fill="#FFC531" stroke="#7a4b00" stroke-width="1"/>'+
+    '<path d="M31 140 h12 m-5 -5 l5 5 -5 5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<text x="85" y="143.5" class="m-road-label" text-anchor="middle">Long Road</text>'+
+    '<text transform="translate(144 62) rotate(-90)" class="m-road-label" text-anchor="middle">Park Street</text>'+
+    '<text transform="translate(324 62) rotate(-90)" class="m-road-label" text-anchor="middle">Hill Street</text>'+
+  '</svg>';
+}
+
+/* ---------- question banks ---------- */
+var PLACES=['School','Car park','Museum','Theatre','Library','Café','Hospital','Park'];
+var DIRS=[
+  ["Go along Long Road. Turn left at the traffic lights. It's on your right.","Museum","En el semáforo doblás a la izquierda (subís por Park Street). A tu derecha está el museo."],
+  ["Go along Long Road and turn right at the traffic lights. It's on your left.","Library","En el semáforo doblás a la derecha (bajás por Park Street). A tu izquierda está la biblioteca."],
+  ["Turn right at the traffic lights. It's on your right.","Car park","Doblás a la derecha en el semáforo. A tu derecha está el estacionamiento."],
+  ["Go along Long Road, past the traffic lights. Go past the zebra crossing. It's on your left, on the corner of Hill Street.","Theatre","Pasás el semáforo y la senda peatonal. En la esquina, a la izquierda, está el teatro."],
+  ["Go along Long Road to the roundabout. Turn right. It's on your left.","Park","En la rotonda doblás a la derecha (bajás por Hill Street). A tu izquierda está el parque."],
+  ["Go to the roundabout and turn left. It's on your right.","Hospital","En la rotonda doblás a la izquierda (subís por Hill Street). A tu derecha está el hospital."],
+  ["It's on your left. You don't go past the traffic lights.","School","Antes del semáforo, a tu izquierda, está la escuela."],
+  ["Go to the roundabout and turn right. It's on your right.","Café","En la rotonda doblás a la derecha. A tu derecha está el café."],
+  ["Go to the roundabout and turn left. It's on your left.","Theatre","En la rotonda doblás a la izquierda. A tu izquierda está el teatro."]
+];
+var TOWN_VOCAB=[
+  ["Cars drive round it. It's a circle where roads meet.","roundabout",["crossroads","zebra crossing","car park"],"roundabout = rotonda."],
+  ["Black and white stripes on the road where people cross.","zebra crossing",["roundabout","traffic lights","bus stop"],"zebra crossing = senda peatonal."],
+  ["The place where two roads cross each other.","crossroads",["roundabout","car park","bus stop"],"crossroads = cruce de calles."],
+  ["A bus with two floors.","double-decker bus",["bus stop","taxi","minibus"],"double-decker bus = colectivo de dos pisos (como los de Londres)."],
+  ["Red, amber and green lights that tell cars to stop or go.","traffic lights",["zebra crossing","roundabout","street lamps"],"traffic lights = semáforo."],
+  ["A place where you leave your car.","car park",["bus stop","crossroads","factory"],"car park = estacionamiento."],
+  ["The place where you wait for the bus.","bus stop",["car park","roundabout","crossroads"],"bus stop = parada de colectivo."]
+];
+var TOWN_PREP=[
+  ["Go ___ the street to the traffic lights.","along",["at","of","under"],"<b>go along</b> = seguir por la calle."],
+  ["Turn left ___ the corner.","at",["on","in","along"],"<b>at</b> the corner, <b>at</b> the traffic lights, <b>at</b> the roundabout."],
+  ["Walk ___ the car park. Don't stop there!","past",["at","on","in"],"<b>walk past</b> = pasar de largo un lugar."],
+  ["Go ___ the road at the zebra crossing.","across",["along","at","on"],"<b>go across</b> = cruzar."],
+  ["The theatre is ___ the right.","on",["at","in","of"],"<b>on</b> the right / <b>on</b> the left."]
+];
+var INDIRECT="En preguntas como <i>Can you tell me…?</i> o <i>Do you know…?</i> el verbo va al final: <b>where the school is</b>.";
+
+var REL=[
+  ["A librarian is a person ___ works in a library.","who"],
+  ["A museum is a place ___ you can see very old things.","where"],
+  ["This is the boy ___ bike was stolen.","whose"],
+  ["A trophy is a prize ___ you win in a competition.","which"],
+  ["That's the café ___ we had lunch yesterday.","where"],
+  ["My grandma is the person ___ gave me this ring.","who"],
+  ["A vase is a container ___ you put flowers in.","which"],
+  ["She's the girl ___ dad is a pilot.","whose"],
+  ["The roundabout is the place ___ you turn right.","where"],
+  ["I've got a scarf ___ is spotted.","which"],
+  ["He's the teacher ___ helps us with history.","who"],
+  ["That's the man ___ dog is really big.","whose"],
+  ["A double-decker is a bus ___ has two floors.","which"],
+  ["The car park is the place ___ my dad leaves the car.","where"],
+  ["Do you know the girl ___ is wearing a striped T-shirt?","who"],
+  ["He's the friend ___ house is next to the park.","whose"]
+];
+var REL_EX={who:"<b>who</b> = para personas.",which:"<b>which</b> = para cosas o animales.",where:"<b>where</b> = para lugares.",whose:"<b>whose</b> = de quién es algo (whose bike = la bici de quién)."};
+
+var FPH=[
+  ['','oto','ph','📷'],['tele','one','ph','📞'],['','ridge','f','🧊'],['','loral','f','🌸'],['ne','ew','ph','👦'],
+  ['','light','f','✈️'],['','armacy','ph','💊'],['al','abet','ph','🔤'],['kni','e','f','🔪'],['','rase','ph','💬'],
+  ['dol','in','ph','🐬'],['thie','','f','🦹'],['','otocopy','ph','🖨️'],['','riend','f','🤝'],['','ilm','f','🎬'],
+  ['','ysics','ph','⚛️'],['hal','','f','½'],['ele','ant','ph','🐘'],['','ish','f','🐟'],['tro','y','ph','🏆']
+];
+var FPH_TYPE=[
+  ["🐬 A clever sea animal that jumps out of the water.","dolphin"],
+  ["🐘 A very big grey animal with a long nose.","elephant"],
+  ["🔤 A, B, C, D… all the letters together.","alphabet"],
+  ["💊 A shop where you buy medicine.","pharmacy"],
+  ["📞 You use it to call people.",["telephone","phone"]],
+  ["🦹 A person who steals things.","thief"]
+];
+
+var HEIR=[
+  ["You keep rings and necklaces in it.","jewellery box",["photo album","vase","trophy"]],
+  ["Knives, forks and spoons.","cutlery",["medals","earrings","lamps"]],
+  ["You wear them on your ears.","earrings",["rings","medals","cutlery"]],
+  ["You win it in a competition. It's often gold or silver.","trophy",["vase","lamp","jewellery box"]],
+  ["You put flowers in it.","vase",["trophy","jewellery box","lamp"]],
+  ["A picture made with paint. You hang it on the wall.","oil painting",["photo album","lamp","vase"]],
+  ["A book with lots of old family photos.","photo album",["oil painting","jewellery box","journal"]],
+  ["It gives you light on a table at night.","lamp",["vase","trophy","medal"]],
+  ["Old, special things that grandparents give to their children and grandchildren.","family heirlooms",["souvenirs","artefacts","trophies"]],
+  ["Soldiers and athletes get them. You can wear them round your neck.","medals",["earrings","rings","trophies"]]
+];
+var ES_HEIR={"jewellery box":"joyero","cutlery":"cubiertos","earrings":"aros","trophy":"trofeo","vase":"florero, jarrón","oil painting":"pintura al óleo, cuadro","photo album":"álbum de fotos","lamp":"lámpara","family heirlooms":"reliquias familiares (cosas que pasan de generación en generación)","medals":"medallas"};
+var THERE=[
+  ["There ___ some medals on the shelf.","are"],["There ___ an old lamp next to the window.","is"],
+  ["There ___ two vases on the table.","are"],["There ___ a jewellery box on the bed.","is"],
+  ["There ___ lots of photo albums in Grandpa's house.","are"],["There ___ an oil painting on the wall.","is"]
+];
+var ER=[['freeze','freezer'],['heat','heater'],['paint','painter'],['dance','dancer'],['drive','driver'],['print','printer'],
+  ['read','reader'],['teach','teacher'],['surf','surfer'],['sing','singer'],['clean','cleaner'],['train','trainer'],
+  ['swim','swimmer'],['run','runner'],['write','writer'],['bake','baker']];
+function erExplain(v,n){
+  if(/e$/.test(v)) return "Termina en <b>e</b>: solo agregás <b>r</b> ("+v+" → "+n+").";
+  if(n.length===v.length+3) return "Vocal corta + consonante: se duplica la consonante ("+v+" → <b>"+n+"</b>).";
+  return "Verbo + <b>er</b> ("+v+" → "+n+").";
+}
+
+var PRON=[
+  ["I love this song. I listen to ___ every day.","it",["them","him","her"],"the song = una cosa → <b>it</b>."],
+  ["Where are my keys? I can't find ___ anywhere!","them",["it","us","her"],"my keys = plural → <b>them</b>."],
+  ["Grandpa gave ___ (I) a watch for my birthday.","me",["I","my","him"],"I → <b>me</b>."],
+  ["Mum and I are going to the park. Do you want to come with ___?","us",["we","them","our"],"Mum and I = we → <b>us</b>."],
+  ["Sofía is my best friend. I sit next to ___ in class.","her",["she","him","them"],"Sofía = she → <b>her</b>."],
+  ["It's Tom's birthday today. Let's send ___ a card.","him",["he","her","it"],"Tom = he → <b>him</b>."],
+  ["These earrings are beautiful. My aunt bought ___ in Spain.","them",["it","they","her"],"these earrings = plural → <b>them</b>."],
+  ["Our teacher gave ___ (we) a lot of homework!","us",["we","our","them"],"we → <b>us</b>."],
+  ["My uncle has a big dog. He walks ___ every morning.","it",["him","them","its"],"the dog = un animal → <b>it</b>."],
+  ["Lucas and Mia are new in our class. Can you help ___?","them",["they","their","him"],"Lucas and Mia = they → <b>them</b>."],
+  ["This photo album is for you, Grandma. I made ___ for you!","it",["them","her","you"],"the photo album = una cosa → <b>it</b>."]
+];
+var PRON_REPL=[
+  ["I gave the photos to <u>Ana</u>.","her"],["We can take <u>the old lamp</u> to the recycling centre.","it"],
+  ["She put <u>the medals</u> on the shelf.","them"],["I'll call <u>my brother</u> tomorrow.","him"],
+  ["Can you help <u>my friends and me</u>?","us"],["Dad gave <u>Lily and Ben</u> some sweets.","them"]
+];
+var DOPIOP=[
+  ["She gave <b>him</b> a present.","Indirect object","<b>him</b> es la persona que recibe el regalo → indirecto."],
+  ["I can't find <b>it</b> anywhere.","Direct object","<b>it</b> es la cosa que no encontrás → directo."],
+  ["Grandma bought <b>me</b> a scarf.","Indirect object","<b>me</b> es quien recibe la bufanda → indirecto."],
+  ["Where are the vases? I put <b>them</b> on the table.","Direct object","<b>them</b> son las cosas (los floreros) → directo."],
+  ["Can you send <b>us</b> a photo?","Indirect object","<b>us</b> son quienes reciben la foto → indirecto."],
+  ["I love these earrings! I wear <b>them</b> every day.","Direct object","<b>them</b> es la cosa que usás → directo."]
+];
+
+var KINDS=['spotted','striped','checked','floral','ripped','bright'];
+var ES_KIND={spotted:'con lunares',striped:'a rayas',checked:'a cuadros',floral:'floreado, con flores',ripped:'roto',bright:'de color fuerte, brillante'};
+var CLOTHES_SENT=[
+  ["My grandpa's shirt has got red and white squares. It's ___.","checked"],
+  ["These jeans have got big holes in them. They're ___.","ripped"],
+  ["Mum's dress has got roses and daisies on it. It's ___.","floral"],
+  ["A zebra looks ___!","striped"],
+  ["My scarf has got lots of little circles on it. It's ___.","spotted"],
+  ["Neon pink and lime green are very ___ colours.","bright"],
+  ["A ladybird looks ___. It's red with black dots.","spotted"],
+  ["A tiger's coat is orange and black and ___.","striped"]
+];
+
+var SENSE_VERB=[
+  ["Listen! The rain ___ like music on the roof.","sounds",["tastes","smells","feels"],"Oís la lluvia → <b>sounds</b> (oído)."],
+  ["Touch this blanket. It ___ really soft.","feels",["sounds","tastes","smells"],"Tocás → <b>feels</b> (tacto)."],
+  ["Look at that cloud! It ___ like a dragon.","looks",["tastes","sounds","smells"],"Mirás → <b>looks</b> (vista)."],
+  ["Something is burning! The kitchen ___ like smoke.","smells",["sounds","tastes","feels"],"Olés → <b>smells</b> (olfato)."],
+  ["Try this lemon. It ___ really sour!","tastes",["sounds","feels","smells"],"Probás → <b>tastes</b> (gusto)."],
+  ["This music ___ great. Turn it up!","sounds",["tastes","smells","feels"],"Música → <b>sounds</b>."],
+  ["Your hands are so cold! They ___ like ice.","feel",["feels","sound","taste"],"<i>They</i> es plural → <b>feel</b> (sin s)."],
+  ["Grandma's roses ___ lovely. Can you smell them?","smell",["smells","sound","taste"],"<i>roses</i> es plural → <b>smell</b> (sin s)."]
+];
+var SENSE_LIKE=[
+  ["It looks ___ a boat.","like","<b>like</b> + cosa (a boat)."],
+  ["It feels ___ soft.","— (nothing)","Adjetivo (soft) → sin <i>like</i>."],
+  ["It sounds ___ a bird.","like","<b>like</b> + cosa (a bird)."],
+  ["This soup tastes ___ delicious.","— (nothing)","Adjetivo (delicious) → sin <i>like</i>."],
+  ["The sea water smells ___ salty.","— (nothing)","Adjetivo (salty) → sin <i>like</i>."],
+  ["My brother is singing. He sounds ___ a cat!","like","<b>like</b> + cosa (a cat)."],
+  ["It tastes ___ chicken.","like","<b>like</b> + cosa (chicken)."],
+  ["Your new jumper looks ___ great!","— (nothing)","Adjetivo (great) → sin <i>like</i>."]
+];
+var RIDDLES=[
+  ["It looks like a horse with black and white stripes.","a zebra",["an elephant","a dolphin","a lion"]],
+  ["It feels cold and wet, and it looks like white sugar on the mountains.","snow",["rain","sand","milk"]],
+  ["It tastes sweet and it feels sticky. Bees make it.","honey",["chocolate","jam","sugar"]],
+  ["It smells like the sea and it tastes very salty.","sea water",["orange juice","honey","milk"]],
+  ["It sounds like 'tweet tweet' and it can fly.","a bird",["a cat","a dog","a fish"]]
+];
+
+var SOURCES=[
+  ["A diary written by a girl in 1920","Primary source"],
+  ["A school textbook about the Romans, written last year","Secondary source"],
+  ["An old coin found in the ground","Primary source"],
+  ["An encyclopaedia","Secondary source"],
+  ["A letter written by a king","Primary source"],
+  ["A film about Cleopatra, made in 2010","Secondary source"],
+  ["A photo of your grandparents when they were young","Primary source"],
+  ["A website about the Egyptians, written today","Secondary source"],
+  ["The ruins of an old castle","Primary source"],
+  ["A novel (a story book) about life in the past","Secondary source"],
+  ["A ticket from a concert in 1985","Primary source"]
+];
+var HIST_VOCAB=[
+  ["An object made by people a long time ago, like a pot or a tool.","artefact",["archive","journal","souvenir"],"artefact = objeto antiguo hecho por personas."],
+  ["A place where old documents and records are kept.","archives",["artefacts","encyclopaedias","journals"],"archives = archivo (lugar donde se guardan documentos)."],
+  ["Correct and true, with no mistakes.","accurate",["ancient","important","primary"],"accurate = preciso, exacto."],
+  ["A book where you write what happens every day.","journal",["encyclopaedia","textbook","archive"],"journal = diario."],
+  ["The design and style of buildings.","architecture",["archives","artefacts","history"],"architecture = arquitectura."],
+  ["A big book (or set of books) with facts about lots of subjects.","encyclopaedia",["journal","diary","archive"],"encyclopaedia = enciclopedia."],
+  ["A source made at the time, by people who were there.","primary source",["secondary source","textbook","historical film"],"primary = de la época."],
+  ["A source made later, by people who weren't there.","secondary source",["primary source","artefact","diary"],"secondary = hecho después."],
+  ["Why is an old diary very useful to a historian?","Because it was written at the time.",["Because it is very long.","Because it has got pictures.","Because it is a secondary source."],"Un diario es una fuente primaria: alguien lo escribió en esa época."]
+];
+var SRC_EX={"Primary source":"<b>Primary</b>: se hizo en esa época, por gente que estuvo ahí.","Secondary source":"<b>Secondary</b>: se hizo después, por alguien que no estuvo ahí."};
+
+var IRREG=[['make','made'],['buy','bought'],['find','found'],['tell','told'],['say','said'],['go','went'],['catch','caught'],
+  ['swim','swam'],['take','took'],['build','built'],['have','had'],['see','saw'],['eat','ate'],['write','wrote'],
+  ['come','came'],['get','got'],['give','gave'],['bring','brought'],['think','thought'],['sleep','slept']];
+var REG=[['stay','stayed'],['visit','visited'],['play','played'],['travel',['travelled','traveled']],['walk','walked'],['watch','watched']];
+var JOURNAL_FEAT=[
+  ["Which sentence is a good first-line summary for a journal entry?","Today was the best day of our holiday!",["I like pizza.","Tomorrow is Monday.","My name is Tom."],"El primer renglón resume cómo fue el día."],
+  ["Which sentence uses expressive language?","The sea was sparkling like a million tiny diamonds.",["The sea was blue.","We went to the sea.","There is a sea."],"Lenguaje expresivo = descripciones con detalles y comparaciones."],
+  ["Which sentence shows a hope or a feeling about the next day?","I can't wait to go snorkelling tomorrow!",["Yesterday we went shopping.","The hotel was big.","It rained in the morning."],"Al final de la entrada contás qué esperás o sentís por el día siguiente."],
+  ["Where do you usually write the date in a journal entry?","At the top",["In the middle","At the end of every line","You never write it"],"La fecha va arriba de todo."],
+  ["Which tense do you use most in a journal entry about your day?","Past simple",["Present continuous","Future (will)","Present simple"],"Contás lo que ya pasó → <b>past simple</b> (went, saw, bought…)."]
+];
+var JOURNAL_VOCAB=[
+  ["Something you buy on holiday to remember the place.","souvenir",["heirloom","artefact","trophy"],"souvenir = recuerdo de un viaje."],
+  ["A big building with swimming pools and water slides.","aquatic centre",["car park","museum","holiday home"],"aquatic centre = centro acuático."],
+  ["A house where a family stays on holiday.","holiday home",["hotel room","aquatic centre","theatre"],"holiday home = casa de vacaciones."],
+  ["A big cup for hot drinks, like hot chocolate.","mug",["vase","plate","jug"],"mug = taza grande."]
+];
+var PAST_SENT=[
+  ["Last summer we ___ to the beach.","went",["go","goed","gone"],"go → <b>went</b>."],
+  ["I ___ a big fish yesterday!","caught",["catched","catch","cought"],"catch → <b>caught</b>."],
+  ["We ___ a huge sandcastle on the beach.","built",["builded","build","builted"],"build → <b>built</b>."],
+  ["She ___ me a funny story last night.","told",["telled","tell","tolded"],"tell → <b>told</b>."],
+  ["Dad ___ a key ring and a mug in London.","bought",["buyed","buy","brought"],"buy → <b>bought</b> (¡ojo! brought es de <i>bring</i>)."]
+];
+
+/* ---------- topics ---------- */
+var TOPICS=[
+{ id:'town', unit:4, emoji:'🗺️', title:'Around town', sub:'Directions, places and transport',
+  lesson:'<h4>Dar indicaciones</h4><ul>'+
+    '<li><b>Go along</b> the street = seguí por la calle</li>'+
+    '<li><b>Turn left / right</b> at the traffic lights = doblá a la izquierda / derecha en el semáforo</li>'+
+    '<li><b>Go past</b> the car park = pasá el estacionamiento</li>'+
+    '<li><b>Go across</b> the road = cruzá la calle</li>'+
+    '<li>It\'s <b>on your left / on your right</b> = está a tu izquierda / derecha</li></ul>'+
+    '<h4>Lugares y transporte</h4><p>roundabout (rotonda), crossroads (cruce), zebra crossing (senda peatonal), traffic lights (semáforo), corner (esquina), car park, bus stop, double-decker bus.</p>'+
+    '<h4>Preguntar con educación</h4><div class="ex"><b>Can you tell me where the school is?</b><br>El verbo va al final. No se dice "where is the school" en esta pregunta.</div>'+
+    '<p>En el mapa: imaginá que caminás vos. Si doblás, tu izquierda y tu derecha cambian.</p>',
+  make:function(){
+    var map=DIRS.map(function(d){ return mc('<span class="small">Start at the ⭐ and face the roundabout.</span><i>"'+d[0]+'"</i><span class="small after">Where are you?</span>', d[1], pick(PLACES.filter(function(p){return p!==d[1];}),3), d[2], {visual:townMap(), tag:'Follow the directions'}); });
+    var voc=TOWN_VOCAB.map(function(v){ return mc(v[0],v[1],v[2],v[3],{tag:'Places and transport'}); });
+    var pre=TOWN_PREP.map(function(v){ return mc(v[0],v[1],v[2],v[3],{tag:'Directions'}); });
+    var pol=[
+      mc("Choose the correct question.","Can you tell me where the school is?",["Can you tell me where is the school?","Can you tell me the school where is?"],INDIRECT,{optClass:'stack',tag:'Asking the way'}),
+      mc("Choose the correct question.","Do you know where the museum is?",["Do you know where is the museum?","Do you know the museum where is?"],INDIRECT,{optClass:'stack',tag:'Asking the way'}),
+      tq("Put the words in order:<br><i>is / where / me / the / tell / can / station / you</i>",["Can you tell me where the station is?"],INDIRECT,{tag:'Asking the way'})
+    ];
+    return pick(map,4).concat(pick(voc,2),pick(pre,2),pick(pol,2));
+  }},
+{ id:'relative', unit:4, emoji:'🔗', title:'who, which, where, whose', sub:'Relative pronouns',
+  lesson:'<h4>¿Cuál uso?</h4><table>'+
+    '<tr><td><b>who</b></td><td>personas</td><td><i>a person <b>who</b> works in a library</i></td></tr>'+
+    '<tr><td><b>which</b></td><td>cosas y animales</td><td><i>a bus <b>which</b> has two floors</i></td></tr>'+
+    '<tr><td><b>where</b></td><td>lugares</td><td><i>a place <b>where</b> you can swim</i></td></tr>'+
+    '<tr><td><b>whose</b></td><td>de quién es algo</td><td><i>the boy <b>whose</b> bike is red</i></td></tr></table>'+
+    '<div class="ex">Truco: si después viene algo que alguien <b>tiene</b> (bike, dad, house), casi seguro es <b>whose</b>.</div>',
+  make:function(){
+    return REL.map(function(r){ return mcFixed(r[0], r[1], ['who','which','where','whose'], REL_EX[r[1]], {tag:'Relative pronouns'}); });
+  }},
+{ id:'fph', unit:5, emoji:'📞', title:'f or ph?', sub:'Spelling the /f/ sound',
+  lesson:'<h4>El sonido /f/</h4><p>Se puede escribir con <b>f</b> (<i>fish, friend, film, knife, half</i>) o con <b>ph</b> (<i>photo, phone, dolphin, elephant, alphabet</i>).</p>'+
+    '<div class="ex">Las palabras con <b>ph</b> suelen venir del griego. ¡En español muchas también llevan "f" pero en inglés llevan ph! <i>farmacia → pharmacy, física → physics, frase → phrase, trofeo → trophy.</i></div>',
+  make:function(){
+    var m=FPH.map(function(w){ return mcFixed('Which letters complete the word?', w[2], ['f','ph'], 'Se escribe <b>'+w[0]+w[2]+w[1]+'</b>.', {visual:'<div class="word"><span class="em">'+w[3]+'</span>'+w[0]+'<span class="gap">__</span>'+w[1]+'</div>', review:w[3]+' '+w[0]+'__'+w[1], display:w[0]+w[2]+w[1], tag:'f or ph?'}); });
+    var t=FPH_TYPE.map(function(w){ return tq('Write the word:<br>'+w[0], w[1], 'Se escribe <b>'+[].concat(w[1])[0]+'</b>.', {tag:'Spelling'}); });
+    return pick(m,7).concat(pick(t,3));
+  }},
+{ id:'heirlooms', unit:5, emoji:'🏺', title:'Family heirlooms', sub:'Possessions, there is / there are, -er words',
+  lesson:'<h4>Palabras</h4><p>oil painting (cuadro), vase (florero), rings (anillos), earrings (aros), cutlery (cubiertos), medals (medallas), trophy (trofeo), photo album, lamp, jewellery box (joyero). <b>Family heirlooms</b> = cosas especiales que pasan de los abuelos a los nietos.</p>'+
+    '<h4>There is / There are</h4><ul><li><b>There is</b> + una cosa: <i>There is a vase on the table.</i></li><li><b>There are</b> + varias: <i>There are some medals on the shelf.</i></li></ul>'+
+    '<h4>Sustantivos con -er</h4><ul><li>verbo + <b>er</b>: teach → teach<b>er</b>, paint → paint<b>er</b>, sing → sing<b>er</b></li><li>termina en <b>e</b> → solo <b>r</b>: dance → dance<b>r</b>, drive → drive<b>r</b></li><li>vocal corta + consonante → se duplica: swim → swi<b>mm</b>er, run → ru<b>nn</b>er</li></ul>',
+  make:function(){
+    var h=HEIR.map(function(v){ return mc(v[0],v[1],v[2],'<b>'+v[1]+'</b> = '+ES_HEIR[v[1]]+'.',{tag:'Family heirlooms'}); });
+    var th=THERE.map(function(v){ return mcFixed(v[0],v[1],['is','are'],'<b>There is</b> + singular. <b>There are</b> + plural.',{tag:'There is / There are'}); });
+    var er=ER.map(function(v){ return tq('Make a word with <b>-er</b>:<br><b>'+v[0]+'</b> → ?', v[1], erExplain(v[0],v[1]), {tag:'Words with -er'}); });
+    return pick(h,5).concat(pick(th,2),pick(er,4));
+  }},
+{ id:'pronouns', unit:5, emoji:'👉', title:'Object pronouns', sub:'me, you, him, her, it, us, them',
+  lesson:'<h4>Sujeto → objeto</h4><table>'+
+    '<tr><td>I → <b>me</b></td><td>you → <b>you</b></td><td>he → <b>him</b></td><td>she → <b>her</b></td></tr>'+
+    '<tr><td>it → <b>it</b></td><td>we → <b>us</b></td><td>they → <b>them</b></td><td></td></tr></table>'+
+    '<h4>Directo e indirecto</h4><ul><li><b>Direct object</b> = la cosa (qué): <i>I can\'t find <b>it</b>.</i></li><li><b>Indirect object</b> = la persona que recibe (a quién): <i>She gave <b>me</b> the book.</i></li></ul>'+
+    '<div class="ex">Dos formas de decir lo mismo:<br><i>She gave <b>me</b> the book.</i> = <i>She gave the book <b>to me</b>.</i><br>Nunca: <i>She gave to me the book.</i></div>',
+  make:function(){
+    var c=PRON.map(function(v){ return mc(v[0],v[1],v[2],v[3],{tag:'Choose the pronoun'}); });
+    var r=PRON_REPL.map(function(v){ return tq('Replace the underlined words with a pronoun:<br>'+v[0], v[1], '→ <b>'+v[1]+'</b>.', {tag:'Replace it'}); });
+    var o=[
+      mc("Choose the correct sentence.","She gave me the book.",["She gave to me the book.","She me gave the book.","She gave the book me."],"Se dice <b>She gave me the book</b> o <b>She gave the book to me</b>.",{optClass:'stack',tag:'Word order'}),
+      mc("Choose the correct sentence.","I sent a letter to her.",["I sent to her a letter.","I sent her to a letter.","I her sent a letter."],"Con <i>to</i>, la persona va después de la cosa: <b>a letter to her</b>.",{optClass:'stack',tag:'Word order'}),
+      mc("Choose the correct sentence.","Can you give it to me?",["Can you give me to it?","Can you give to me it?","Can you it give me?"],"Con dos pronombres: <b>give it to me</b>.",{optClass:'stack',tag:'Word order'})
+    ];
+    var d=DOPIOP.map(function(v){ return mcFixed(v[0]+'<span class="small after">Is the word in bold a direct or an indirect object?</span>', v[1], ['Direct object','Indirect object'], v[2], {tag:'Direct or indirect?'}); });
+    return pick(c,5).concat(pick(r,2),pick(o,1),pick(d,3));
+  }},
+{ id:'clothes', unit:5, emoji:'👕', title:'Clothes patterns', sub:'spotted, striped, checked, floral, ripped, bright',
+  lesson:'<h4>¿Cómo es la ropa?</h4><table>'+
+    KINDS.map(function(k){ return '<tr><td>'+shirt(k,44)+'</td><td><b>'+k+'</b></td><td>'+ES_KIND[k]+'</td></tr>'; }).join('')+
+    '</table><div class="ex"><i>My grandpa has got a <b>checked</b> shirt. Her jeans are <b>ripped</b>.</i></div>',
+  make:function(){
+    var a=KINDS.map(function(k){ return mc("What's this T-shirt like?", k, pick(KINDS.filter(function(x){return x!==k;}),3), '<b>'+k+'</b> = '+ES_KIND[k]+'.', {visual:shirt(k,150), review:shirt(k,40)+" What's this T-shirt like?", tag:'Clothes'}); });
+    var b=KINDS.map(function(k){
+      var opts=shuffle([k].concat(pick(KINDS.filter(function(x){return x!==k;}),3))).map(function(v){ return {value:v, html:shirt(v,84)}; });
+      return {type:'mc', prompt:'Which T-shirt is <b>'+k+'</b>?', answer:k, options:opts, optClass:'shirts', displayHtml:shirt(k,40)+' '+k, explain:'<b>'+k+'</b> = '+ES_KIND[k]+'.', tag:'Clothes'};
+    });
+    var c=CLOTHES_SENT.map(function(v){ return mc(v[0],v[1],pick(KINDS.filter(function(x){return x!==v[1];}),3),'<b>'+v[1]+'</b> = '+ES_KIND[v[1]]+'.',{tag:'Clothes'}); });
+    return pick(a,4).concat(pick(b,3),pick(c,4));
+  }},
+{ id:'senses', unit:5, emoji:'👃', title:'The senses', sub:'looks, sounds, feels, smells, tastes (like)',
+  lesson:'<h4>Los cinco verbos</h4><p><b>look</b> (vista), <b>sound</b> (oído), <b>feel</b> (tacto), <b>smell</b> (olfato), <b>taste</b> (gusto).</p>'+
+    '<h4>¿Con like o sin like?</h4><ul><li>+ adjetivo, <b>sin like</b>: <i>It feels <b>soft</b>. It tastes <b>sweet</b>.</i></li><li>+ cosa, <b>con like</b>: <i>It looks <b>like a boat</b>. It sounds <b>like a bird</b>.</i></li></ul>'+
+    '<h4>Preguntas</h4><div class="ex"><i><b>What does it</b> look <b>like</b>?</i> → <i>It looks like a dragon.</i><br>Con <i>it/he/she</i> el verbo lleva s (it smell<b>s</b>). Con <i>they</i>, no (they smell).</div>',
+  make:function(){
+    var v=SENSE_VERB.map(function(x){ return mc(x[0],x[1],x[2],x[3],{tag:'Senses'}); });
+    var l=SENSE_LIKE.map(function(x){ return mcFixed(x[0],x[1],['like','— (nothing)'],x[2],{tag:'like or not?'}); });
+    var q=[
+      mc("What does it ___ like? — It sounds like a bird.","sound",["sounds","look","feel"],"<b>What does it sound like?</b> Después de <i>does</i>, el verbo va sin s.",{tag:'Questions'}),
+      mc("___ does it taste like? — It tastes like chocolate.","What",["How","Who","Where"],"<b>What</b> does it taste like?",{tag:'Questions'}),
+      mc("What does it look like? — It ___ like a dragon.","looks",["look","looking","sounds"],"<b>It looks like</b> + cosa.",{tag:'Questions'})
+    ];
+    var r=RIDDLES.map(function(x){ return mc(x[0]+'<span class="small after">What is it?</span>',x[1],x[2],'',{tag:'Riddle'}); });
+    var f=[
+      mc("Choose the correct sentence.","It smells nice.",["It smells like nice.","It smell nice.","It smells likes nice."],"Con adjetivo, sin <i>like</i>: <b>It smells nice</b>.",{optClass:'stack',tag:'Find the mistake'}),
+      mc("Choose the correct sentence.","It looks like a ball.",["It looks a ball.","It look like a ball.","It looks like ball."],"Con cosa, con <i>like</i> y con <i>a</i>: <b>It looks like a ball</b>.",{optClass:'stack',tag:'Find the mistake'})
+    ];
+    return pick(v,4).concat(pick(l,3),pick(q,1),pick(r,2),pick(f,1));
+  }},
+{ id:'history', unit:5, emoji:'📜', title:'History detectives', sub:'Primary and secondary sources',
+  lesson:'<h4>¿Cómo saben los historiadores lo que pasó?</h4><ul>'+
+    '<li><b>Primary source</b>: se hizo en esa época, por gente que estuvo ahí. <i>A diary, a letter, an old photo, an artefact, an old building.</i></li>'+
+    '<li><b>Secondary source</b>: se hizo después, por alguien que no estuvo. <i>A textbook, an encyclopaedia, a historical film, a website.</i></li></ul>'+
+    '<h4>Palabras</h4><p>artefact (objeto antiguo), archives (archivo de documentos), accurate (exacto), journal (diario), architecture (arquitectura), encyclopaedia.</p>',
+  make:function(){
+    var s=SOURCES.map(function(x){ return mcFixed(x[0]+'<span class="small after">Is it a primary or a secondary source?</span>',x[1],['Primary source','Secondary source'],SRC_EX[x[1]],{tag:'Sort the source'}); });
+    var v=HIST_VOCAB.map(function(x){ return mc(x[0],x[1],x[2],x[3],{tag:'History words',optClass:x[1].length>20?'stack':''}); });
+    return pick(s,6).concat(pick(v,5));
+  }},
+{ id:'journal', unit:5, emoji:'📔', title:'Journal and past tense', sub:'Holidays, souvenirs, irregular verbs',
+  lesson:'<h4>Una buena entrada de diario (journal entry) tiene</h4><ul>'+
+    '<li>la <b>fecha</b> arriba</li><li>un <b>primer renglón</b> que resume el día</li><li>verbos en <b>pasado</b></li>'+
+    '<li><b>lenguaje expresivo</b> (descripciones con detalles)</li><li>al final, una <b>esperanza o sentimiento</b> sobre el día siguiente</li></ul>'+
+    '<h4>Verbos irregulares</h4><p>make → made, buy → bought, find → found, tell → told, say → said, go → went, catch → caught, swim → swam, take → took, build → built, have → had, see → saw.</p>'+
+    '<h4>Regulares (+ed)</h4><p>stay → stayed, visit → visited, play → played, travel → travelled.</p>'+
+    '<p>Palabras: souvenir (recuerdo de viaje), aquatic centre, holiday home, mug.</p>',
+  make:function(){
+    var i=IRREG.map(function(x){ return tq('Write the past simple:<br><b>'+x[0]+'</b> → ?', x[1], x[0]+' → <b>'+x[1]+'</b> (irregular).', {tag:'Irregular verbs'}); });
+    var r=REG.map(function(x){ var a=[].concat(x[1]); return tq('Write the past simple:<br><b>'+x[0]+'</b> → ?', a, x[0]+' → <b>'+a[0]+'</b> (regular, +ed).', {tag:'Regular verbs'}); });
+    var f=JOURNAL_FEAT.map(function(x){ return mc(x[0],x[1],x[2],x[3],{optClass:'stack',tag:'Journal entry'}); });
+    var v=JOURNAL_VOCAB.map(function(x){ return mc(x[0],x[1],x[2],x[3],{tag:'Holiday words'}); });
+    var p=PAST_SENT.map(function(x){ return mc(x[0],x[1],x[2],x[3],{tag:'Past simple'}); });
+    return pick(i,4).concat(pick(r,1),pick(f,2),pick(v,2),pick(p,2));
+  }}
+];
+
+function topicById(id){ for(var i=0;i<TOPICS.length;i++) if(TOPICS[i].id===id) return TOPICS[i]; return null; }
+
+/* ---------- screens ---------- */
+var S=null;
+
+function topbar(){
+  return '<div class="top"><button class="brand" data-act="home" aria-label="Back to all topics"><span class="logo">🧠</span>Thinkers 5</button>'+
+    '<button class="iconbtn" data-act="mute" aria-label="'+(muted?'Turn sound on':'Turn sound off')+'">'+(muted?'🔇':'🔊')+'</button></div>';
+}
+function starsFor(pct){ return pct>=0.9?3:pct>=0.7?2:pct>=0.5?1:0; }
+function starStr(pct){
+  if(pct===undefined) return '<span class="stars none">Sin jugar todavía</span>';
+  var n=starsFor(pct); return '<span class="stars" aria-label="'+n+' of 3 stars">'+'★★★'.slice(0,n)+'<span style="color:var(--line)">'+'★★★'.slice(0,3-n)+'</span></span>';
+}
+
+function renderHome(){
+  S=null;
+  var best=loadBest();
+  function card(t){ return '<button class="card" data-act="lesson" data-id="'+t.id+'"><span class="emoji">'+t.emoji+'</span><h3>'+t.title+'</h3><span class="sub">'+t.sub+'</span><span class="meta">'+starStr(best[t.id])+'</span></button>'; }
+  app.innerHTML = topbar()+
+    '<section class="hero"><h1>Thinkers<span class="five">5</span><br>exam practice</h1>'+
+    '<p>Unit 4 review and Unit 5, <i>What possessions are important to you?</i> Elegí un tema para repasar y practicar, o hacé el examen de prueba con preguntas de todo.</p></section>'+
+    '<button class="exam-card" data-act="start" data-id="exam"><span class="big">📝</span><span><span class="t">Practice exam</span><span class="s">20 preguntas mezcladas de todos los temas</span></span>'+(best.exam===undefined?'':starStr(best.exam))+'</button>'+
+    '<h2 class="section-title">Unit 4 review</h2><div class="grid">'+TOPICS.filter(function(t){return t.unit===4;}).map(card).join('')+'</div>'+
+    '<h2 class="section-title">Unit 5: What possessions are important to you?</h2><div class="grid">'+TOPICS.filter(function(t){return t.unit===5;}).map(card).join('')+'</div>';
+  window.scrollTo(0,0);
+}
+
+function renderLesson(id){
+  var t=topicById(id); S=null;
+  app.innerHTML = topbar()+
+    '<div class="lesson-head"><span class="emoji">'+t.emoji+'</span><div><h1>'+t.title+'</h1><p>Unit '+t.unit+'. Leé el repaso y después practicá.</p></div></div>'+
+    '<div class="lesson">'+t.lesson+'</div>'+
+    '<div class="actions"><button class="btn" data-act="start" data-id="'+t.id+'">Empezar práctica</button><button class="btn ghost" data-act="home">Volver a los temas</button></div>';
+  window.scrollTo(0,0);
+}
+
+function examQs(){
+  var pools=TOPICS.map(function(t){ return shuffle(t.make()); });
+  var qs=[];
+  pools.forEach(function(p){ qs=qs.concat(p.splice(0,2)); });
+  pick(pools,2).forEach(function(p){ if(p.length) qs.push(p.shift()); });
+  return shuffle(qs);
+}
+
+function startRound(id, custom){
+  var qs, title, topicId=id;
+  if(custom){ qs=shuffle(custom); title='Repaso de errores'; topicId=null; }
+  else if(id==='exam'){ qs=examQs(); title='Practice exam'; }
+  else { var t=topicById(id); qs=pick(t.make(),10); title=t.title; }
+  S={topicId:topicId, title:title, qs:qs, i:0, score:0, wrong:[], answered:false};
+  renderQ();
+}
+
+function renderQ(){
+  var q=S.qs[S.i]; S.answered=false;
+  var body;
+  if(q.type==='mc'){
+    body='<div class="options '+(q.optClass||'')+'">'+q.options.map(function(o,k){
+      return '<button class="opt" data-k="'+k+'">'+(typeof o==='string'?esc(o):o.html)+'</button>';
+    }).join('')+'</div>';
+  } else {
+    body='<form class="typeform" autocomplete="off"><input class="answer" id="ans" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Your answer" placeholder="Escribí tu respuesta"><button class="btn" type="submit">Comprobar</button></form>';
+  }
+  app.innerHTML = topbar()+
+    '<div class="qhead"><button class="link" data-act="home">← Temas</button><span class="count">'+(S.i+1)+' / '+S.qs.length+'</span><span class="score" aria-label="Correct answers">✔ '+S.score+'</span></div>'+
+    '<div class="bar"><span style="width:'+(S.i/S.qs.length*100)+'%"></span></div>'+
+    '<section class="qcard"><p class="qtag">'+esc(q.tag||S.title)+'</p>'+
+    (q.visual?'<div class="visual">'+q.visual+'</div>':'')+
+    '<h2 class="prompt">'+q.prompt+'</h2>'+body+'<div id="fb" aria-live="polite"></div></section>';
+  var a=document.getElementById('ans'); if(a) a.focus({preventScroll:true});
+}
+
+var PRAISE=['¡Bien!','¡Excelente!','¡Genial!','¡Muy bien!','¡Perfecto!','¡Bravo!'];
+function feedback(ok,q){
+  S.answered=true;
+  if(ok){ S.score++; sfx.ok(); } else { S.wrong.push(q); sfx.no(); }
+  var correct = q.displayHtml || esc(q.display || q.answer);
+  var last = S.i+1>=S.qs.length;
+  document.getElementById('fb').innerHTML='<div class="feedback '+(ok?'ok':'no')+'"><span class="head">'+(ok?PRAISE[Math.floor(Math.random()*PRAISE.length)]:'Casi…')+'</span>'+
+    (ok?'':'<p>La respuesta correcta es <b>'+correct+'</b>.</p>')+
+    (q.explain?'<p>'+q.explain+'</p>':'')+
+    '<button class="btn" id="next">'+(last?'Ver resultado':'Siguiente')+'</button></div>';
+  document.querySelector('.qhead .score').textContent='✔ '+S.score;
+  document.getElementById('next').focus({preventScroll:true});
+  document.getElementById('fb').scrollIntoView({block:'nearest', behavior:'smooth'});
+}
+function answerMC(k){
+  if(!S||S.answered) return;
+  var q=S.qs[S.i], o=q.options[k], val=(typeof o==='string')?o:o.value, ok=(val===q.answer);
+  var btns=app.querySelectorAll('.opt');
+  q.options.forEach(function(op,j){
+    var v=(typeof op==='string')?op:op.value;
+    btns[j].disabled=true;
+    if(v===q.answer) btns[j].classList.add('correct');
+    else if(j===k) btns[j].classList.add('wrong');
+  });
+  feedback(ok,q);
+}
+function answerType(){
+  if(!S||S.answered) return;
+  var q=S.qs[S.i], inp=document.getElementById('ans'), v=inp.value;
+  if(!v.trim()){ inp.focus(); return; }
+  var ok=q.answers.some(function(a){ return norm(a)===norm(v); });
+  inp.classList.add(ok?'correct':'wrong'); inp.readOnly=true;
+  app.querySelector('.typeform .btn').disabled=true;
+  feedback(ok,q);
+}
+function nextQ(){
+  S.i++;
+  if(S.i>=S.qs.length) renderEnd(); else { renderQ(); window.scrollTo(0,0); }
+}
+
+function renderEnd(){
+  var total=S.qs.length, pct=S.score/total, n=starsFor(pct);
+  if(S.topicId) saveBest(S.topicId,pct);
+  if(n===3) sfx.win();
+  var msgs=['Leé el repaso del tema y probá otra vez. ¡Vos podés!','Vas bien. Leé el repaso del tema y volvé a intentar.','¡Muy bien! Repasá los errores y probá de nuevo para las 3 estrellas.','¡Excelente! Este tema lo tenés dominado.'];
+  var mistakes='';
+  if(S.wrong.length){
+    mistakes='<div class="mistakes"><h3>Para repasar</h3><ol>'+S.wrong.map(function(q){
+      return '<li><span class="q">'+(q.review||q.prompt)+'</span><span class="a">'+(q.displayHtml||esc(q.display||q.answer))+'</span></li>';
+    }).join('')+'</ol></div>';
+  }
+  app.innerHTML = topbar()+
+    '<section class="qcard result"><p class="qtag">'+esc(S.title)+'</p>'+
+    '<div class="bigscore">'+S.score+'<small> / '+total+'</small></div>'+
+    '<div class="rstars" aria-label="'+n+' of 3 stars"><span class="'+(n>=1?'on':'')+'">★</span><span class="'+(n>=2?'on':'')+'">★</span><span class="'+(n>=3?'on':'')+'">★</span></div>'+
+    '<p class="msg">'+msgs[n]+'</p>'+
+    '<div class="actions">'+
+      (S.wrong.length?'<button class="btn orange" data-act="mistakes">Practicar mis errores</button>':'')+
+      (S.topicId?'<button class="btn" data-act="start" data-id="'+S.topicId+'">Jugar de nuevo</button>':'')+
+      (S.topicId&&S.topicId!=='exam'?'<button class="btn ghost" data-act="lesson" data-id="'+S.topicId+'">Ver el repaso</button>':'')+
+      '<button class="btn ghost" data-act="home">Volver a los temas</button>'+
+    '</div>'+mistakes+'</section>';
+  window.scrollTo(0,0);
+}
+
+/* ---------- events ---------- */
+app.addEventListener('click',function(e){
+  var t=e.target.closest('[data-act], .opt, #next'); if(!t) return;
+  if(t.classList.contains('opt')){ answerMC(+t.dataset.k); return; }
+  if(t.id==='next'){ nextQ(); return; }
+  var act=t.dataset.act, id=t.dataset.id;
+  if(act==='home') renderHome();
+  else if(act==='lesson') renderLesson(id);
+  else if(act==='start') startRound(id);
+  else if(act==='mistakes'){ var w=S.wrong.slice(); startRound(null,w); }
+  else if(act==='mute'){
+    muted=!muted; try{ localStorage.setItem(STORE+'-muted',muted?'1':'0'); }catch(err){}
+    t.textContent=muted?'🔇':'🔊'; t.setAttribute('aria-label',muted?'Turn sound on':'Turn sound off');
+  }
+});
+app.addEventListener('submit',function(e){ e.preventDefault(); answerType(); });
+document.addEventListener('keydown',function(e){
+  if(!S) return;
+  if(S.answered && e.key==='Enter'){ var n=document.getElementById('next'); if(n){ e.preventDefault(); n.click(); } return; }
+  if(!S.answered && /^[1-4]$/.test(e.key) && !(document.activeElement && document.activeElement.id==='ans')){
+    var b=app.querySelectorAll('.opt')[+e.key-1]; if(b) b.click();
+  }
+});
+
+renderHome();
+})();
+</script>
+</body>
+</html>
