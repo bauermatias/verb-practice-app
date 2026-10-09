@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Evaluación de PDL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Grandstander:wght@600;800&family=Lexend:wght@400;500;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+/* Layout: una hoja de carpeta cuadriculada con margen rojo. Las actividades son fichas
+   pegadas con cinta; el sujeto siempre en verde agua y el predicado en frambuesa,
+   con los corchetes y siglas escritos "a mano" como en la carpeta. */
+:root{
+  --paper:#fffdf6; --grid:#e1eaf4; --margin:#f0a6a6;
+  --ink:#1d2742; --ink-2:#56607a; --line:#cfd8e6; --card:#ffffff; --card-2:#f6f8fc;
+  --suj:#087a73; --suj-bg:#d6f1ec;
+  --pred:#c22a5f; --pred-bg:#fde2eb;
+  --hl:#ffe24a; --tape:#f7d77c;
+  --ok:#2b8a3e; --ok-bg:#e4f6e7; --bad:#c2410c; --bad-bg:#fff0e5;
+  --f-display:'Grandstander','Comic Sans MS',system-ui,sans-serif;
+  --f-body:'Lexend',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-hand:'Patrick Hand','Comic Sans MS',cursive;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{
+  font-family:var(--f-body);color:var(--ink);font-size:16px;line-height:1.5;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;
+  min-height:100vh;-webkit-text-size-adjust:100%;
+}
+body::before{content:"";position:fixed;top:0;bottom:0;left:clamp(6px,calc(50% - 470px),100vw);width:2px;background:var(--margin);pointer-events:none}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px;padding-block:8px 56px;position:relative}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px;border-radius:8px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.1;text-wrap:balance;margin:0}
+.t-s{color:var(--suj)} .t-p{color:var(--pred)}
+.hl{background:linear-gradient(transparent 58%,var(--hl) 58%,var(--hl) 92%,transparent 92%);padding-inline:.08em}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:10px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;font-family:var(--f-display);font-weight:800;font-size:1.15rem;padding:4px}
+.brand .seal{font-family:var(--f-hand);font-weight:400;font-size:1rem;border:2px solid var(--ink);border-radius:50%;width:38px;height:38px;display:grid;place-items:center;background:var(--hl);transform:rotate(-6deg)}
+.top .sp{flex:1}
+.hub{color:var(--ink-2);font-weight:600;font-size:.9rem;text-decoration:none}
+.hub:hover{color:var(--ink);text-decoration:underline}
+.iconbtn{background:var(--card);border:2px solid var(--ink);border-radius:12px;width:42px;height:42px;cursor:pointer;font-size:1.1rem}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.25fr 1fr;gap:22px;align-items:start;padding-block:10px 6px}
+@media (max-width:720px){.hero{grid-template-columns:1fr}}
+.eyebrow{font-weight:700;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin:0 0 8px}
+.hero h1{font-size:clamp(2.1rem,7vw,3.3rem);font-weight:800}
+.hero p.lead{margin:12px 0 0;color:var(--ink-2);max-width:46ch}
+.postit{background:#fff4a8;border:2px solid var(--ink);padding:14px 16px 12px;transform:rotate(1.5deg);box-shadow:5px 6px 0 rgba(29,39,66,.12)}
+.postit h2{font-size:1.05rem;margin-bottom:8px}
+.dates{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.dates li{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-hand);font-size:1.25rem;line-height:1.2}
+.dates b{font-family:var(--f-body);font-size:.95rem}
+.countdown{margin:10px 0 0;font-weight:700;font-size:.9rem}
+.sample{grid-column:1/-1;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:12px 16px 14px;display:flex;flex-direction:column;gap:6px}
+.sample .cap{font-size:.8rem;font-weight:600;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase}
+
+/* sections & cards */
+.sec-title{display:flex;align-items:baseline;gap:10px;margin:34px 0 14px}
+.sec-title h2{font-size:1.45rem}
+.sec-title span{color:var(--ink-2);font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 16px}
+@media (max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:440px){.grid{grid-template-columns:1fr}}
+.card{position:relative;text-align:left;background:var(--card);border:2px solid var(--ink);border-radius:6px;padding:20px 16px 14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;box-shadow:4px 4px 0 var(--line);transition:transform .12s,box-shadow .12s}
+.card::before{content:"";position:absolute;top:-10px;left:50%;width:62px;height:18px;transform:translateX(-50%) rotate(-3deg);background:var(--tape);opacity:.9}
+.card:nth-child(even)::before{transform:translateX(-50%) rotate(2.5deg)}
+.card:hover{transform:translateY(-2px);box-shadow:6px 7px 0 var(--line)}
+.card .sig{font-family:var(--f-hand);font-size:1.2rem;line-height:1;color:var(--ink-2)}
+.card .ct{display:block;font-family:var(--f-display);font-size:1.12rem;font-weight:800;line-height:1.15}
+.card .sub{font-size:.88rem;color:var(--ink-2)}
+.card .meta{margin-top:auto;padding-top:6px}
+.stars{color:#e8a400;font-size:1.05rem;letter-spacing:2px}
+.stars .off{color:var(--line)}
+.stars.none{font-size:.8rem;letter-spacing:0;color:var(--ink-2)}
+.exam{display:flex;align-items:center;gap:16px;width:100%;text-align:left;margin-top:26px;background:var(--ink);color:var(--paper);border:2px solid var(--ink);border-radius:14px;padding:18px 20px;cursor:pointer;box-shadow:5px 5px 0 var(--hl)}
+.exam .big{font-family:var(--f-hand);font-size:1.6rem;border:2px dashed var(--hl);border-radius:10px;padding:2px 10px;color:var(--hl)}
+.exam .t{display:block;font-family:var(--f-display);font-weight:800;font-size:1.3rem}
+.exam .s{display:block;font-size:.9rem;opacity:.85}
+.exam .stars .off{color:#56607a}
+.exam > span:nth-child(2){flex:1;min-width:0}
+
+/* lesson */
+.lesson-head{display:flex;gap:14px;align-items:center;margin:8px 0 16px}
+.lesson-head .sig{font-family:var(--f-hand);font-size:1.4rem;border:2px solid var(--ink);border-radius:12px;padding:4px 10px;background:var(--hl);transform:rotate(-3deg)}
+.lesson-head h1{font-size:clamp(1.6rem,5vw,2.2rem)}
+.lesson-head p{margin:2px 0 0;color:var(--ink-2);font-size:.9rem}
+.sheet{background:var(--card);border:2px solid var(--ink);border-radius:8px;padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px;
+  background-image:linear-gradient(var(--card) 0,var(--card) 100%)}
+.sheet h3{font-size:1.15rem;margin-top:6px}
+.sheet p,.sheet ul{margin:0;max-width:68ch}
+.sheet ul{padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+.tip{background:var(--card-2);border-left:4px solid var(--hl);padding:10px 12px;border-radius:0 8px 8px 0;font-size:.95rem}
+.ex{background:var(--card-2);border:1.5px dashed var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.ex .q{font-size:.9rem;color:var(--ink-2);margin:6px 0 0}
+table.end{border-collapse:collapse;font-size:.95rem}
+table.end td,table.end th{border:1.5px solid var(--line);padding:6px 10px;text-align:left}
+table.end th{background:var(--card-2)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.btn{background:var(--ink);color:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:11px 18px;font-weight:700;cursor:pointer;font-size:1rem}
+.btn:hover{background:#2c3a60}
+.btn.ghost{background:var(--card);color:var(--ink)}
+.btn.ghost:hover{background:var(--card-2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.texts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:4px}
+@media (max-width:560px){.texts{grid-template-columns:1fr}}
+
+/* analysis in "formato carpeta" */
+.an{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 12px;font-size:1.12rem;line-height:1.3}
+.seg{display:inline-flex;flex-direction:column;min-width:0;max-width:100%}
+.wrow{display:flex;flex-wrap:wrap;gap:0 .3em;padding-top:1.05em}
+.w{position:relative;white-space:nowrap}
+.w.nuc{font-weight:600}
+.mk{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-family:var(--f-hand);font-style:normal;font-weight:400;font-size:1em;line-height:1.05}
+.brk{position:relative;margin-top:3px;padding-top:.72em;text-align:center;font-family:var(--f-hand);font-size:1.1em;line-height:1}
+.brk::before{content:"";position:absolute;top:0;left:1px;right:1px;height:.5em;border:2.5px solid currentColor;border-top:0;border-radius:0 0 6px 6px}
+.seg-s .mk,.seg-s .brk{color:var(--suj)}
+.seg-p .mk,.seg-p .brk{color:var(--pred)}
+.seg-st{color:var(--suj)}
+.seg-st .w{font-family:var(--f-hand);font-size:1.05em}
+.seg-st .brk::before{border-style:dashed}
+
+/* question */
+.qhead{display:flex;align-items:center;gap:12px;font-weight:600;font-size:.92rem}
+.qhead .count{margin-left:auto;color:var(--ink-2)}
+.qhead .score{color:var(--ok)}
+.link{background:none;border:0;cursor:pointer;color:var(--ink-2);font-weight:600;padding:4px 0}
+.link:hover{color:var(--ink);text-decoration:underline}
+.bar{height:10px;border:2px solid var(--ink);border-radius:99px;margin:10px 0 18px;overflow:hidden;background:var(--card)}
+.bar span{display:block;height:100%;background:var(--hl);transition:width .3s}
+.qcard{background:var(--card);border:2px solid var(--ink);border-radius:8px;padding:18px 18px 20px;display:flex;flex-direction:column;gap:14px;box-shadow:5px 5px 0 var(--line)}
+.qtag{margin:0;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.prompt{font-family:var(--f-body);font-weight:600;font-size:1.12rem;line-height:1.4;margin:0}
+.sent{font-size:1.3rem;font-weight:500;background:var(--card-2);border-radius:10px;padding:12px 14px;border-bottom:2px solid var(--line)}
+.passage{border:1.5px solid var(--line);border-radius:10px;background:var(--card-2)}
+.passage summary{cursor:pointer;padding:10px 14px;font-weight:700}
+.passage .ptext{padding:0 16px 14px;max-height:46vh;overflow:auto;font-size:1rem;line-height:1.65}
+.passage .ptext p{margin:0 0 .7em}
+.passage h4{font-family:var(--f-display);font-size:1.1rem;margin:4px 0 8px}
+.passage h5{font-size:.95rem;margin:10px 0 2px}
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.options.stack{grid-template-columns:1fr}
+.opt{text-align:left;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:1rem;display:flex;flex-direction:column;gap:2px}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt b{font-family:var(--f-hand);font-weight:400;font-size:1.4rem;line-height:1}
+.opt small{color:var(--ink-2);font-size:.85rem}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.toks{display:flex;flex-wrap:wrap;gap:8px}
+.tok{background:var(--card);border:2px solid var(--line);border-radius:10px;padding:6px 11px;font-size:1.15rem;cursor:pointer;line-height:1.3}
+.tok:hover:not(:disabled){border-color:var(--ink)}
+.tok.in-s{background:var(--suj-bg);border-color:#8fd3c9}
+.tok.in-p{background:var(--pred-bg);border-color:#f3a8c1}
+.tok.sel{background:var(--hl);border-color:var(--ink)}
+.tok.right{background:var(--ok-bg);border-color:var(--ok)}
+.tok.wrong{background:var(--bad-bg);border-color:var(--bad);text-decoration:line-through}
+.tok.missed{border-color:var(--ok);border-style:dashed}
+.tok:disabled{cursor:default}
+.tok-st{font-size:.95rem;font-weight:600;border-style:dashed}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--ink-2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.build{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){.build{grid-template-columns:1fr}}
+.build h4{margin:0 0 6px;font-size:.9rem}
+.chips{display:flex;flex-direction:column;gap:8px}
+.chip{text-align:left;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:1.02rem}
+.chip.s.sel{background:var(--suj-bg);border-color:var(--suj)}
+.chip.p.sel{background:var(--pred-bg);border-color:var(--pred)}
+.chip:disabled{cursor:default}
+.preview{min-height:3em;background:var(--card-2);border-radius:10px;padding:10px 14px;font-size:1.15rem;border-bottom:2px solid var(--line)}
+.preview .ph{color:var(--ink-2);font-size:.95rem}
+.target{display:inline-flex;gap:8px;align-items:center;font-family:var(--f-hand);font-size:1.5rem;line-height:1}
+.target .ts{color:var(--suj)} .target .tp{color:var(--pred)}
+.slots{display:flex;flex-direction:column;gap:8px;counter-reset:s}
+.slot{display:flex;gap:10px;align-items:center;border:2px dashed var(--line);border-radius:10px;padding:8px 12px;min-height:44px}
+.slot .n{font-family:var(--f-hand);font-size:1.3rem;width:1.2em;color:var(--ink-2)}
+.slot.filled{border-style:solid;border-color:var(--ink);background:var(--card)}
+.typeform{display:flex;gap:10px;flex-wrap:wrap}
+.fb{border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border:2px solid}
+.fb.ok{background:var(--ok-bg);border-color:var(--ok)}
+.fb.bad{background:var(--bad-bg);border-color:var(--bad)}
+.fb .verdict{font-family:var(--f-display);font-weight:800;font-size:1.2rem;margin:0}
+.fb.ok .verdict{color:var(--ok)} .fb.bad .verdict{color:var(--bad)}
+.fb p{margin:0}
+.fb .an{background:var(--card);border-radius:10px;padding:8px 12px 10px}
+.fb .btn{align-self:flex-start}
+
+/* result */
+.result{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center;padding:24px 18px}
+.result .big{font-family:var(--f-display);font-weight:800;font-size:3.2rem;line-height:1}
+.result .stars{font-size:2rem}
+.result p{margin:0;color:var(--ink-2)}
+.result .actions{justify-content:center}
+
+/* clock game */
+.clock{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-display);font-weight:800;font-size:1.4rem}
+.clock .time{font-variant-numeric:tabular-nums;border:2px solid var(--ink);border-radius:12px;padding:4px 12px;background:var(--hl)}
+.clock .time.low{background:var(--bad-bg);color:var(--bad)}
+.flash-ok{animation:fok .45s}
+.flash-bad{animation:fbad .45s}
+@keyframes fok{0%{box-shadow:0 0 0 0 var(--ok)}100%{box-shadow:0 0 0 14px transparent}}
+@keyframes fbad{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+footer{text-align:center;color:var(--ink-2);font-size:.85rem;padding-top:36px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+(function(){
+'use strict';
+var app=document.getElementById('app');
+var HUB='../../home.html';
+
+/* ---------- utilidades ---------- */
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function pick(a,n){return shuffle(a).slice(0,n);}
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+var STORE='pdl5-evaluacion';
+function sget(k,d){try{var v=localStorage.getItem(STORE+k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function sset(k,v){try{localStorage.setItem(STORE+k,JSON.stringify(v));}catch(e){}}
+function loadBest(){var b=sget('-best',{});return (b&&typeof b==='object')?b:{};}
+function saveBest(id,val){var b=loadBest();if(b[id]===undefined||val>b[id]){b[id]=val;sset('-best',b);return true;}return false;}
+
+/* ---------- sonido ---------- */
+var muted=!!sget('-mute',false),actx=null;
+function tone(fs,d,type){if(muted)return;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();var t=actx.currentTime;fs.forEach(function(f,i){var o=actx.createOscillator(),g=actx.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+i*d);g.gain.exponentialRampToValueAtTime(0.16,t+i*d+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+(i+1)*d);o.connect(g);g.connect(actx.destination);o.start(t+i*d);o.stop(t+(i+1)*d+0.03);});}catch(e){}}
+function sOk(){tone([660,880],0.09,'triangle');}
+function sBad(){tone([240,190],0.13,'square');}
+function sWin(){tone([523,659,784,1046],0.11,'triangle');}
+
+/* ---------- oraciones ----------
+   S: sujeto, P: predicado, separados por |. Los núcleos van entre *asteriscos*.
+   Las oraciones con sujeto tácito llevan la persona: yo, vos, el, nos, ellos. */
+var PRON={yo:'yo',vos:'vos',el:'él / ella',nos:'nosotros / nosotras',ellos:'ellos / ellas'};
+var PRON_SHORT={yo:'yo',vos:'vos',el:'él/ella',nos:'nosotros',ellos:'ellos'};
+var PRON_ORDER=['yo','vos','el','nos','ellos'];
+var BANK=[
+ // SES + PVS
+ ['S:El *perro* de mi vecino|P:*ladra* toda la noche.'],
+ ['S:La *maestra*|P:*explicó* el tema en el pizarrón.'],
+ ['S:Mi *abuela*|P:*prepara* empanadas los domingos.'],
+ ['S:Los *chicos* de quinto|P:*organizaron* una feria de ciencias.'],
+ ['S:Un *colibrí* verde|P:*visitó* las flores del jardín.'],
+ ['S:*Martina*|P:*ganó* el concurso de dibujo.'],
+ ['S:El *tren*|P:*llegó* tarde a la estación.'],
+ ['S:Las *hojas* secas|P:*cubren* la vereda.'],
+ ['S:Mi *papá*|P:*arregló* la bicicleta.'],
+ ['S:La *biblioteca* de la escuela|P:*recibió* libros nuevos.'],
+ ['S:*Nosotros*|P:*visitamos* el museo de ciencias.'],
+ ['S:*Ella*|P:*escribe* cuentos de misterio.'],
+ ['S:El *equipo* de handball|P:*entrena* los martes.'],
+ ['S:Las *nubes* grises|P:*anunciaban* una tormenta.'],
+ ['S:Mi *gato*|P:no *come* verduras.'],
+ ['S:*Ellos*|P:*construyeron* un castillo de arena.'],
+ // SEC + PVS
+ ['S:*Tomás* y *Lucía*|P:*juegan* al ajedrez.'],
+ ['S:Mi *mamá* y mi *tía*|P:*viajaron* a Córdoba.'],
+ ['S:Los *gatos* y los *perros*|P:*necesitan* muchos cuidados.'],
+ ['S:El *director* y las *maestras*|P:*prepararon* el acto.'],
+ ['S:*Juan*, *Sofía* y *Bruno*|P:*armaron* una maqueta.'],
+ ['S:La *luna* y las *estrellas*|P:*iluminaban* el campo.'],
+ ['S:Las *rosas* y los *jazmines*|P:*perfuman* el patio.'],
+ ['S:Mi *hermano* y *yo*|P:*hicimos* la tarea juntos.'],
+ // SES + PVC
+ ['S:El *payaso*|P:*cantó* y *bailó* en el escenario.'],
+ ['S:Mi *prima*|P:*lee* y *escribe* poesías.'],
+ ['S:El *viento*|P:*sopló* fuerte y *derribó* un árbol.'],
+ ['S:La *profesora*|P:*corrigió* las pruebas y *repartió* las notas.'],
+ ['S:*Lautaro*|P:*corre*, *salta* y *nada* muy bien.'],
+ ['S:El *cocinero*|P:*cortó* las verduras y *preparó* una sopa.'],
+ ['S:Un *zorro* astuto|P:*entró* al gallinero y *robó* un huevo.'],
+ // SEC + PVC
+ ['S:*Pedro* y *Ana*|P:*cantan* y *bailan* en la fiesta.'],
+ ['S:Los *alumnos* y la *maestra*|P:*plantaron* árboles y *regaron* la huerta.'],
+ ['S:Mi *abuelo* y mi *papá*|P:*pescaron* en el río y *cocinaron* los pescados.'],
+ ['S:Las *nenas* y los *nenes*|P:*saltaban* y *gritaban* en el recreo.'],
+ ['S:El *perro* y el *gato*|P:*comieron* y *durmieron* toda la tarde.'],
+ // ST + PVS
+ ['P:*Llegamos* temprano a la escuela.','nos'],
+ ['P:*Compré* un cuaderno nuevo.','yo'],
+ ['P:*Jugás* muy bien al fútbol.','vos'],
+ ['P:*Cruzaron* el río en una balsa.','ellos'],
+ ['P:*Pintó* un mural en la pared del patio.','el'],
+ ['P:Mañana *viajaremos* a la costa.','nos'],
+ ['P:*Tenés* una letra muy prolija.','vos'],
+ ['P:*Estudio* para la prueba de Prácticas del Lenguaje.','yo'],
+ ['P:*Encontraron* un tesoro en la playa.','ellos'],
+ ['P:*Escribió* una carta a su abuela.','el'],
+ // ST + PVC
+ ['P:*Leímos* el cuento y *respondimos* las preguntas.','nos'],
+ ['P:*Abrí* la ventana y *miré* el paisaje.','yo'],
+ ['P:*Saltaron* la soga y *jugaron* a la mancha.','ellos'],
+ ['P:*Ordenás* tu cuarto y *sacás* la basura.','vos'],
+ ['P:*Subió* al colectivo y *saludó* al chofer.','el'],
+ // orden invertido (el sujeto va al final)
+ ['P:En el bosque *vivía*|S:un *ogro* gruñón.'],
+ ['P:Ayer *llegaron* al pueblo|S:mis *primos*.'],
+ ['P:*Sonó*|S:el *timbre* del recreo.'],
+ ['P:*Ganaron* el partido|S:*Belén* y *Nicolás*.'],
+ ['P:En la plaza *jugaban*|S:unos *chicos* y sus *perros*.'],
+ ['P:Por el cielo *volaban*|S:las *golondrinas*.']
+];
+var TOKRE=/^([¡¿«"(]*)(\*?)(.+?)(\*?)([.,;:!?»")]*)$/;
+function parse(src,tac){
+  var s={src:src,tac:tac||null,tokens:[],sIdx:[],nIdx:[],pIdx:[],nvIdx:[]};
+  src.split('|').forEach(function(part,si){
+    var role=part.charAt(0),text=part.slice(2).trim();
+    text.split(/\s+/).forEach(function(tok){
+      var m=tok.match(TOKRE);
+      var t={pre:m[1],word:m[3],post:m[5],nuc:m[2]==='*',role:role,seg:si,i:s.tokens.length};
+      s.tokens.push(t);
+      if(role==='S'){s.sIdx.push(t.i);if(t.nuc)s.nIdx.push(t.i);}else{s.pIdx.push(t.i);if(t.nuc)s.nvIdx.push(t.i);}
+    });
+  });
+  s.sType=s.sIdx.length===0?'ST':(s.nIdx.length>1?'SEC':'SES');
+  s.pType=s.nvIdx.length>1?'PVC':'PVS';
+  s.inv=s.sIdx.length>0&&s.sIdx[0]>s.pIdx[0];
+  s.text=s.tokens.map(function(t){return t.pre+t.word+t.post;}).join(' ');
+  return s;
+}
+var SENTS=BANK.map(function(b){return parse(b[0],b[1]);});
+function byType(fn){return SENTS.filter(fn);}
+
+function words(s,idx){return idx.map(function(i){return s.tokens[i].word;});}
+function phrase(s,idx){return idx.map(function(i){var t=s.tokens[i];return t.pre+t.word+t.post;}).join(' ').replace(/[.!?]$/,'');}
+function qq(w){return '«'+esc(w)+'»';}
+function listW(a){a=a.map(qq);return a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];}
+var NUMW=['cero','un','dos','tres','cuatro'];
+
+function renderAn(s){
+  var h='<div class="an">';
+  if(s.sType==='ST')h+='<span class="seg seg-st"><span class="wrow"><span class="w">('+esc(PRON_SHORT[s.tac])+')</span></span><span class="brk">ST</span></span>';
+  var groups=[];
+  s.tokens.forEach(function(t){var g=groups[groups.length-1];if(!g||g.seg!==t.seg){g={seg:t.seg,role:t.role,toks:[]};groups.push(g);}g.toks.push(t);});
+  groups.forEach(function(g){
+    var isS=g.role==='S';
+    h+='<span class="seg '+(isS?'seg-s':'seg-p')+'"><span class="wrow">'+g.toks.map(function(t){
+      return '<span class="w'+(t.nuc?' nuc':'')+'">'+(t.nuc?'<i class="mk">'+(isS?'n':'nv')+'</i>':'')+esc(t.pre+t.word+t.post)+'</span>';
+    }).join('')+'</span><span class="brk">'+(isS?s.sType:s.pType)+'</span></span>';
+  });
+  return h+'</div>';
+}
+function an(src,tac){return renderAn(parse(src,tac));}
+
+function explainS(s){
+  if(s.sType==='ST')return 'El sujeto no está escrito, pero el verbo '+listW(words(s,s.nvIdx.slice(0,1)))+' nos dice quién hace la acción: <b>'+PRON[s.tac]+'</b>. Es un <b>sujeto tácito (ST)</b>.';
+  var n=s.nIdx.length;
+  if(n===1)return 'El sujeto es '+qq(phrase(s,s.sIdx))+'. Tiene un solo núcleo, '+qq(words(s,s.nIdx)[0])+', así que es un <b>sujeto expreso simple (SES)</b>.';
+  return 'El sujeto es '+qq(phrase(s,s.sIdx))+'. Tiene '+NUMW[n]+' núcleos, '+listW(words(s,s.nIdx))+', así que es un <b>sujeto expreso compuesto (SEC)</b>.';
+}
+function explainP(s){
+  var n=s.nvIdx.length;
+  if(n===1)return 'El predicado tiene un solo núcleo verbal, '+qq(words(s,s.nvIdx)[0])+': es un <b>predicado verbal simple (PVS)</b>.';
+  return 'El predicado tiene '+NUMW[n]+' núcleos verbales, '+listW(words(s,s.nvIdx))+': es un <b>predicado verbal compuesto (PVC)</b>.';
+}
+
+/* ---------- constructores de preguntas ---------- */
+var OPT_S=[{v:'ST',l:'Sujeto tácito'},{v:'SES',l:'Sujeto expreso simple'},{v:'SEC',l:'Sujeto expreso compuesto'}];
+var OPT_P=[{v:'PVS',l:'Predicado verbal simple'},{v:'PVC',l:'Predicado verbal compuesto'}];
+function sentBox(s){return '<div class="sent">'+esc(s.text)+'</div>';}
+function qPickS(s,x){return Object.assign({type:'pick',mode:'S',s:s,tag:'Buscá el sujeto',
+  prompt:'Tocá todas las palabras del <b class="t-s">sujeto</b>. Si no está escrito, tocá «Sujeto tácito».',explain:explainS(s)},x||{});}
+function qPickN(s,x){return Object.assign({type:'pick',mode:'n',s:s,tag:'Núcleo del sujeto (n)',
+  prompt:'El <b class="t-s">sujeto</b> está pintado de verde. Tocá su <b>núcleo</b>. Si tiene más de uno, tocalos todos.',explain:explainS(s)},x||{});}
+function qPickNv(s,x){return Object.assign({type:'pick',mode:'nv',s:s,tag:'Núcleo verbal (nv)',
+  prompt:'El <b class="t-p">predicado</b> está pintado de rosa. Tocá el o los <b>núcleos verbales</b>.',explain:explainP(s)},x||{});}
+function qClassS(s,x){return Object.assign({type:'mc',s:s,tag:'¿Qué sujeto es?',visual:sentBox(s),prompt:'¿Qué tipo de sujeto tiene esta oración?',
+  options:OPT_S.map(function(o){return {v:o.v,html:'<b>'+o.v+'</b><small>'+o.l+'</small>'};}),answer:s.sType,explain:explainS(s)},x||{});}
+function qTac(s,x){return Object.assign({type:'mc',s:s,tag:'Detective del sujeto tácito',visual:sentBox(s),prompt:'El sujeto no está escrito. Mirá el verbo: ¿quién hace la acción?',
+  options:PRON_ORDER.map(function(k){return {v:k,html:esc(PRON[k])};}),answer:s.tac,explain:explainS(s)},x||{});}
+function qClassP(s,x){return Object.assign({type:'mc',s:s,tag:'¿Qué predicado es?',visual:sentBox(s),prompt:'¿Qué tipo de predicado tiene esta oración?',
+  options:OPT_P.map(function(o){return {v:o.v,html:'<b>'+o.v+'</b><small>'+o.l+'</small>'};}),answer:s.pType,explain:explainP(s)},x||{});}
+function qCountNv(s,x){return Object.assign({type:'mc',s:s,tag:'Contá los núcleos verbales',visual:sentBox(s),prompt:'¿Cuántos núcleos verbales (nv) tiene el predicado?',
+  options:['1','2','3'].map(function(v){return {v:v,html:'<b>'+v+'</b>'};}),answer:String(s.nvIdx.length),explain:explainP(s)},x||{});}
+
+/* ---------- Armá la oración ---------- */
+var B_SUJ=[
+ {t:'El *oso*',k:'SES',n:'s'},{t:'La *gata* Mora',k:'SES',n:'s'},{t:'Mi *maestra*',k:'SES',n:'s'},{t:'Un *astronauta*',k:'SES',n:'s'},
+ {t:'Los *pingüinos*',k:'SES',n:'p'},{t:'Mis *amigos*',k:'SES',n:'p'},{t:'Las *hormigas*',k:'SES',n:'p'},
+ {t:'*Ana* y *Pablo*',k:'SEC',n:'p'},{t:'El *perro* y el *gato*',k:'SEC',n:'p'},{t:'Mi *tía* y mi *abuela*',k:'SEC',n:'p'},{t:'Los *leones* y las *cebras*',k:'SEC',n:'p'}
+];
+var B_PRED=[
+ ['*duerme* la siesta','*duermen* la siesta','PVS'],['*juega* en el patio','*juegan* en el patio','PVS'],
+ ['*llegó* a la plaza','*llegaron* a la plaza','PVS'],['*mira* las nubes','*miran* las nubes','PVS'],
+ ['*corre* y *salta*','*corren* y *saltan*','PVC'],['*come* fruta y *descansa*','*comen* fruta y *descansan*','PVC'],
+ ['*canta* y *baila* en la fiesta','*cantan* y *bailan* en la fiesta','PVC'],['*saludó* y *sonrió*','*saludaron* y *sonrieron*','PVC']
+];
+function plain(t){return t.replace(/\*/g,'');}
+function qBuild(){
+  var ts=rnd(['SES','SEC']),tp=rnd(['PVS','PVC']);
+  var ses=B_SUJ.filter(function(x){return x.k==='SES';}),sec=B_SUJ.filter(function(x){return x.k==='SEC';});
+  var subs;
+  if(ts==='SES'){subs=[rnd(ses.filter(function(x){return x.n==='s';})),rnd(ses.filter(function(x){return x.n==='p';}))].concat(pick(sec,2));}
+  else{subs=pick(sec,2).concat([rnd(ses.filter(function(x){return x.n==='s';})),rnd(ses.filter(function(x){return x.n==='p';}))]);}
+  var good=pick(B_PRED.filter(function(p){return p[2]===tp;}),2),bad=rnd(B_PRED.filter(function(p){return p[2]!==tp;}));
+  var preds=[{t:good[0][0],k:tp,n:'s'},{t:good[0][1],k:tp,n:'p'},{t:(Math.random()<.5?good[1][0]:good[1][1]),k:tp},{t:(Math.random()<.5?bad[0]:bad[1]),k:bad[2]}];
+  preds[2].n=preds[2].t===good[1][0]?'s':'p';
+  preds[3].n=preds[3].t===bad[0]?'s':'p';
+  return {type:'build',tag:'Armá la oración',target:{s:ts,p:tp},subs:shuffle(subs),preds:shuffle(preds),
+    prompt:'Elegí un sujeto y un predicado para armar una oración con esta estructura:'};
+}
+
+/* ---------- Comprensión lectora ---------- */
+var TEXTS=[
+ {id:'pancho',kind:'Cuento',title:'El perro que no quería bañarse',
+  body:['En una casa de Chascomús vivía Pancho, un perro salchicha muy simpático. Pancho tenía una costumbre insoportable: odiaba el agua. Cada sábado, cuando Valentina llenaba la palangana, él se escondía debajo de la cama y no salía por nada del mundo.',
+   'Un sábado, Valentina tuvo una idea. Llenó la palangana, pero no llamó a Pancho. Se sentó en el patio con un libro y, sin decir nada, empezó a tirar pelotitas de colores dentro del agua. Pancho asomó el hocico desde la puerta. Miró las pelotitas. Las pelotitas flotaban y giraban como pequeños barcos.',
+   'El perro dio un paso, después otro. De repente, saltó dentro de la palangana para atrapar una pelotita roja. El agua salpicó a Valentina, al libro y hasta al gato, que dormía al sol y salió corriendo ofendido.',
+   'Valentina se rió tanto que le dolió la panza. Desde ese día, los sábados son distintos: Pancho espera la palangana sentado en la puerta, con una pelotita en la boca. El gato, en cambio, ahora duerme bien lejos del patio.'],
+  qs:[
+   {t:'mc',p:'¿Dónde transcurre la historia?',a:'En una casa de Chascomús',o:['En una veterinaria','En una playa de la costa','En la escuela de Valentina'],e:'Lo dice la primera oración: «En una casa de Chascomús vivía Pancho».'},
+   {t:'mc',p:'¿Cuál es el conflicto (el problema) del cuento?',a:'Pancho odiaba el agua y se escondía para no bañarse',o:['Pancho perdió su pelotita roja','El gato y Pancho se peleaban todos los días','Valentina no tenía tiempo para jugar con Pancho'],e:'El problema aparece al principio: cada sábado Pancho se escondía debajo de la cama para no bañarse.'},
+   {t:'mc',p:'¿Qué hizo Valentina para resolver el problema?',a:'Tiró pelotitas de colores en el agua sin llamar a Pancho',o:['Lo retó y lo metió en la palangana a la fuerza','Lo llevó a bañar a la veterinaria','Le compró una palangana más grande'],e:'Valentina no lo llamó: tiró pelotitas que flotaban para que a Pancho le dieran ganas de jugar.'},
+   {t:'mc',p:'¿Por qué el gato salió corriendo «ofendido»?',a:'Porque lo mojaron mientras dormía tranquilo al sol',o:['Porque Valentina no le dio de comer','Porque quería jugar con la pelotita roja','Porque le tenía miedo a Valentina'],e:'Es una inferencia: el agua lo salpicó mientras dormía, y a los gatos no les gusta mojarse.'},
+   {t:'order',p:'Ordená los hechos como pasaron en el cuento.',items:['Pancho se escondía debajo de la cama los sábados.','Valentina tiró pelotitas de colores en el agua.','Pancho saltó a la palangana para atrapar una pelotita.','Pancho espera la palangana con una pelotita en la boca.'],e:'Situación inicial, conflicto, resolución y situación final.'},
+   {t:'mc',p:'En el cuento, una «palangana» es…',a:'un recipiente grande y bajo para poner agua',o:['una toalla para secar al perro','un juguete para perros','un lugar del patio donde da el sol'],e:'Valentina la llena de agua para bañar a Pancho.'},
+   {t:'classS',src:'S:*Pancho*|P:*asomó* el hocico desde la puerta.',p:'Esta oración es del cuento. ¿Qué tipo de sujeto tiene?'},
+   {t:'tac',src:'P:*Miró* las pelotitas.',tac:'el',p:'En el cuento dice «Miró las pelotitas.» ¿Quién es el sujeto tácito?',e:'El verbo «miró» corresponde a él o ella; por el texto sabemos que es Pancho.'},
+   {t:'mc',p:'¿Qué parte del cuento es «Desde ese día, Pancho espera la palangana sentado en la puerta»?',a:'La situación final',o:['La situación inicial','El conflicto','El título'],e:'Cuenta cómo quedaron las cosas después de resolver el problema.'}
+  ]},
+ {id:'huerta',kind:'Cuento',title:'El misterio de la huerta',
+  body:['Todas las mañanas, los chicos de quinto grado regaban la huerta de la escuela. Ese otoño habían plantado lechugas, zanahorias y una calabaza que crecía y crecía. Joaquín la medía cada lunes con una cinta y anotaba los centímetros en su cuaderno.',
+   'Un lunes, Joaquín llegó corriendo al aula.<br>—¡Alguien mordió las lechugas! —gritó.',
+   'La seño Laura propuso investigar como verdaderos detectives. Los chicos revisaron la tierra con una lupa y encontraron unos agujeritos en las hojas y un caminito brillante. Sofía buscó en un libro de la biblioteca y leyó en voz alta que los caracoles dejan un rastro de baba que brilla con el sol.',
+   '—¡Son caracoles! —exclamaron todos.',
+   'Para proteger la huerta sin lastimar a nadie, armaron una cerca con cáscaras de huevo molidas, porque a los caracoles no les gusta arrastrarse sobre ellas. Las lechugas volvieron a crecer. Y la calabaza, a fin de año, midió ochenta y dos centímetros: la más grande de la historia de la escuela.'],
+  qs:[
+   {t:'mc',p:'¿Quiénes son los protagonistas de este cuento?',a:'Los chicos de quinto grado',o:['Los caracoles','La seño Laura y la directora','Los chicos de primer grado'],e:'La historia sigue a los chicos de quinto, que cuidan la huerta y resuelven el misterio.'},
+   {t:'mc',p:'¿Qué problema descubrió Joaquín un lunes?',a:'Alguien había mordido las lechugas',o:['La calabaza había desaparecido','Nadie había regado la huerta','Se había perdido su cuaderno'],e:'Joaquín llegó gritando: «¡Alguien mordió las lechugas!».'},
+   {t:'mc',p:'¿Qué pista los ayudó a descubrir a los culpables?',a:'Un caminito brillante sobre las hojas',o:['Unas huellas de perro en la tierra','Un caracol escondido en la mochila de Sofía','Unas plumas de pájaro'],e:'El libro decía que los caracoles dejan un rastro de baba que brilla.'},
+   {t:'mc',p:'¿Por qué usaron cáscaras de huevo y no veneno?',a:'Porque querían proteger la huerta sin lastimar a los caracoles',o:['Porque el veneno era muy caro','Porque la seño no sabía que existía el veneno','Porque los caracoles comen cáscaras de huevo'],e:'El texto dice que querían cuidar la huerta «sin lastimar a nadie».'},
+   {t:'order',p:'Ordená los hechos del cuento.',items:['Los chicos plantaron lechugas, zanahorias y una calabaza.','Joaquín descubrió que alguien había mordido las lechugas.','Sofía leyó en un libro que los caracoles dejan un rastro brillante.','Armaron una cerca con cáscaras de huevo molidas.'],e:''},
+   {t:'mc',p:'¿Qué significa «rastro» en el cuento?',a:'La huella o señal que deja algo al pasar',o:['Una herramienta para la huerta','Un tipo de caracol','Un pedazo de lechuga'],e:'El rastro de baba es la marca que deja el caracol por donde se arrastra.'},
+   {t:'pickN',src:'S:Los *chicos*|P:*revisaron* la tierra con una lupa.',p:'Esta oración es del cuento. El <b class="t-s">sujeto</b> está pintado: tocá su núcleo.'},
+   {t:'classP',src:'S:Los *chicos*|P:*revisaron* la tierra y *encontraron* unos agujeritos.',p:'Esta oración resume una parte del cuento. ¿Qué tipo de predicado tiene?'},
+   {t:'mc',p:'¿Cómo termina el cuento?',a:'Las lechugas vuelven a crecer y la calabaza bate un récord',o:['Los chicos se llevan los caracoles a su casa','La huerta se seca y no crece nada','Joaquín pierde la cinta para medir'],e:'Esa es la situación final: el problema quedó resuelto.'}
+  ]},
+ {id:'pinguinos',kind:'Texto informativo',title:'El pingüino de Magallanes',
+  sections:[
+   [null,'El pingüino de Magallanes es un ave marina que vive en las costas de la Patagonia argentina. Aunque tiene alas, no puede volar: las usa como aletas para nadar. Bajo el agua, puede nadar a más de 20 kilómetros por hora.'],
+   ['¿Cómo es?','Mide alrededor de 70 centímetros de alto. Tiene la espalda negra y la panza blanca, con dos bandas negras sobre el pecho. Esos colores lo ayudan a camuflarse: visto desde arriba, su espalda oscura se confunde con el fondo del mar; visto desde abajo, su panza blanca se confunde con la luz del sol.'],
+   ['¿Dónde tiene sus crías?','Cada año, en septiembre, miles de pingüinos llegan a Punta Tombo, en Chubut. Allí cavan nidos en la tierra, debajo de los arbustos. La hembra pone dos huevos y los padres se turnan para cuidarlos.'],
+   ['¿Qué come?','Se alimenta de peces pequeños, como la anchoíta, y de calamares.'],
+   ['Un viaje muy largo','En otoño, cuando los pichones ya saben nadar, todos parten hacia el norte, a aguas más cálidas. Recorren miles de kilómetros y vuelven a la misma costa en la primavera siguiente.']
+  ],
+  qs:[
+   {t:'mc',p:'¿Cuál es el tema del texto?',a:'Cómo es y cómo vive el pingüino de Magallanes',o:['Un viaje de vacaciones a Chubut','Todas las aves de la Patagonia','Cómo se pesca la anchoíta'],e:'Todo el texto da información sobre esta especie de pingüino.'},
+   {t:'mc',p:'¿Qué tipo de texto es?',a:'Un texto informativo, porque da datos reales sobre un tema',o:['Un cuento, porque tiene personajes y un conflicto','Una poesía, porque tiene rima','Una historieta, porque tiene globos de diálogo'],e:'No cuenta una historia inventada: explica datos sobre un animal real.'},
+   {t:'mc',p:'¿Para qué usa las alas el pingüino de Magallanes?',a:'Como aletas para nadar',o:['Para volar sobre el mar','Para cavar sus nidos','Para darles calor a los pichones'],e:'El texto dice que no puede volar y que usa las alas como aletas.'},
+   {t:'mc',p:'¿Por qué los colores del pingüino lo ayudan a protegerse?',a:'Porque lo camuflan: desde arriba y desde abajo se confunde con el entorno',o:['Porque asustan a los otros animales','Porque lo hacen más rápido al nadar','Porque le dan calor en el invierno'],e:'Es el párrafo «¿Cómo es?»: la espalda oscura y la panza blanca lo camuflan.'},
+   {t:'mc',p:'¿Para qué sirven los subtítulos como «¿Qué come?»?',a:'Para organizar la información en subtemas',o:['Para contar el final de la historia','Para que el texto rime','Para presentar a los personajes'],e:'Los subtítulos son paratexto: anticipan de qué trata cada parte.'},
+   {t:'order',p:'Ordená lo que hacen los pingüinos durante el año, empezando en septiembre.',items:['Llegan a Punta Tombo, en Chubut.','Cavan nidos debajo de los arbustos.','Cuidan los huevos y a los pichones.','Parten hacia el norte, a aguas más cálidas.'],e:'Primavera: llegan y crían. Otoño: viajan al norte.'},
+   {t:'pickN',src:'S:La *hembra*|P:*pone* dos huevos.',p:'Esta oración es del texto. El <b class="t-s">sujeto</b> está pintado: tocá su núcleo.'},
+   {t:'tac',src:'P:*Recorren* miles de kilómetros y *vuelven* a la misma costa.',tac:'ellos',p:'En el texto dice «Recorren miles de kilómetros y vuelven a la misma costa». ¿Quién es el sujeto tácito?',e:'Los verbos «recorren» y «vuelven» corresponden a ellos: los pingüinos.'}
+  ]},
+ {id:'abejas',kind:'Texto informativo',title:'Las abejas, un equipo perfecto',
+  sections:[
+   [null,'Las abejas son insectos que viven en grupos muy organizados llamados colonias. En una colmena puede haber más de cincuenta mil abejas, y cada una tiene una tarea.'],
+   ['¿Quién hace qué?','La reina es la única que pone huevos: puede poner hasta dos mil por día. Los zánganos son los machos y no salen a buscar alimento. Las obreras son las más numerosas y hacen casi todo el trabajo: limpian la colmena, cuidan a las larvas, fabrican cera y salen a buscar néctar y polen.'],
+   ['Una danza para avisar','Cuando una obrera encuentra flores con mucho néctar, vuelve a la colmena y realiza una danza especial. Con sus movimientos les indica a sus compañeras en qué dirección y a qué distancia están las flores.'],
+   ['La miel','Con el néctar, las abejas fabrican la miel, que guardan en celdas de cera de seis lados, llamadas celdas hexagonales. La miel es su alimento durante el invierno.'],
+   ['¿Por qué son importantes?','Al volar de flor en flor, las abejas llevan el polen de una planta a otra. Así ayudan a que las plantas den frutos. Gracias a ellas tenemos manzanas, peras, almendras, zapallos y muchos otros alimentos.']
+  ],
+  qs:[
+   {t:'mc',p:'¿Cuál es el tema del texto?',a:'Cómo se organizan y trabajan las abejas',o:['Cómo se fabrica una colmena de madera','Los insectos más peligrosos del mundo','Una abeja que se perdió en el jardín'],e:'Todos los párrafos explican la vida y el trabajo de las abejas.'},
+   {t:'mc',p:'Según el texto, ¿quién pone los huevos en la colmena?',a:'La reina',o:['Las obreras','Los zánganos','Todas las abejas'],e:'«La reina es la única que pone huevos».'},
+   {t:'mc',p:'¿Para qué baila una obrera cuando vuelve a la colmena?',a:'Para indicar dónde hay flores con néctar',o:['Para festejar que terminó de trabajar','Para despertar a la reina','Para espantar a los zánganos'],e:'La danza indica la dirección y la distancia de las flores.'},
+   {t:'mc',p:'¿Qué significa «hexagonales»?',a:'Que tienen seis lados',o:['Que son muy dulces','Que están hechas de madera','Que son redondas'],e:'El mismo texto lo explica: celdas de cera de seis lados.'},
+   {t:'mc',p:'¿En qué subtítulo buscarías por qué las abejas ayudan a tener frutas?',a:'¿Por qué son importantes?',o:['¿Quién hace qué?','Una danza para avisar','La miel'],e:'Ese apartado explica que llevan el polen y ayudan a que las plantas den frutos.'},
+   {t:'order',p:'Ordená los pasos para que las abejas tengan miel.',items:['Una obrera encuentra flores con néctar.','Hace una danza para avisarles a sus compañeras.','Las abejas juntan el néctar y fabrican la miel.','Guardan la miel en celdas hexagonales.'],e:''},
+   {t:'classP',src:'S:Las *abejas*|P:*llevan* el polen y *ayudan* a las plantas.',p:'Esta oración resume una idea del texto. ¿Qué tipo de predicado tiene?'},
+   {t:'pickS',src:'P:En primavera *salen* de la colmena|S:las *obreras*.',p:'Tocá todas las palabras del <b class="t-s">sujeto</b>. ¡Ojo, que no está al principio!'}
+  ]}
+];
+function passageHTML(T,open){
+  var inner='<h4>'+esc(T.title)+'</h4>';
+  if(T.body)inner+=T.body.map(function(p){return '<p>'+p+'</p>';}).join('');
+  else inner+=T.sections.map(function(s){return (s[0]?'<h5>'+esc(s[0])+'</h5>':'')+'<p>'+s[1]+'</p>';}).join('');
+  return '<details class="passage"'+(open?' open':'')+'><summary>Texto: '+esc(T.title)+'</summary><div class="ptext">'+inner+'</div></details>';
+}
+function textQs(T){
+  return T.qs.map(function(d){
+    var x={passage:T.id,tag:T.kind+' · '+T.title};
+    var q;
+    if(d.t==='mc')q={type:'mc',prompt:esc(d.p),options:shuffle([d.a].concat(d.o)).map(function(o){return {v:o,html:esc(o)};}),answer:d.a,explain:d.e,optClass:'stack'};
+    else if(d.t==='order')q={type:'order',prompt:esc(d.p),items:d.items,explain:d.e};
+    else{
+      var s=parse(d.src,d.tac);
+      if(d.t==='classS')q=qClassS(s);else if(d.t==='classP')q=qClassP(s);else if(d.t==='pickN')q=qPickN(s);else if(d.t==='pickS')q=qPickS(s);else if(d.t==='tac')q=qTac(s);
+      q.prompt=d.p;if(d.e)q.explain=d.e;
+    }
+    return Object.assign(q,x);
+  });
+}
+function textById(id){for(var i=0;i<TEXTS.length;i++)if(TEXTS[i].id===id)return TEXTS[i];return null;}
+
+/* ---------- temas ---------- */
+var TOPICS=[
+ {id:'sujeto',sig:'S | P',title:'¿Dónde está el sujeto?',sub:'Separar sujeto y predicado',
+  lesson:function(){return '<h3>Las dos partes de la oración</h3>'+
+   '<p>Las oraciones que vamos a analizar tienen dos partes:</p>'+
+   '<ul><li>El <b class="t-s">sujeto</b>: quién o qué hace la acción.</li><li>El <b class="t-p">predicado</b>: lo que se dice del sujeto. Siempre tiene el verbo.</li></ul>'+
+   '<div class="ex">'+an('S:El *perro* de mi vecino|P:*ladra* toda la noche.')+'</div>'+
+   '<h3>El truco para encontrarlo</h3>'+
+   '<div class="tip">1. Buscá el <b>verbo</b>: <i>ladra</i>.<br>2. Preguntale <b>¿quién?</b> o <b>¿quiénes?</b>: ¿Quién ladra? <i>El perro de mi vecino</i>.<br>3. ¡Esa respuesta es el sujeto! Todo lo demás es el predicado.</div>'+
+   '<h3>¡Ojo con el orden!</h3><p>El sujeto no siempre va primero. A veces aparece al final:</p>'+
+   '<div class="ex">'+an('P:Por el cielo *volaban*|S:las *golondrinas*.')+'<p class="q">¿Quiénes volaban? Las golondrinas.</p></div>'+
+   '<h3>¿Y si no hay sujeto escrito?</h3><p>Si nadie responde a la pregunta, el sujeto está escondido en el verbo: es un <b>sujeto tácito</b>. En este juego tocás el botón «Sujeto tácito».</p>'+
+   '<div class="ex">'+an('P:*Llegamos* temprano a la escuela.','nos')+'</div>';},
+  make:function(){var st=byType(function(s){return s.sType==='ST';}),inv=byType(function(s){return s.inv;}),rest=byType(function(s){return s.sType!=='ST'&&!s.inv;});
+   return shuffle(pick(st,2).concat(pick(inv,3),pick(rest,5))).map(function(s){return qPickS(s);});}},
+ {id:'tipos',sig:'ST · SES · SEC',title:'Tipos de sujeto',sub:'Tácito, simple o compuesto',
+  lesson:function(){return '<h3>Tres tipos de sujeto</h3>'+
+   '<ul><li><b>ST · Sujeto tácito</b>: no está escrito, pero lo sabemos por el verbo.</li><li><b>SES · Sujeto expreso simple</b>: está escrito y tiene <b>un</b> núcleo.</li><li><b>SEC · Sujeto expreso compuesto</b>: está escrito y tiene <b>dos o más</b> núcleos.</li></ul>'+
+   '<div class="ex">'+an('P:*Compré* un cuaderno nuevo.','yo')+'</div>'+
+   '<div class="ex">'+an('S:Mi *abuela*|P:*prepara* empanadas los domingos.')+'</div>'+
+   '<div class="ex">'+an('S:*Tomás* y *Lucía*|P:*juegan* al ajedrez.')+'</div>'+
+   '<h3>Detective del sujeto tácito</h3><p>Mirá cómo termina el verbo para saber quién hace la acción:</p>'+
+   '<div class="ex"><table class="end"><tr><th>Verbo</th><th>Sujeto tácito</th></tr>'+
+   '<tr><td>jueg<b>o</b>, jugu<b>é</b>, compr<b>é</b></td><td>yo</td></tr>'+
+   '<tr><td>jug<b>ás</b>, ten<b>és</b>, viv<b>ís</b></td><td>vos</td></tr>'+
+   '<tr><td>jueg<b>a</b>, jug<b>ó</b>, escrib<b>ió</b></td><td>él / ella</td></tr>'+
+   '<tr><td>jug<b>amos</b>, le<b>ímos</b></td><td>nosotros / nosotras</td></tr>'+
+   '<tr><td>jueg<b>an</b>, jug<b>aron</b></td><td>ellos / ellas (o ustedes)</td></tr></table></div>';},
+  make:function(){var ses=byType(function(s){return s.sType==='SES';}),sec=byType(function(s){return s.sType==='SEC';}),st=byType(function(s){return s.sType==='ST';});
+   var cl=shuffle(pick(ses,3).concat(pick(sec,3))).map(function(s){return qClassS(s);});
+   var t=pick(st,4);
+   return shuffle(cl.concat([qClassS(t[0])])).concat(t.slice(1).map(function(s){return qTac(s);}));}},
+ {id:'nucleos',sig:'n · nv',title:'Cazá los núcleos',sub:'Núcleo del sujeto y núcleo verbal',
+  lesson:function(){return '<h3>¿Qué es el núcleo?</h3><p>Es la palabra más importante de cada parte.</p>'+
+   '<ul><li><b class="t-s">n</b> · núcleo del sujeto: un <b>sustantivo</b> (perro, Martina, abuela) o un <b>pronombre</b> (yo, ella, nosotros).</li><li><b class="t-p">nv</b> · núcleo verbal: el <b>verbo conjugado</b> del predicado.</li></ul>'+
+   '<div class="ex">'+an('S:Un *colibrí* verde|P:*visitó* las flores del jardín.')+'<p class="q">«Un» y «verde» acompañan a colibrí, pero el núcleo es colibrí.</p></div>'+
+   '<div class="tip">La palabra <b>«y»</b> une los núcleos, pero no es un núcleo. En «Juan, Sofía y Bruno» hay tres núcleos: Juan, Sofía y Bruno.</div>'+
+   '<div class="ex">'+an('S:*Juan*, *Sofía* y *Bruno*|P:*armaron* una maqueta.')+'</div>'+
+   '<h3>Concordancia</h3><p>El núcleo del sujeto y el núcleo verbal se ponen de acuerdo en número: <i>el <b>chico</b> <b>juega</b></i> · <i>los <b>chicos</b> <b>juegan</b></i>. Si el sujeto es compuesto, el verbo va en plural.</p>';},
+  make:function(){var withS=byType(function(s){return s.sType!=='ST';});
+   return shuffle(pick(withS,5).map(function(s){return qPickN(s);}).concat(pick(SENTS,5).map(function(s){return qPickNv(s);})));}},
+ {id:'predicado',sig:'PVS · PVC',title:'Tipos de predicado',sub:'Simple o compuesto',
+  lesson:function(){return '<h3>Dos tipos de predicado</h3>'+
+   '<ul><li><b>PVS · Predicado verbal simple</b>: tiene <b>un</b> núcleo verbal.</li><li><b>PVC · Predicado verbal compuesto</b>: tiene <b>dos o más</b> núcleos verbales.</li></ul>'+
+   '<div class="ex">'+an('S:El *tren*|P:*llegó* tarde a la estación.')+'</div>'+
+   '<div class="ex">'+an('S:El *payaso*|P:*cantó* y *bailó* en el escenario.')+'</div>'+
+   '<div class="tip">Para saberlo, contá los verbos conjugados del predicado. ¿Uno? PVS. ¿Dos o más? PVC.</div>'+
+   '<p>No te confundas: el tipo de sujeto y el tipo de predicado no dependen uno del otro. Puede haber un SEC con un PVS, o un ST con un PVC.</p>'+
+   '<div class="ex">'+an('P:*Abrí* la ventana y *miré* el paisaje.','yo')+'</div>';},
+  make:function(){var pvs=byType(function(s){return s.pType==='PVS';}),pvc=byType(function(s){return s.pType==='PVC';});
+   var c=pick(pvs,3).concat(pick(pvc,3)).map(function(s){return qClassP(s);});
+   var n=pick(pvc,3).concat(pick(pvs,1)).map(function(s){return qCountNv(s);});
+   return shuffle(c.concat(n));}},
+ {id:'armar',sig:'S + P',title:'Armá la oración',sub:'Combiná sujeto y predicado',
+  lesson:function(){return '<h3>¡A construir!</h3><p>En este juego te pido una estructura, por ejemplo <b class="t-s">SEC</b> + <b class="t-p">PVS</b>, y vos elegís un sujeto y un predicado que la cumplan.</p>'+
+   '<div class="ex">'+an('S:El *perro* y el *gato*|P:*juegan* en el patio.')+'</div>'+
+   '<div class="tip">Tenés que fijarte en dos cosas:<br>1. Que el tipo de sujeto y de predicado sea el que te piden.<br>2. Que concuerden: si el sujeto es plural, el verbo va en plural. <i>«Las hormigas duerme»</i> está mal; <i>«Las hormigas duermen»</i> está bien.</div>';},
+  make:function(){var a=[];for(var i=0;i<6;i++)a.push(qBuild());return a;}},
+ {id:'completo',sig:'[ n ] [ nv ]',title:'Análisis completo',sub:'Paso a paso, como en la prueba',
+  lesson:function(){return '<h3>Cómo analizar una oración</h3>'+
+   '<div class="tip">1. Buscá el <b>verbo</b> y preguntale ¿quién? para encontrar el <b class="t-s">sujeto</b>.<br>2. Clasificá el sujeto: ST, SES o SEC. Si es tácito, escribí quién es.<br>3. Marcá el núcleo del sujeto (<b>n</b>).<br>4. Marcá el o los núcleos verbales (<b>nv</b>).<br>5. Clasificá el predicado: PVS o PVC.</div>'+
+   '<p>En la carpeta se ve así: un corchete debajo de cada parte con su sigla, y <b>n</b> o <b>nv</b> arriba de los núcleos.</p>'+
+   '<div class="ex">'+an('S:Mi *abuelo* y mi *papá*|P:*pescaron* en el río y *cocinaron* los pescados.')+'</div>'+
+   '<div class="ex">'+an('P:*Saltaron* la soga y *jugaron* a la mancha.','ellos')+'</div>'+
+   '<p>En esta práctica analizás tres oraciones completas, un paso por vez.</p>';},
+  make:function(){var ss=pick(byType(function(s){return s.sType!=='ST';}),2).concat(pick(byType(function(s){return s.sType==='ST';}),1));
+   var qs=[];shuffle(ss).forEach(function(s,k){qs=qs.concat(fullSteps(s,k+1,3));});return qs;}}
+];
+function fullSteps(s,k,of){
+  var head='Oración '+k+' de '+of+' · Paso ';
+  var steps=[];
+  steps.push(qPickS(s,{tag:'',quiet:true,explain:s.sType==='ST'?'No hay sujeto escrito: es un <b>sujeto tácito</b>.':'El sujeto es '+qq(phrase(s,s.sIdx))+'.'}));
+  if(s.sType==='ST')steps.push(qTac(s,{quiet:true,explain:'El verbo '+qq(words(s,s.nvIdx)[0])+' nos dice que es <b>'+PRON[s.tac]+'</b>.'}));
+  else{
+    steps.push(qPickN(s,{quiet:true,explain:'El núcleo del sujeto: '+listW(words(s,s.nIdx))+'.'}));
+    steps.push(qClassS(s,{visual:'',quiet:true,explain:explainS(s)}));
+  }
+  steps.push(qPickNv(s,{quiet:true,explain:'Núcleo verbal: '+listW(words(s,s.nvIdx))+'.'}));
+  steps.push(qClassP(s,{visual:'',explain:explainP(s)+' ¡Así queda el análisis completo!'}));
+  steps.forEach(function(q,i){q.tag=head+(i+1)+' de '+steps.length;q.prompt='<span>'+q.prompt+'</span>';if(q.type==='mc'&&q.visual==='')q.visual=sentBox(s);});
+  return steps;
+}
+var LECTURA={id:'lectura',sig:'Aa',title:'Comprensión lectora',sub:'Dos cuentos y dos textos informativos'};
+var RELOJ={id:'reloj',sig:'60 s',title:'Contrarreloj',sub:'¿Cuántas clasificás en un minuto?'};
+function topicById(id){for(var i=0;i<TOPICS.length;i++)if(TOPICS[i].id===id)return TOPICS[i];return null;}
+
+/* ---------- pantallas ---------- */
+var S=null,C=null;
+function topbar(){
+  return '<div class="top"><button class="brand" data-act="home" aria-label="Volver a los temas"><span class="seal">PDL</span>Evaluación de PDL</button><span class="sp"></span>'+
+   (HUB?'<a class="hub" href="'+HUB+'">Inicio</a>':'')+
+   '<button class="iconbtn" data-act="mute" aria-label="'+(muted?'Activar sonido':'Silenciar')+'">'+(muted?'🔇':'🔊')+'</button></div>';
+}
+function starsFor(p){return p>=0.9?3:p>=0.7?2:p>=0.5?1:0;}
+function starStr(p){
+  if(p===undefined)return '<span class="stars none">Sin jugar todavía</span>';
+  var n=starsFor(p);return '<span class="stars" aria-label="'+n+' de 3 estrellas">'+'★★★'.slice(0,n)+'<span class="off">'+'★★★'.slice(0,3-n)+'</span></span>';
+}
+function daysTo(y,m,d){var now=new Date();var a=new Date(now.getFullYear(),now.getMonth(),now.getDate());var b=new Date(y,m-1,d);return Math.round((b-a)/86400000);}
+function countdownText(){
+  var d=daysTo(2026,10,21);
+  if(d>1)return 'Faltan '+d+' días para la primera fecha.';
+  if(d===1)return '¡Mañana es la evaluación de 5.° A y B!';
+  if(d===0)return '¡Hoy es la evaluación de 5.° A y B!';
+  if(d===-1)return '¡Hoy es la evaluación de 5.° C!';
+  return '¡Las evaluaciones ya pasaron! Podés seguir practicando.';
+}
+function stopClock(){if(C&&C.timer){clearInterval(C.timer);}C=null;}
+
+function renderHome(){
+  S=null;stopClock();
+  var best=loadBest();
+  function card(t,act){return '<button class="card" data-act="'+(act||'lesson')+'" data-id="'+t.id+'"><span class="sig">'+esc(t.sig)+'</span><span class="ct">'+esc(t.title)+'</span><span class="sub">'+esc(t.sub)+'</span><span class="meta">'+
+    (t.id==='reloj'?(best.reloj!==undefined?'<span class="stars none">Récord: '+best.reloj+' aciertos</span>':'<span class="stars none">Sin jugar todavía</span>'):t.id==='lectura'?lecturaStars(best):starStr(best[t.id]))+'</span></button>';}
+  app.innerHTML=topbar()+
+   '<section class="hero"><div><p class="eyebrow">Prácticas del Lenguaje · 5.° grado</p>'+
+   '<h1>Sujeto, predicado y <span class="hl">comprensión</span></h1>'+
+   '<p class="lead">Repasá cada tema, jugá y después probá la prueba de práctica. Las estrellas te muestran tu mejor resultado.</p></div>'+
+   '<aside class="postit" aria-label="Fechas de la evaluación"><h2>Fechas de la evaluación</h2><ul class="dates"><li><b>5.° A y B</b>miércoles 21 de octubre</li><li><b>5.° C</b>jueves 22 de octubre</li></ul><p class="countdown">'+countdownText()+'</p></aside>'+
+   '<div class="sample"><span class="cap">Así se analiza en la carpeta</span>'+an('S:Los *chicos* y las *chicas* de quinto|P:*repasan* y *practican* para la evaluación.')+'</div></section>'+
+   '<button class="exam" data-act="start" data-id="exam"><span class="big">✎</span><span><span class="t">Prueba de práctica</span><span class="s">Preguntas mezcladas de todos los temas, con un texto para leer</span></span>'+starStr(best.exam)+'</button>'+
+   '<div class="sec-title"><h2>Sujeto y predicado</h2><span>6 juegos</span></div><div class="grid">'+TOPICS.map(function(t){return card(t);}).join('')+'</div>'+
+   '<div class="sec-title"><h2>Lectura y desafíos</h2></div><div class="grid">'+card(LECTURA)+card(RELOJ,'clock')+'</div>'+
+   '<footer>Hecho para practicar en casa · ¡Vamos que pueden!</footer>';
+  window.scrollTo(0,0);
+}
+function lecturaStars(best){var vals=TEXTS.map(function(T){return best['text:'+T.id];}).filter(function(v){return v!==undefined;});
+  if(!vals.length)return '<span class="stars none">Sin jugar todavía</span>';
+  return '<span class="stars none">'+vals.length+' de '+TEXTS.length+' textos leídos</span>';}
+
+function renderLesson(id){
+  stopClock();S=null;
+  if(id==='lectura')return renderLectura();
+  var t=topicById(id);
+  app.innerHTML=topbar()+
+   '<div class="lesson-head"><span class="sig">'+esc(t.sig)+'</span><div><h1>'+esc(t.title)+'</h1><p>Leé el repaso y después practicá</p></div></div>'+
+   '<div class="sheet">'+t.lesson()+'</div>'+
+   '<div class="actions"><button class="btn" data-act="start" data-id="'+t.id+'">Empezar a practicar</button><button class="btn ghost" data-act="home">Volver a los temas</button></div>';
+  window.scrollTo(0,0);
+}
+function renderLectura(){
+  var best=loadBest();
+  app.innerHTML=topbar()+
+   '<div class="lesson-head"><span class="sig">Aa</span><div><h1>Comprensión lectora</h1><p>Elegí un texto, leelo con calma y respondé</p></div></div>'+
+   '<div class="sheet"><h3>Antes de responder</h3>'+
+   '<div class="tip">1. Leé el título y pensá de qué puede tratar.<br>2. Leé el texto completo una vez.<br>3. Leé cada pregunta y <b>volvé al texto</b> para buscar la respuesta. ¡No respondas de memoria!</div>'+
+   '<h3>Si es un cuento</h3><ul><li><b>Situación inicial</b>: dónde, cuándo y quiénes.</li><li><b>Conflicto</b>: el problema que aparece.</li><li><b>Resolución</b>: cómo se soluciona.</li><li><b>Situación final</b>: cómo quedan las cosas.</li></ul>'+
+   '<h3>Si es un texto informativo</h3><ul><li>Da <b>datos reales</b> sobre un <b>tema</b>.</li><li>Cada párrafo trata un <b>subtema</b>.</li><li>El <b>paratexto</b> (título, subtítulos, imágenes) te ayuda a encontrar la información.</li></ul>'+
+   '<p>Algunas preguntas te piden que veas una respuesta «entre líneas» (inferencia): no está escrita tal cual, pero la podés deducir.</p></div>'+
+   '<div class="sec-title"><h2>Elegí un texto</h2></div><div class="texts">'+
+   TEXTS.map(function(T){return '<button class="card" data-act="start" data-id="text:'+T.id+'"><span class="sig">'+esc(T.kind)+'</span><span class="ct">'+esc(T.title)+'</span><span class="sub">'+T.qs.length+' preguntas</span><span class="meta">'+starStr(best['text:'+T.id])+'</span></button>';}).join('')+
+   '</div><div class="actions"><button class="btn ghost" data-act="home">Volver a los temas</button></div>';
+  window.scrollTo(0,0);
+}
+
+function examQs(){
+  var withS=byType(function(s){return s.sType!=='ST';}),st=byType(function(s){return s.sType==='ST';});
+  var g=[];
+  pick(SENTS,2).forEach(function(s){g.push(qPickS(s));});
+  pick(withS,2).forEach(function(s){g.push(qClassS(s));});
+  g.push(qTac(rnd(st)));
+  g.push(qPickN(rnd(withS)));
+  g.push(qPickNv(rnd(SENTS)));
+  pick(byType(function(s){return s.pType==='PVS';}),1).concat(pick(byType(function(s){return s.pType==='PVC';}),1)).forEach(function(s){g.push(qClassP(s));});
+  g.push(qBuild());
+  var T=rnd(TEXTS),tq=textQs(T);
+  var lect=[tq[0]].concat(pick(tq.slice(1),3));
+  lect.sort(function(a,b){return tq.indexOf(a)-tq.indexOf(b);});
+  return shuffle(g).concat(lect);
+}
+
+function startRound(id,custom){
+  stopClock();
+  var qs,title,topicId=id;
+  if(custom){qs=custom;title='Repaso de errores';topicId=null;}
+  else if(id==='exam'){qs=examQs();title='Prueba de práctica';}
+  else if(id.indexOf('text:')===0){var T=textById(id.slice(5));qs=textQs(T);title=T.title;}
+  else{var t=topicById(id);qs=t.make();title=t.title;}
+  S={topicId:topicId,title:title,qs:qs,i:0,score:0,wrong:[],answered:false,sel:{},order:[],bs:null,bp:null};
+  renderQ();
+}
+
+function renderQ(){
+  var q=S.qs[S.i];S.answered=false;S.sel={};S.order=[];S.bs=null;S.bp=null;
+  var body='';
+  if(q.type==='mc'){
+    body='<div class="options '+(q.optClass||'')+'">'+q.options.map(function(o,k){return '<button class="opt" data-k="'+k+'">'+o.html+'</button>';}).join('')+'</div>';
+  }else if(q.type==='pick'){
+    var s=q.s;
+    body='<div class="toks" role="group" aria-label="Palabras de la oración">'+s.tokens.map(function(t){
+      var cls='tok';
+      if(q.mode==='n'&&t.role==='S')cls+=' in-s';
+      if(q.mode==='nv'&&t.role==='P')cls+=' in-p';
+      return '<button class="'+cls+'" data-tok="'+t.i+'" aria-pressed="false">'+esc(t.pre+t.word+t.post)+'</button>';}).join('')+'</div>'+
+      (q.mode==='S'?'<div class="toks"><button class="tok tok-st" data-tok="st" aria-pressed="false">Sujeto tácito (no está escrito)</button></div>':'')+
+      '<div class="actions" style="margin-top:0"><button class="btn" data-act="check">Comprobar</button></div>';
+  }else if(q.type==='order'){
+    S.orderItems=shuffle(q.items.map(function(x,i){return i;}));
+    body='<div class="slots" id="slots"></div><div class="options stack" id="pool"></div>'+
+      '<div class="actions" style="margin-top:0"><button class="btn" data-act="check" id="ocheck" disabled>Comprobar</button><button class="btn ghost" data-act="oreset">Empezar de nuevo</button></div>';
+  }else if(q.type==='build'){
+    body='<div class="target" aria-label="Estructura pedida"><span class="ts">'+q.target.s+'</span>+<span class="tp">'+q.target.p+'</span></div>'+
+      '<div class="preview" id="preview"><span class="ph">Tu oración va a aparecer acá.</span></div>'+
+      '<div class="build"><div><h4 class="t-s">Elegí un sujeto</h4><div class="chips">'+q.subs.map(function(x,k){return '<button class="chip s" data-bs="'+k+'">'+esc(plain(x.t))+'</button>';}).join('')+'</div></div>'+
+      '<div><h4 class="t-p">Elegí un predicado</h4><div class="chips">'+q.preds.map(function(x,k){return '<button class="chip p" data-bp="'+k+'">'+esc(plain(x.t))+'</button>';}).join('')+'</div></div></div>'+
+      '<div class="actions" style="margin-top:0"><button class="btn" data-act="check" id="bcheck" disabled>Comprobar</button></div>';
+  }
+  var passage='';
+  if(q.passage){var T=textById(q.passage);passage=passageHTML(T,true);}
+  app.innerHTML=topbar()+
+   '<div class="qhead"><button class="link" data-act="home">← Temas</button><span class="count">'+(S.i+1)+' / '+S.qs.length+'</span><span class="score" aria-label="Respuestas correctas">✔ '+S.score+'</span></div>'+
+   '<div class="bar"><span style="width:'+(S.i/S.qs.length*100)+'%"></span></div>'+
+   '<section class="qcard">'+(q.tag?'<p class="qtag">'+esc(q.tag)+'</p>':'')+passage+(q.visual||'')+
+   '<h2 class="prompt">'+q.prompt+'</h2>'+body+'<div id="fb" aria-live="polite"></div></section>';
+  if(q.type==='order')drawOrder();
+}
+function drawOrder(){
+  var q=S.qs[S.i];
+  var slots=document.getElementById('slots'),pool=document.getElementById('pool');
+  slots.innerHTML=q.items.map(function(x,i){var v=S.order[i];return '<div class="slot'+(v!==undefined?' filled':'')+'"><span class="n">'+(i+1)+'</span><span>'+(v!==undefined?esc(q.items[v]):'')+'</span></div>';}).join('');
+  pool.innerHTML=S.orderItems.filter(function(i){return S.order.indexOf(i)<0;}).map(function(i){return '<button class="opt" data-oi="'+i+'">'+esc(q.items[i])+'</button>';}).join('');
+  document.getElementById('ocheck').disabled=S.order.length!==q.items.length||S.answered;
+}
+function drawPreview(){
+  var q=S.qs[S.i],p=document.getElementById('preview');
+  var a=S.bs!==null?'<span class="t-s">'+esc(plain(q.subs[S.bs].t))+'</span>':'<span class="ph">(sujeto)</span>';
+  var b=S.bp!==null?'<span class="t-p">'+esc(plain(q.preds[S.bp].t))+'</span>':'<span class="ph">(predicado)</span>';
+  p.innerHTML=a+' '+b+(S.bs!==null&&S.bp!==null?'.':'');
+  document.getElementById('bcheck').disabled=S.bs===null||S.bp===null;
+  [].forEach.call(document.querySelectorAll('.chip.s'),function(el){el.classList.toggle('sel',+el.dataset.bs===S.bs);});
+  [].forEach.call(document.querySelectorAll('.chip.p'),function(el){el.classList.toggle('sel',+el.dataset.bp===S.bp);});
+}
+
+var PRAISE=['¡Muy bien!','¡Excelente!','¡Genial!','¡Perfecto!','¡Bravo!','¡Así se hace!'];
+var OOPS=['Casi…','¡Ups! Mirá bien','No es esa','Revisemos'];
+function sameSet(a,b){if(a.length!==b.length)return false;var m={};a.forEach(function(x){m[x]=1;});return b.every(function(x){return m[x];});}
+
+function check(choice){
+  if(S.answered)return;
+  var q=S.qs[S.i],ok=false,extra='';
+  if(q.type==='mc'){
+    var o=q.options[choice];ok=o.v===q.answer;
+    [].forEach.call(document.querySelectorAll('.opt'),function(el,k){el.disabled=true;if(q.options[k].v===q.answer)el.classList.add('right');else if(k===choice)el.classList.add('wrong');});
+  }else if(q.type==='pick'){
+    var s=q.s,target=q.mode==='S'?s.sIdx:q.mode==='n'?s.nIdx:s.nvIdx;
+    var sel=Object.keys(S.sel).filter(function(k){return S.sel[k]&&k!=='st';}).map(Number);
+    if(q.mode==='S'&&s.sType==='ST')ok=!!S.sel.st&&sel.length===0;
+    else ok=!S.sel.st&&sameSet(sel,target);
+    [].forEach.call(document.querySelectorAll('.tok'),function(el){
+      el.disabled=true;var k=el.dataset.tok;
+      if(k==='st'){if(s.sType==='ST')el.classList.add(S.sel.st?'right':'missed');else if(S.sel.st)el.classList.add('wrong');return;}
+      var i=+k,inT=target.indexOf(i)>=0,isSel=!!S.sel[i];
+      el.classList.remove('sel');
+      if(isSel&&inT)el.classList.add('right');else if(isSel&&!inT)el.classList.add('wrong');else if(!isSel&&inT)el.classList.add('missed');
+    });
+  }else if(q.type==='order'){
+    ok=S.order.every(function(v,i){return v===i;});
+    if(!ok)extra='<p><b>El orden correcto es:</b></p><ol style="margin:0;padding-left:1.3em">'+q.items.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>';
+  }else if(q.type==='build'){
+    var a=q.subs[S.bs],b=q.preds[S.bp];
+    var okS=a.k===q.target.s,okP=b.k===q.target.p,okN=a.n===b.n;
+    ok=okS&&okP&&okN;
+    [].forEach.call(document.querySelectorAll('.chip'),function(el){el.disabled=true;});
+    var msgs=[];
+    if(!okS)msgs.push('El sujeto '+qq(plain(a.t))+' es '+a.k+', pero te pedí '+q.target.s+'.');
+    if(!okP)msgs.push('El predicado '+qq(plain(b.t))+' es '+b.k+', pero te pedí '+q.target.p+'.');
+    if(!okN)msgs.push('No concuerdan: '+qq(plain(a.t))+' está en '+(a.n==='s'?'singular':'plural')+' y el verbo está en '+(b.n==='s'?'singular':'plural')+'.');
+    var src;
+    if(ok)src='S:'+a.t+'|P:'+b.t+'.';
+    else{var gs=q.subs.filter(function(x){return x.k===q.target.s;})[0];var gp=q.preds.filter(function(x){return x.k===q.target.p&&x.n===gs.n;})[0];src='S:'+gs.t+'|P:'+gp.t+'.';}
+    q.s=parse(src);
+    q.explain=ok?'Tu oración cumple con '+q.target.s+' + '+q.target.p+' y el sujeto concuerda con el verbo.':msgs.join(' ')+' Una oración que sí funciona:';
+  }
+  S.answered=true;
+  if(ok){S.score++;sOk();}else{S.wrong.push(q);sBad();}
+  var showAn=q.s&&(!q.quiet||!ok);
+  var fb=document.getElementById('fb');
+  fb.innerHTML='<div class="fb '+(ok?'ok':'bad')+'"><p class="verdict">'+(ok?rnd(PRAISE):rnd(OOPS))+'</p>'+(q.explain?'<p>'+q.explain+'</p>':'')+extra+
+    (showAn&&!q.quiet?renderAn(q.s):'')+
+    '<button class="btn" data-act="next">'+(S.i+1<S.qs.length?'Siguiente →':'Ver resultado')+'</button></div>';
+  var c=fb.querySelector('.btn[data-act=next]');
+  if(c){c.focus({preventScroll:true});fb.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  [].forEach.call(document.querySelectorAll('[data-act=check],[data-act=oreset]'),function(el){el.disabled=true;});
+}
+
+function renderResult(){
+  var total=S.qs.length,pct=S.score/total,n=starsFor(pct);
+  if(S.topicId)saveBest(S.topicId,pct);
+  if(n>=2)sWin();
+  var msg=n===3?'¡Lo sabés muy bien! Estás listo para la evaluación.':n===2?'¡Muy bien! Repasá los errores y vas a llegar a las tres estrellas.':n===1?'Vas bien. Volvé a leer el repaso y probá otra vez.':'Leé el repaso con calma y volvé a intentarlo. ¡Practicando se aprende!';
+  app.innerHTML=topbar()+'<section class="qcard result"><p class="qtag">'+esc(S.title)+'</p><span class="big">'+S.score+' / '+total+'</span>'+starStr(pct)+'<p>'+msg+'</p>'+
+   '<div class="actions">'+(S.wrong.length?'<button class="btn" data-act="review">Repasar mis errores ('+S.wrong.length+')</button>':'')+
+   (S.topicId?'<button class="btn'+(S.wrong.length?' ghost':'')+'" data-act="start" data-id="'+S.topicId+'">Jugar otra vez</button>':'')+
+   '<button class="btn ghost" data-act="home">Volver a los temas</button></div></section>';
+  window.scrollTo(0,0);
+}
+
+/* ---------- contrarreloj ---------- */
+function startClock(){
+  stopClock();S=null;
+  C={left:60,score:0,tries:0,cur:null,timer:null,lock:false};
+  nextClock();
+  C.timer=setInterval(function(){if(!C)return;C.left--;var el=document.getElementById('ctime');if(el){el.textContent=C.left+' s';el.classList.toggle('low',C.left<=10);}if(C.left<=0)endClock();},1000);
+}
+function nextClock(){
+  var s=rnd(SENTS),mode=Math.random()<.55?'S':'P';
+  C.cur={s:s,mode:mode};C.lock=false;
+  var opts=mode==='S'?OPT_S:OPT_P;
+  app.innerHTML=topbar()+
+   '<div class="clock"><button class="link" data-act="home">← Salir</button><span>✔ '+C.score+'</span><span class="time'+(C.left<=10?' low':'')+'" id="ctime">'+C.left+' s</span></div>'+
+   '<section class="qcard" id="ccard" style="margin-top:14px"><p class="qtag">Contrarreloj · '+(mode==='S'?'Sujeto':'Predicado')+'</p>'+sentBox(s)+
+   '<h2 class="prompt">¿Qué tipo de '+(mode==='S'?'<b class="t-s">sujeto</b>':'<b class="t-p">predicado</b>')+' tiene?</h2>'+
+   '<div class="options">'+opts.map(function(o){return '<button class="opt" data-cv="'+o.v+'"><b>'+o.v+'</b><small>'+o.l+'</small></button>';}).join('')+'</div></section>';
+}
+function answerClock(v){
+  if(!C||C.lock)return;C.lock=true;C.tries++;
+  var right=C.cur.mode==='S'?C.cur.s.sType:C.cur.s.pType,ok=v===right;
+  var card=document.getElementById('ccard');
+  [].forEach.call(document.querySelectorAll('.opt'),function(el){el.disabled=true;if(el.dataset.cv===right)el.classList.add('right');else if(el.dataset.cv===v)el.classList.add('wrong');});
+  if(ok){C.score++;sOk();card.classList.add('flash-ok');}else{sBad();card.classList.add('flash-bad');}
+  setTimeout(function(){if(C&&C.left>0)nextClock();},ok?450:1100);
+}
+function endClock(){
+  var score=C.score,tries=C.tries;clearInterval(C.timer);C=null;
+  var rec=saveBest('reloj',score);sWin();
+  app.innerHTML=topbar()+'<section class="qcard result"><p class="qtag">Contrarreloj</p><span class="big">'+score+'</span><p>aciertos en un minuto ('+tries+' respondidas)</p>'+
+   '<p><b>'+(rec&&score>0?'¡Nuevo récord!':'Tu récord: '+(loadBest().reloj||0))+'</b></p>'+
+   '<div class="actions"><button class="btn" data-act="clock">Jugar otra vez</button><button class="btn ghost" data-act="home">Volver a los temas</button></div></section>';
+}
+
+/* ---------- eventos ---------- */
+app.addEventListener('click',function(e){
+  var el=e.target.closest('button');if(!el||el.disabled)return;
+  var act=el.dataset.act;
+  if(act==='home')return renderHome();
+  if(act==='mute'){muted=!muted;sset('-mute',muted);el.textContent=muted?'🔇':'🔊';el.setAttribute('aria-label',muted?'Activar sonido':'Silenciar');return;}
+  if(act==='lesson')return renderLesson(el.dataset.id);
+  if(act==='start')return startRound(el.dataset.id);
+  if(act==='clock')return startClock();
+  if(act==='review')return startRound(null,shuffle(S.wrong));
+  if(act==='next'){S.i++;if(S.i>=S.qs.length)return renderResult();renderQ();window.scrollTo({top:0});return;}
+  if(act==='check')return check();
+  if(act==='oreset'){S.order=[];drawOrder();return;}
+  if(el.dataset.cv!==undefined)return answerClock(el.dataset.cv);
+  if(!S||S.answered)return;
+  if(el.dataset.k!==undefined)return check(+el.dataset.k);
+  if(el.dataset.tok!==undefined){
+    var k=el.dataset.tok;
+    if(k==='st'){S.sel={};[].forEach.call(document.querySelectorAll('.tok'),function(t){t.classList.remove('sel');t.setAttribute('aria-pressed','false');});}
+    else if(S.sel.st){S.sel.st=false;var b=document.querySelector('.tok-st');b.classList.remove('sel');b.setAttribute('aria-pressed','false');}
+    S.sel[k]=!S.sel[k];el.classList.toggle('sel',S.sel[k]);el.setAttribute('aria-pressed',S.sel[k]?'true':'false');return;
+  }
+  if(el.dataset.oi!==undefined){S.order.push(+el.dataset.oi);drawOrder();return;}
+  if(el.dataset.bs!==undefined){S.bs=+el.dataset.bs;drawPreview();return;}
+  if(el.dataset.bp!==undefined){S.bp=+el.dataset.bp;drawPreview();return;}
+});
+
+window.__PDL={cur:function(){return S&&S.qs[S.i];},SENTS:SENTS,TEXTS:TEXTS,TOPICS:TOPICS,parse:parse,examQs:examQs,qBuild:qBuild};
+renderHome();
+})();
+</script>
+</body>
+</html>
