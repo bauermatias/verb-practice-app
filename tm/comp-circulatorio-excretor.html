@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Comprobación de PI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Layout: un atlas de laboratorio. Cada sistema tiene el color de su propio mundo:
+   rojo arterial y azul venoso para la circulación, ámbar para la orina, verde para
+   la alimentación. Los esquemas son láminas con alfileres numerados para rotular. */
+:root{
+  --bg:#eef3f1; --paper:#ffffff; --paper-2:#f5f8f7; --ink:#13263b; --ink-2:#56677a; --line:#d2dce1;
+  --art:#d62f45; --art-l:#fbd9dd; --ven:#2d63c8; --ven-l:#d8e4fa; --muscle:#b8455a;
+  --uri:#d99a0b; --uri-l:#fdecc2; --nut:#2c9a57; --nut-l:#d6f0df;
+  --ok:#22803a; --ok-bg:#e3f5e7; --bad:#c2410c; --bad-bg:#fff0e5; --sel:#ffd84d;
+  --f-display:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'DM Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{font-family:var(--f-body);color:var(--ink);background:var(--bg);font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%;min-height:100vh}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:6px 56px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px;border-radius:8px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.08;text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase}
+.c-circ{--sys:var(--art);--sys-l:var(--art-l)}
+.c-excr{--sys:var(--uri);--sys-l:var(--uri-l)}
+.c-nut{--sys:var(--nut);--sys-l:var(--nut-l)}
+
+/* top */
+.top{display:flex;align-items:center;gap:10px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:9px;background:none;border:0;cursor:pointer;font-family:var(--f-display);font-weight:800;font-size:1.12rem;padding:4px}
+.brand .mark{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--f-mono);font-size:.8rem}
+.top .sp{flex:1}
+.hub{color:var(--ink-2);font-weight:700;font-size:.92rem;text-decoration:none}
+.hub:hover{color:var(--ink);text-decoration:underline}
+.iconbtn{background:var(--paper);border:1.5px solid var(--line);border-radius:12px;width:42px;height:42px;cursor:pointer;font-size:1.05rem}
+
+/* hero */
+.hero{padding-block:8px 4px;display:flex;flex-direction:column;gap:14px}
+.hero h1{font-size:clamp(2.3rem,8vw,3.8rem);font-weight:800;letter-spacing:-.02em}
+.hero .lead{margin:0;color:var(--ink-2);max-width:52ch}
+.ecg{width:100%;height:54px;display:block}
+.ecg path{fill:none;stroke:var(--art);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1400;stroke-dashoffset:0;animation:beat 2.6s ease-out 1}
+@keyframes beat{from{stroke-dashoffset:1400}to{stroke-dashoffset:0}}
+.when{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.date{display:inline-flex;gap:10px;align-items:baseline;background:var(--ink);color:var(--paper);border-radius:12px;padding:8px 14px}
+.date b{font-family:var(--f-display);font-size:1.15rem}
+.left{font-weight:700;color:var(--art)}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0;padding:0;list-style:none;counter-reset:f}
+@media (max-width:620px){.flow{grid-template-columns:1fr}}
+.flow li{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;position:relative}
+.flow li .mono{color:var(--sys)}
+.flow li b{font-family:var(--f-display);font-size:1.08rem}
+.flow li span.t{color:var(--ink-2);font-size:.92rem}
+.flow li::after{content:"→";position:absolute;right:-10px;top:50%;transform:translateY(-50%);background:var(--bg);border-radius:50%;width:20px;height:20px;display:grid;place-items:center;font-size:.85rem;color:var(--ink-2);z-index:1}
+.flow li:last-child::after{display:none}
+@media (max-width:620px){.flow li::after{right:auto;left:50%;top:auto;bottom:-14px;transform:translateX(-50%) rotate(90deg)}}
+
+/* sections / cards */
+.sec{margin-top:34px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sec-head .vessel{flex:0 0 34px;height:10px;border-radius:99px;background:var(--sys)}
+.sec-head h2{font-size:1.45rem}
+.sec-head .mono{color:var(--ink-2);margin-left:auto}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:440px){.grid{grid-template-columns:1fr}}
+.card{text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:16px 16px 14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:transform .12s,border-color .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);border-color:var(--sys);box-shadow:0 8px 20px -14px var(--sys)}
+.card .mono{color:var(--sys)}
+.card .ct{font-family:var(--f-display);font-weight:800;font-size:1.15rem;line-height:1.15}
+.card .sub{color:var(--ink-2);font-size:.92rem}
+.card .meta{margin-top:auto;padding-top:6px}
+.stars{color:#e3a008;font-size:1.05rem;letter-spacing:2px}
+.stars .off{color:var(--line)}
+.stars.none{font-size:.82rem;letter-spacing:0;color:var(--ink-2)}
+.big-actions{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:22px}
+@media (max-width:560px){.big-actions{grid-template-columns:1fr}}
+.exam{display:flex;align-items:center;gap:14px;text-align:left;background:var(--ink);color:var(--paper);border:0;border-radius:18px;padding:18px 20px;cursor:pointer}
+.exam:hover{background:#1d3654}
+.exam .t{display:block;font-family:var(--f-display);font-weight:800;font-size:1.3rem}
+.exam .s{display:block;font-size:.9rem;opacity:.85}
+.exam > span:first-child{flex:1;min-width:0}
+.exam .stars .off{color:#4b5d72}
+.exam .stars.none{color:#b9c5d3}
+.exam.alt{background:var(--paper);color:var(--ink);border:1.5px solid var(--line)}
+.exam.alt:hover{border-color:var(--ink);background:var(--paper)}
+.videos{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.videos a{display:inline-flex;align-items:center;gap:8px;background:var(--paper);border:1.5px solid var(--line);border-radius:99px;padding:8px 14px;color:var(--ink);text-decoration:none;font-weight:700;font-size:.92rem}
+.videos a:hover{border-color:var(--ink)}
+.videos a::before{content:"▶";font-size:.7rem;color:var(--art)}
+
+/* lesson */
+.lesson-head{display:flex;flex-direction:column;gap:6px;margin:6px 0 16px}
+.lesson-head .mono{color:var(--sys)}
+.lesson-head h1{font-size:clamp(1.8rem,6vw,2.5rem)}
+.sheet{background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:12px}
+.sheet h3{font-size:1.2rem;margin-top:6px}
+.sheet p,.sheet ul{margin:0;max-width:66ch}
+.sheet ul{padding-left:1.2em;display:flex;flex-direction:column;gap:5px}
+.tip{background:var(--sys-l,var(--paper-2));border-radius:12px;padding:11px 14px;font-size:.98rem}
+.figure{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:center;background:var(--paper-2);border-radius:14px;padding:12px}
+@media (max-width:600px){.figure{grid-template-columns:1fr}}
+.legend-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-size:.95rem}
+.legend-list li{display:flex;gap:8px;align-items:center}
+.legend-list .n{flex:0 0 24px;height:24px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--f-mono);font-size:.75rem}
+.blood-key{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--ink-2)}
+.blood-key i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.btn{background:var(--ink);color:var(--paper);border:0;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer;font-size:1rem}
+.btn:hover{background:#1d3654}
+.btn.ghost{background:var(--paper);color:var(--ink);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* diagrams */
+.dg{width:100%;height:auto;max-height:380px;display:block}
+.dg .outline{fill:none;stroke:var(--ink);stroke-width:3}
+.dg .wall{fill:none;stroke:var(--ink);stroke-width:3.5;stroke-linecap:round}
+.dg .valve{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round}
+.dg .f-ven{fill:var(--ven-l)} .dg .f-art{fill:var(--art-l)} .dg .f-muscle{fill:var(--muscle)}
+.dg .v-o{fill:none;stroke:var(--ink);stroke-width:21;stroke-linecap:round;stroke-linejoin:round}
+.dg .v-ven,.dg .v-art,.dg .v-uri{fill:none;stroke-width:15;stroke-linecap:round;stroke-linejoin:round}
+.dg .v-ven{stroke:var(--ven)} .dg .v-art{stroke:var(--art)} .dg .v-uri{stroke:var(--uri)}
+.dg .thin .v-o{stroke-width:13} .dg .thin .v-ven,.dg .thin .v-art,.dg .thin .v-uri{stroke-width:8}
+.dg .arrow{fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.dg .organ{stroke:var(--ink);stroke-width:2.5}
+.dg .lung{fill:#f6d3d8;stroke:var(--ink);stroke-width:2.5}
+.dg .net{fill:none;stroke:#8a5cc2;stroke-width:1.6;opacity:.85}
+.dg .kid{fill:#c44a5c;stroke:var(--ink);stroke-width:2.5}
+.dg .blad{fill:var(--uri-l);stroke:var(--ink);stroke-width:2.5}
+.dg .skin1{fill:#f7c6b7} .dg .skin2{fill:#f3a9a0} .dg .skin3{fill:#fbe39a} .dg .fat{fill:#f6d36b;stroke:#d9ab2c;stroke-width:1.2}
+.dg .hair{fill:none;stroke:#3b2a22;stroke-width:3.4;stroke-linecap:round}
+.dg .foll{fill:#6b4635}
+.dg .gland{fill:none;stroke:var(--uri);stroke-width:3.2;stroke-linecap:round}
+.dg .drop{fill:var(--ven)}
+.dg .ring{fill:#c9d3d9} .dg .ring-t{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;fill:var(--ink)}
+.dg .sector{stroke:#fff;stroke-width:3}
+.dg .water{fill:#e6f1fb;stroke:#fff;stroke-width:3}
+.dg .s-vf{fill:#7cc58a} .dg .s-leg{fill:#ecc46e} .dg .s-leche{fill:#9ccbeb} .dg .s-carnes{fill:#ea8f8f} .dg .s-aceites{fill:#d8c95c} .dg .s-dulces{fill:#bb98dc}
+.dg .pin circle{fill:var(--paper);stroke:var(--ink);stroke-width:2.5}
+.dg .pin text{font-family:var(--f-mono);font-size:13px;text-anchor:middle;fill:var(--ink)}
+.dg .pin[data-row]{cursor:pointer}
+.dg .pin.on circle{fill:var(--sel)}
+.dg .pin.right circle{fill:var(--ok-bg);stroke:var(--ok)}
+.dg .pin.wrong circle{fill:var(--bad-bg);stroke:var(--bad)}
+.dg .clickable{cursor:pointer;transition:opacity .12s}
+.dg .clickable:hover{opacity:.8}
+.dg .clickable.right{stroke:var(--ok);stroke-width:5}
+.dg .clickable.wrong{stroke:var(--bad);stroke-width:5}
+
+/* question */
+.qhead{display:flex;align-items:center;gap:12px;font-weight:700;font-size:.92rem}
+.qhead .count{margin-left:auto;color:var(--ink-2)}
+.qhead .score{color:var(--ok)}
+.link{background:none;border:0;cursor:pointer;color:var(--ink-2);font-weight:700;padding:4px 0}
+.link:hover{color:var(--ink);text-decoration:underline}
+.bar{height:8px;border-radius:99px;margin:10px 0 18px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%;background:var(--sys,var(--ink));border-radius:99px;transition:width .3s}
+.qcard{background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.qtag{margin:0;color:var(--sys,var(--ink-2))}
+.prompt{font-family:var(--f-body);font-weight:700;font-size:1.15rem;line-height:1.4;margin:0}
+.stmt{font-size:1.25rem;background:var(--paper-2);border-radius:12px;padding:14px 16px;margin:0}
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.options.stack{grid-template-columns:1fr}
+.opt{text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:1.02rem}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.tf{grid-template-columns:1fr 1fr}
+.tf .opt{text-align:center;font-family:var(--f-display);font-weight:800;font-size:1.2rem}
+.hint{font-size:.88rem;color:var(--ink-2);margin:0}
+
+/* label game */
+.lab{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:640px){.lab{grid-template-columns:1fr}}
+.lab .dgbox{background:var(--paper-2);border-radius:14px;padding:8px}
+.rows{display:flex;flex-direction:column;gap:8px}
+.lrow{display:flex;align-items:center;gap:10px;text-align:left;background:var(--paper);border:1.5px dashed var(--line);border-radius:12px;padding:8px 10px;cursor:pointer;min-height:46px}
+.lrow .n{flex:0 0 26px;height:26px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-family:var(--f-mono);font-size:.78rem}
+.lrow .v{color:var(--ink-2)}
+.lrow.filled{border-style:solid;border-color:var(--ink)}
+.lrow.filled .v{color:var(--ink);font-weight:700}
+.lrow.on{background:#fff7cf;border-color:var(--ink)}
+.lrow.right{border-color:var(--ok);background:var(--ok-bg)}
+.lrow.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.lrow .fix{display:block;font-size:.85rem;color:var(--ok);font-weight:700}
+.bank{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--paper);border:1.5px solid var(--line);border-radius:99px;padding:8px 13px;cursor:pointer;font-size:.98rem;font-weight:700}
+.chip:hover:not(:disabled){border-color:var(--ink)}
+.chip.on{background:var(--sel);border-color:var(--ink)}
+.chip.used{opacity:.3}
+.chip:disabled{cursor:default}
+
+/* match */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.match .col{display:flex;flex-direction:column;gap:8px}
+.mi{position:relative;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px 10px 40px;cursor:pointer;font-size:.98rem;min-height:48px}
+.mi:hover:not(:disabled){border-color:var(--ink)}
+.mi .b{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;border:2px dashed var(--line);display:grid;place-items:center;font-family:var(--f-mono);font-size:.75rem;color:#fff}
+.mi.on{background:#fff7cf;border-color:var(--ink)}
+.mi.paired .b{border-style:solid}
+.mi.right{border-color:var(--ok);background:var(--ok-bg)}
+.mi.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.mi:disabled{cursor:default}
+.mi.lft{font-weight:700}
+
+/* order */
+.slots{display:flex;flex-direction:column;gap:8px}
+.slot{display:flex;gap:10px;align-items:center;border:1.5px dashed var(--line);border-radius:12px;padding:8px 12px;min-height:46px}
+.slot .n{font-family:var(--f-mono);font-size:.8rem;width:1.6em;color:var(--ink-2)}
+.slot.filled{border-style:solid;border-color:var(--ink);background:var(--paper)}
+
+/* cloze */
+.cloze{font-size:1.15rem;line-height:2.3;background:var(--paper-2);border-radius:12px;padding:10px 16px;margin:0}
+.blank{display:inline-block;min-width:7.5em;border:0;border-bottom:2.5px solid var(--ink);background:transparent;padding:0 6px;cursor:pointer;font-weight:700;line-height:1.5;text-align:center}
+.blank.empty{color:var(--ink-2);font-weight:400}
+.blank.on{background:#fff7cf}
+.blank.right{border-color:var(--ok);background:var(--ok-bg)}
+.blank.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.blank:disabled{cursor:default}
+
+/* sort */
+.sorts{display:flex;flex-direction:column;gap:10px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1.5px solid var(--line);border-radius:12px;padding:8px 10px}
+@media (max-width:560px){.srow{grid-template-columns:1fr}}
+.srow .it{font-weight:700}
+.srow.right{border-color:var(--ok);background:var(--ok-bg)}
+.srow.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.srow .fix{display:block;font-weight:400;font-size:.85rem;color:var(--ok)}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cat{background:var(--paper);border:1.5px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;font-size:.9rem;font-weight:700}
+.cat.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cat:disabled{cursor:default}
+
+/* plate game */
+.food{display:flex;align-items:center;gap:14px;background:var(--paper-2);border-radius:14px;padding:12px 16px}
+.food .e{font-size:2.6rem;line-height:1}
+.food b{font-family:var(--f-display);font-size:1.5rem}
+.plate-q{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:center}
+@media (max-width:600px){.plate-q{grid-template-columns:1fr}}
+.groups{display:flex;flex-direction:column;gap:8px}
+.grp{display:flex;align-items:center;gap:10px;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer;font-weight:700;font-size:.96rem}
+.grp:hover:not(:disabled){border-color:var(--ink)}
+.grp i{flex:0 0 16px;height:16px;border-radius:4px}
+.grp.right{border-color:var(--ok);background:var(--ok-bg)}
+.grp.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.grp:disabled{cursor:default}
+
+/* feedback / result */
+.fb{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border:2px solid}
+.fb.ok{background:var(--ok-bg);border-color:var(--ok)}
+.fb.bad{background:var(--bad-bg);border-color:var(--bad)}
+.fb .verdict{font-family:var(--f-display);font-weight:800;font-size:1.25rem;margin:0}
+.fb.ok .verdict{color:var(--ok)} .fb.bad .verdict{color:var(--bad)}
+.fb p,.fb ol{margin:0}
+.fb .btn{align-self:flex-start}
+.result{text-align:center;align-items:center;padding:26px 18px}
+.result .big{font-family:var(--f-display);font-weight:800;font-size:3.4rem;line-height:1}
+.result .stars{font-size:2rem}
+.result p{margin:0;color:var(--ink-2)}
+.result .actions{justify-content:center}
+.clock{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-display);font-weight:800;font-size:1.35rem}
+.clock .time{font-variant-numeric:tabular-nums;border-radius:12px;padding:4px 12px;background:var(--ink);color:var(--paper)}
+.clock .time.low{background:var(--bad)}
+.flash-ok{animation:fok .45s}
+.flash-bad{animation:fbad .45s}
+@keyframes fok{0%{box-shadow:0 0 0 0 var(--ok)}100%{box-shadow:0 0 0 14px transparent}}
+@keyframes fbad{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+footer{text-align:center;color:var(--ink-2);font-size:.88rem;padding-top:36px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+(function(){
+'use strict';
+var app=document.getElementById('app');
+var HUB='../../home.html';
+
+/* ---------- utilidades ---------- */
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function pick(a,n){return shuffle(a).slice(0,n);}
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+function all(sel){return [].slice.call(document.querySelectorAll(sel));}
+var STORE='pi5-comprobacion';
+function sget(k,d){try{var v=localStorage.getItem(STORE+k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function sset(k,v){try{localStorage.setItem(STORE+k,JSON.stringify(v));}catch(e){}}
+function loadBest(){var b=sget('-best',{});return (b&&typeof b==='object')?b:{};}
+function saveBest(id,val){var b=loadBest();if(b[id]===undefined||val>b[id]){b[id]=val;sset('-best',b);return true;}return false;}
+
+var muted=!!sget('-mute',false),actx=null;
+function tone(fs,d,type){if(muted)return;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();var t=actx.currentTime;fs.forEach(function(f,i){var o=actx.createOscillator(),g=actx.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+i*d);g.gain.exponentialRampToValueAtTime(0.16,t+i*d+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+(i+1)*d);o.connect(g);g.connect(actx.destination);o.start(t+i*d);o.stop(t+(i+1)*d+0.03);});}catch(e){}}
+function sOk(){tone([660,880],0.09,'triangle');}
+function sBad(){tone([240,190],0.13,'square');}
+function sWin(){tone([523,659,784,1046],0.11,'triangle');}
+
+/* ---------- esquemas (SVG) ---------- */
+var uid=0;
+function pin(x,y,p){return '<g class="pin"'+(p.row!==undefined?' data-row="'+p.row+'"':'')+' transform="translate('+x+' '+y+')"><circle r="13"/><text y="4.6">'+p.n+'</text></g>';}
+function pins(P,POS){var s='';Object.keys(P).forEach(function(k){var xy=POS[k];s+=pin(xy[0],xy[1],P[k]);});return s;}
+function vessel(d,c,thin){return '<g'+(thin?' class="thin"':'')+'><path d="'+d+'" class="v-o"/><path d="'+d+'" class="v-'+c+'"/></g>';}
+function arrow(x,y,rot){return '<path class="arrow" transform="translate('+x+' '+y+') rotate('+rot+')" d="M-5 -3 L0 3 L5 -3"/>';}
+
+var HEART_POS={ad:[122,118],ai:[238,118],vd:[122,232],vi:[238,232],tab:[180,286],valv:[125,190],vcs:[84,30],vci:[40,290],ap:[132,40],ao:[300,14],vp:[326,122]};
+var HEART_LBL={ad:'Aurícula derecha',ai:'Aurícula izquierda',vd:'Ventrículo derecho',vi:'Ventrículo izquierdo',tab:'Tabique',valv:'Válvula',vcs:'Vena cava superior',vci:'Vena cava inferior',ap:'Arteria pulmonar',ao:'Arteria aorta',vp:'Venas pulmonares'};
+function heartSVG(P){
+  var id='hc'+(uid++),HB='M70 120 Q70 82 112 82 H248 Q290 82 290 120 V196 Q290 262 180 318 Q70 262 70 196 Z';
+  var s='<svg class="dg" viewBox="0 0 360 340" role="img" aria-label="Esquema del corazón visto de frente"><defs><clipPath id="'+id+'"><path d="'+HB+'"/></clipPath></defs>';
+  s+=vessel('M150 150 V58 Q150 40 132 40 H116','ven')+vessel('M150 58 Q150 40 168 40 H270','ven');
+  s+='<g clip-path="url(#'+id+')"><rect x="60" y="70" width="120" height="260" class="f-ven"/><rect x="180" y="70" width="120" height="260" class="f-art"/><rect x="175" y="70" width="10" height="260" class="f-muscle"/></g>';
+  s+='<path d="'+HB+'" class="outline"/>';
+  s+='<path class="wall" d="M70 160 H108 M142 160 H175 M185 160 H218 M252 160 H290"/>';
+  s+='<path class="valve" d="M108 160 L121 177 M142 160 L129 177 M218 160 L231 177 M252 160 L239 177"/>';
+  s+=vessel('M215 94 V48 Q215 14 250 14 H330','art')+vessel('M84 4 V94','ven')+vessel('M82 150 H40 V334','ven');
+  s+=vessel('M350 104 H284','art')+vessel('M350 140 H284','art');
+  s+=arrow(84,62,0)+arrow(40,250,180)+arrow(270,14,-90)+arrow(345,104,90)+arrow(345,140,90);
+  return s+pins(P,HEART_POS)+'</svg>';
+}
+var CIRC_POS={pul:[250,40],ap:[124,138],vp:[236,138],ao:[302,262],vc:[58,262],cap:[180,350],cor:[180,200]};
+var CIRC_LBL={pul:'Pulmones',ap:'Arteria pulmonar',vp:'Venas pulmonares',ao:'Arteria aorta',vc:'Venas cavas',cap:'Capilares en los órganos',cor:'Corazón'};
+function netPath(x0,y0,w,h){var d='';for(var i=0;i<=w;i+=12)d+='M'+(x0+i)+' '+y0+' l'+(i%24?6:-6)+' '+h+' ';for(var j=0;j<=h;j+=10)d+='M'+x0+' '+(y0+j)+' h'+w+' ';return d;}
+function circSVG(P){
+  var s='<svg class="dg" viewBox="0 0 360 400" role="img" aria-label="Esquema del recorrido de la sangre">';
+  s+='<ellipse class="lung" cx="112" cy="68" rx="58" ry="48"/><ellipse class="lung" cx="248" cy="68" rx="58" ry="48"/>';
+  s+='<path class="net" d="'+netPath(78,52,68,30)+netPath(214,52,68,30)+'"/>';
+  s+=vessel('M162 166 C162 132 112 146 112 116','ven')+vessel('M248 116 C248 146 198 132 198 166','art');
+  s+=vessel('M215 210 H302 V352 H252','art')+vessel('M108 352 H58 V200 H145','ven');
+  s+='<rect class="organ" x="104" y="322" width="152" height="56" rx="18" fill="#e9dcf3"/><path class="net" d="'+netPath(116,334,128,32)+'"/>';
+  s+='<rect class="organ" x="145" y="165" width="35" height="70" rx="6" fill="var(--ven-l)"/><rect class="organ" x="180" y="165" width="35" height="70" rx="6" fill="var(--art-l)"/><path class="wall" d="M145 200 H215"/>';
+  s+=arrow(58,300,180)+arrow(302,300,0)+arrow(135,140,140)+arrow(226,140,40);
+  return s+pins(P,CIRC_POS)+'</svg>';
+}
+var URI_POS={rin:[58,110],ure:[112,200],vej:[150,284],uret:[178,342]};
+var URI_LBL={rin:'Riñón',ure:'Uréter',vej:'Vejiga',uret:'Uretra'};
+function uriSVG(P){
+  var K='M75 56 C36 56 34 164 75 164 C96 164 102 142 93 126 C88 116 88 104 93 94 C101 78 96 56 75 56 Z';
+  var s='<svg class="dg" viewBox="0 0 300 370" role="img" aria-label="Esquema del sistema urinario">';
+  s+=vessel('M142 20 V230','ven',1)+vessel('M158 20 V230','art',1);
+  s+=vessel('M92 104 H142','ven',1)+vessel('M92 116 H158','art',1)+vessel('M208 104 H142','ven',1)+vessel('M208 116 H158','art',1);
+  s+='<path class="kid" d="'+K+'"/><path class="kid" transform="translate(300 0) scale(-1 1)" d="'+K+'"/>';
+  s+=vessel('M92 130 C108 182 114 230 132 266','uri',1)+vessel('M208 130 C192 182 186 230 168 266','uri',1);
+  s+=vessel('M150 318 V352','uri',1);
+  s+='<path class="blad" d="M150 248 C190 248 194 296 168 318 C160 324 140 324 132 318 C106 296 110 248 150 248 Z"/>';
+  return s+pins(P,URI_POS)+'</svg>';
+}
+var SKIN_POS={pelo:[70,28],poro:[140,36],gland:[206,162]};
+var SKIN_LBL={pelo:'Pelo',poro:'Poros de la piel',gland:'Glándula sudorípara'};
+function skinSVG(P){
+  var s='<svg class="dg" viewBox="0 0 320 250" role="img" aria-label="Esquema de un corte de piel">';
+  s+='<rect x="10" y="190" width="300" height="50" rx="6" class="skin3"/>';
+  for(var i=0;i<9;i++)s+='<circle class="fat" cx="'+(30+i*33)+'" cy="'+(208+(i%2)*14)+'" r="12"/>';
+  s+='<rect x="10" y="86" width="300" height="106" class="skin2"/><rect x="10" y="62" width="300" height="26" class="skin1"/>';
+  s+='<path d="M10 62 H310" stroke="var(--ink)" stroke-width="2.5"/><path d="M10 62 V240 M310 62 V240" stroke="var(--ink)" stroke-width="1.5"/>';
+  s+='<ellipse class="foll" cx="90" cy="168" rx="9" ry="14"/><path class="hair" d="M90 160 C88 120 86 80 76 16"/>';
+  s+='<ellipse class="foll" cx="252" cy="164" rx="9" ry="14"/><path class="hair" d="M252 156 C254 118 256 80 266 22"/>';
+  s+='<path class="gland" d="M168 150 C176 130 160 116 170 98 C176 86 168 74 170 64"/>';
+  s+='<path class="gland" d="M168 152 c-12 0 -14 16 -2 18 c12 2 14 -14 2 -16 c-10 4 -6 22 6 18 c10 -4 4 -20 -8 -16 c-10 6 -2 20 8 14"/>';
+  s+='<path d="M163 62 Q170 70 177 62" fill="var(--paper)" stroke="var(--ink)" stroke-width="2"/>';
+  s+='<path class="drop" d="M178 22 c-5 8 -7 11 -7 14 a7 7 0 0 0 14 0 c0 -3 -2 -6 -7 -14 z"/><path class="drop" d="M196 38 c-3 5 -4 7 -4 9 a4 4 0 0 0 8 0 c0 -2 -1 -4 -4 -9 z"/>';
+  return s+pins(P,SKIN_POS)+'</svg>';
+}
+var GROUPS=[
+  {k:'leg',n:'Legumbres, cereales, papa, pan y pastas',f:.24},
+  {k:'leche',n:'Leche, yogur y queso',f:.12},
+  {k:'carnes',n:'Carnes y huevos',f:.10},
+  {k:'aceites',n:'Aceites, frutas secas y semillas',f:.07},
+  {k:'dulces',n:'Opcionales: dulces y grasas',f:.05},
+  {k:'vf',n:'Verduras y frutas',f:.42}
+];
+var PLATE_LBL={agua:'Agua'};GROUPS.forEach(function(g){PLATE_LBL[g.k]=g.n;});
+function gByK(k){for(var i=0;i<GROUPS.length;i++)if(GROUPS[i].k===k)return GROUPS[i];return null;}
+function pt(cx,cy,r,a){var t=(a-90)*Math.PI/180;return (cx+r*Math.cos(t)).toFixed(1)+' '+(cy+r*Math.sin(t)).toFixed(1);}
+function sector(cx,cy,r0,r1,a0,a1){var lg=(a1-a0)>180?1:0;return 'M'+pt(cx,cy,r1,a0)+' A'+r1+' '+r1+' 0 '+lg+' 1 '+pt(cx,cy,r1,a1)+' L'+pt(cx,cy,r0,a1)+' A'+r0+' '+r0+' 0 '+lg+' 0 '+pt(cx,cy,r0,a0)+' Z';}
+var PLATE_POS={agua:[160,160]};
+(function(){var a=0;GROUPS.forEach(function(g){var a1=a+g.f*360;g.a0=a;g.a1=a1;var m=(a+a1)/2,t=(m-90)*Math.PI/180;PLATE_POS[g.k]=[+(160+88*Math.cos(t)).toFixed(1),+(160+88*Math.sin(t)).toFixed(1)];a=a1;});})();
+function plateSVG(P,clickable){
+  var id='rt'+(uid++);
+  var s='<svg class="dg" viewBox="0 0 320 320" role="img" aria-label="Gráfica de alimentación diaria (esquema)">';
+  s+='<defs><path id="'+id+'a" d="M24 160 A136 136 0 0 1 296 160"/><path id="'+id+'b" d="M14 160 A146 146 0 0 0 306 160"/></defs>';
+  s+='<circle class="ring" cx="160" cy="160" r="153"/>';
+  GROUPS.forEach(function(g){s+='<path class="sector s-'+g.k+(clickable?' clickable':'')+'"'+(clickable?' data-g="'+g.k+'"':'')+' d="'+sector(160,160,40,130,g.a0,g.a1)+'"/>';});
+  s+='<text class="ring-t"><textPath href="#'+id+'a" startOffset="50%" text-anchor="middle">ACTIVIDAD FÍSICA</textPath></text>';
+  s+='<text class="ring-t"><textPath href="#'+id+'b" startOffset="50%" text-anchor="middle">SAL, CON MODERACIÓN</textPath></text>';
+  s+='<circle class="water" cx="160" cy="160" r="40"/><path class="drop" d="M160 140 c-8 12 -12 18 -12 23 a12 12 0 0 0 24 0 c0 -5 -4 -11 -12 -23 z"/>';
+  return s+pins(P,PLATE_POS)+'</svg>';
+}
+var DIAG={heart:{svg:heartSVG,lbl:HEART_LBL},circ:{svg:circSVG,lbl:CIRC_LBL},uri:{svg:uriSVG,lbl:URI_LBL},skin:{svg:skinSVG,lbl:SKIN_LBL},plate:{svg:plateSVG,lbl:PLATE_LBL}};
+function studyFig(d,keys,extra){
+  var P={};keys.forEach(function(k,i){P[k]={n:i+1};});
+  return '<div class="figure"><div>'+DIAG[d].svg(P)+'</div><div><ol class="legend-list">'+keys.map(function(k,i){return '<li><span class="n">'+(i+1)+'</span>'+esc(DIAG[d].lbl[k])+'</li>';}).join('')+'</ol>'+(extra||'')+'</div></div>';
+}
+var BLOOD_KEY='<div class="blood-key" style="margin-top:10px"><span><i style="background:var(--ven)"></i>Sangre con mucho dióxido de carbono</span><span><i style="background:var(--art)"></i>Sangre con mucho oxígeno</span></div>';
+
+/* ---------- constructores de preguntas ---------- */
+function MC(a){return {type:'mc',prompt:esc(a[0]),options:shuffle([a[1]].concat(a[2])),answer:a[1],explain:a[3]||'',stack:true};}
+function TF(a){return {type:'mc',tf:true,tag:'Verdadero o falso',prompt:'¿Verdadero o falso?',stmt:a[0],options:['Verdadero','Falso'],answer:a[1]?'Verdadero':'Falso',explain:a[2]||''};}
+function LABEL(d,keys,extra){return {type:'label',diag:d,keys:shuffle(keys),extra:extra||[],tag:'Rotulá el esquema',prompt:'Elegí un nombre y tocá el número donde va. Completá todos los números.'};}
+function MATCH(pairs,prompt,e){return {type:'match',pairs:pairs,tag:'Uní con flechas',prompt:prompt||'Uní cada elemento de la izquierda con su pareja de la derecha.',explain:e||''};}
+function ORDER(p,items,e){return {type:'order',items:items,tag:'Ordená',prompt:esc(p),explain:e||''};}
+function CLOZE(c){return {type:'cloze',text:c.t,dist:c.d||[],any:!!c.any,tag:'Completá',prompt:'Tocá las palabras para completar los espacios.',explain:c.e||''};}
+function SORT(p,cats,items){return {type:'sort',cats:cats,items:items,tag:'Clasificá',prompt:esc(p)};}
+function PLATE(f){return {type:'plate',food:f,tag:'¿En qué grupo va?',prompt:'Tocá el grupo de la gráfica donde va este alimento.'};}
+function mcs(pool,n){return pick(pool,n).map(MC);}
+function tfs(pool,n){return pick(pool,n).map(TF);}
+
+/* ---------- contenidos ---------- */
+var T={};
+/* ===== EL CORAZÓN ===== */
+T.corazon={
+ mc:[
+  ['¿Dónde se ubica el corazón?','En la parte central del tórax, entre los dos pulmones',['En el abdomen, debajo del estómago','En la parte posterior del abdomen, a la altura de la cintura','En el cuello, debajo de la garganta'],'El corazón está en el centro del tórax, entre los dos pulmones.'],
+  ['¿Cuántas cavidades tiene el corazón?','Cuatro',['Dos','Tres','Seis'],'Tiene cuatro cavidades: dos aurículas arriba y dos ventrículos abajo.'],
+  ['¿Cómo se llaman las cavidades de la parte superior del corazón?','Aurículas',['Ventrículos','Válvulas','Capilares'],'Arriba están las aurículas y abajo, los ventrículos.'],
+  ['¿Cómo se llaman las cavidades de la parte inferior del corazón?','Ventrículos',['Aurículas','Arterias','Alvéolos'],'Los ventrículos están justo debajo de las aurículas.'],
+  ['¿Qué separa el lado derecho del lado izquierdo del corazón?','Un tabique',['Una válvula','Una arteria','Un ventrículo'],'Los dos lados no se comunican entre sí: están separados por un tabique.'],
+  ['¿Para qué sirven las válvulas del corazón?','Para que la sangre circule siempre en el mismo sentido',['Para producir los latidos','Para separar el lado derecho del izquierdo','Para filtrar la sangre'],'Cada válvula se abre y se cierra, y así la sangre circula siempre en el mismo sentido.'],
+  ['¿Cómo se producen los latidos del corazón?','Por la contracción y relajación de sus paredes musculares',['Por el aire que entra a los pulmones','Por los glóbulos rojos que golpean sus paredes','Por la orina que pasa por los riñones'],'Las paredes musculares se contraen y se relajan: esos movimientos impulsan la sangre.'],
+  ['¿Con qué cavidad se comunica la aurícula derecha?','Con el ventrículo derecho',['Con la aurícula izquierda','Con el ventrículo izquierdo','Con ninguna'],'La aurícula derecha se comunica con el ventrículo derecho a través de un orificio con una válvula.'],
+  ['¿Qué tres partes forman el sistema circulatorio?','La sangre, los vasos sanguíneos y el corazón',['Los riñones, los uréteres y la vejiga','El corazón, los pulmones y el estómago','La sangre, la piel y los riñones'],'Sangre, vasos sanguíneos y corazón actúan de manera coordinada para distribuir sustancias.'],
+  ['Cuando el corazón se contrae, ¿por dónde impulsa la sangre?','Por unos vasos gruesos llamados arterias',['Por los capilares directamente','Por las venas','Por los uréteres'],'Al contraerse, el corazón impulsa la sangre por las arterias.']
+ ],
+ tf:[
+  ['Los lados derecho e izquierdo del corazón se comunican entre sí.',false,'No se comunican: están separados por un tabique.'],
+  ['Los ventrículos están debajo de las aurículas.',true,'Las aurículas están arriba y los ventrículos, justo debajo.'],
+  ['En un esquema del corazón visto de frente, el lado derecho del corazón aparece a la izquierda de la hoja.',true,'Es como mirar a una persona de frente: su derecha queda a tu izquierda.'],
+  ['El corazón está ubicado en el abdomen.',false,'Está en la parte central del tórax, entre los dos pulmones.'],
+  ['La aurícula izquierda se comunica con el ventrículo izquierdo.',true,'Se comunican por un orificio que tiene una válvula.']
+ ],
+ cloze:[
+  {t:'El corazón tiene cuatro {cavidades}. Arriba están las {aurículas} y abajo, los {ventrículos}. El lado derecho y el izquierdo están separados por un {tabique}.',d:['válvulas','capilares']},
+  {t:'Entre cada aurícula y su ventrículo hay un orificio con una {válvula}, que se abre y se cierra para que la sangre circule siempre en el mismo {sentido}.',d:['tabique','arteria']},
+  {t:'Los latidos se producen por la {contracción} y la {relajación} de las paredes musculares del corazón.',d:['respiración','filtración']}
+ ],
+ make:function(){
+  return [LABEL('heart',['ad','ai','vd','vi','tab']),LABEL('heart',['vcs','vci','ap','ao','vp'])]
+   .concat(mcs(this.mc,4),tfs(this.tf,2),[CLOZE(rnd(this.cloze))],[LABEL('heart',pick(Object.keys(HEART_LBL),5))]);
+ }
+};
+/* ===== EL RECORRIDO DE LA SANGRE ===== */
+var CYCLE=['Venas cavas','Aurícula derecha','Ventrículo derecho','Arteria pulmonar','Pulmones (alvéolos)','Venas pulmonares','Aurícula izquierda','Ventrículo izquierdo','Arteria aorta','Capilares de los órganos'];
+function cycleQ(start){var s=start===undefined?Math.floor(Math.random()*CYCLE.length):start;var it=[];for(var i=0;i<5;i++)it.push(CYCLE[(s+i)%CYCLE.length]);
+  return ORDER('Ordená el recorrido de la sangre. Empieza en: '+it[0]+'.',it,'El recorrido completo es: '+CYCLE.join(' → ')+' → y vuelve a empezar.');}
+T.recorrido={
+ mc:[
+  ['¿Qué significa que el circuito circulatorio es cerrado?','Que la sangre se aleja del corazón por unos vasos y regresa por otros',['Que la sangre sale del cuerpo por la piel','Que el corazón está cerrado y no le entra sangre','Que la sangre solo va a los pulmones'],'La sangre circula siempre dentro de los vasos: se aleja del corazón por unos y vuelve por otros.'],
+  ['¿Dónde se realiza el intercambio gaseoso?','En los alvéolos de los pulmones',['En la aurícula derecha','En los riñones','En la arteria aorta'],'En los alvéolos de los pulmones la sangre deja dióxido de carbono y toma oxígeno.'],
+  ['¿Por dónde llega al corazón la sangre que recorrió todo el cuerpo?','Por las venas cavas, a la aurícula derecha',['Por la arteria aorta, al ventrículo izquierdo','Por las venas pulmonares, a la aurícula derecha','Por la arteria pulmonar, a la aurícula izquierda'],'La sangre ingresa por las venas cavas a la aurícula derecha.'],
+  ['¿Qué vaso lleva la sangre oxigenada hacia todo el organismo?','La arteria aorta',['La arteria pulmonar','Las venas cavas','Las venas pulmonares'],'El ventrículo izquierdo impulsa la sangre oxigenada por la arteria aorta.'],
+  ['¿Qué vaso lleva la sangre desde el ventrículo derecho hasta los pulmones?','La arteria pulmonar',['La arteria aorta','Las venas pulmonares','Las venas cavas'],'El ventrículo derecho impulsa la sangre hacia los pulmones por la arteria pulmonar.'],
+  ['La sangre que llega por las venas cavas contiene gran cantidad de…','dióxido de carbono',['oxígeno','orina','plaquetas'],'Es sangre que recorrió todo el cuerpo, por eso trae mucho dióxido de carbono.'],
+  ['¿Qué recorrido hace el circuito menor?','Va del corazón a los pulmones y vuelve al corazón',['Va del corazón a todo el organismo y vuelve al corazón','Va de los riñones a la vejiga','Va de los pulmones a los riñones'],'El circuito menor es corazón → pulmones → corazón.'],
+  ['¿Qué recorrido hace el circuito mayor?','Va del corazón a todo el organismo y vuelve al corazón',['Va del corazón a los pulmones y vuelve al corazón','Va del estómago a los pulmones','Va solo por dentro del corazón'],'El circuito mayor es corazón → todo el cuerpo → corazón.'],
+  ['¿Por qué el ventrículo izquierdo tiene paredes gruesas?','Porque impulsa la sangre por la arteria aorta hacia todo el organismo',['Porque guarda la orina','Porque recibe la sangre de las venas cavas','Porque ahí se hace el intercambio gaseoso'],'Sus paredes gruesas impulsan la sangre oxigenada por la aorta, que la distribuye a todo el cuerpo.'],
+  ['¿Por dónde vuelve al corazón la sangre que salió de los pulmones?','Por las venas pulmonares, a la aurícula izquierda',['Por las venas cavas, a la aurícula derecha','Por la arteria aorta, al ventrículo izquierdo','Por la arteria pulmonar, al ventrículo derecho'],'La sangre con más oxígeno circula por las venas pulmonares e ingresa en la aurícula izquierda.']
+ ],
+ tf:[
+  ['La sangre que sale por la arteria aorta tiene mucho oxígeno.',true,'Viene de los pulmones, por eso está oxigenada.'],
+  ['La arteria pulmonar sale del ventrículo izquierdo.',false,'Sale del ventrículo derecho. Del izquierdo sale la arteria aorta.'],
+  ['Las venas pulmonares llevan la sangre de los pulmones a la aurícula izquierda.',true,'Así empieza la vuelta al corazón de la sangre oxigenada.'],
+  ['En el circuito cerrado, la sangre sale de los vasos y vuelve a entrar.',false,'La sangre nunca sale de los vasos: se aleja del corazón por unos y regresa por otros.'],
+  ['El circuito mayor lleva la sangre del corazón a todo el organismo.',true,'Y la trae de vuelta al corazón por las venas cavas.']
+ ],
+ cloze:[
+  {t:'La sangre ingresa por las {venas cavas} a la {aurícula derecha}, pasa al {ventrículo derecho} y va a los pulmones por la {arteria pulmonar}.',d:['arteria aorta','aurícula izquierda']},
+  {t:'Desde los pulmones, la sangre vuelve por las {venas pulmonares} a la {aurícula izquierda}, pasa al {ventrículo izquierdo} y sale por la {arteria aorta}.',d:['venas cavas','ventrículo derecho']}
+ ],
+ sort:[['Arteria pulmonar',0],['Venas pulmonares',0],['Pulmones',0],['Arteria aorta',1],['Venas cavas',1],['Capilares de los órganos',1]],
+ make:function(){
+  return [cycleQ(),cycleQ(),LABEL('circ',pick(Object.keys(CIRC_LBL),5)),SORT('¿A qué circuito pertenece cada parte?',['Circuito menor','Circuito mayor'],this.sort)]
+   .concat(mcs(this.mc,3),tfs(this.tf,2),[CLOZE(rnd(this.cloze))]);
+ }
+};
+/* ===== LA SANGRE Y LOS VASOS ===== */
+T.sangre={
+ mc:[
+  ['¿Qué transporta la sangre a todos los órganos del cuerpo?','Nutrientes, oxígeno y otras sustancias',['Solo agua','Solo oxígeno','Aire y comida sin digerir'],'La sangre transporta los nutrientes de los alimentos, el oxígeno del aire y otras sustancias.'],
+  ['¿Para qué usan las células los nutrientes y el oxígeno?','Para obtener energía, crecer y reproducirse',['Para fabricar orina','Para producir los latidos','Para enfriar el cuerpo'],'Con los nutrientes y el oxígeno, las células obtienen energía para sus actividades, crecen y se reproducen.'],
+  ['¿Qué hacen las células con los desechos que producen?','Los liberan a la sangre',['Los guardan para siempre','Los transforman en oxígeno','Los mandan al estómago'],'Como resultado de sus procesos, las células generan desechos que liberan a la sangre.'],
+  ['¿Qué componente de la sangre es líquido?','El plasma',['Los glóbulos rojos','Los glóbulos blancos','Las plaquetas'],'El plasma es la parte líquida y transporta nutrientes y otras sustancias.'],
+  ['Si te lastimás y sangrás, ¿qué componente ayuda a formar el coágulo?','Las plaquetas',['Los glóbulos rojos','El plasma','Los glóbulos blancos'],'Las plaquetas forman coágulos que impiden la pérdida de sangre.'],
+  ['¿Qué componente defiende al organismo de partículas extrañas o microorganismos?','Los glóbulos blancos',['Los glóbulos rojos','Las plaquetas','El plasma'],'Los glóbulos blancos intervienen en la defensa del organismo.'],
+  ['¿Qué componente transporta el oxígeno?','Los glóbulos rojos',['Los glóbulos blancos','Las plaquetas','Los capilares'],'Los glóbulos rojos transportan oxígeno y parte del dióxido de carbono.'],
+  ['¿Qué vasos tienen un grosor parecido al de un cabello?','Los capilares',['Las arterias','Las venas','La arteria aorta'],'Los capilares son los vasos más finos.'],
+  ['¿Dónde ocurre el intercambio de sustancias entre la sangre y las células?','En los capilares',['En las venas cavas','En la arteria aorta','En el tabique del corazón'],'Los capilares entregan nutrientes y oxígeno a las células y reciben dióxido de carbono y otros desechos.']
+ ],
+ tf:[
+  ['Los glóbulos rojos transportan oxígeno.',true,'Transportan oxígeno y parte del dióxido de carbono.'],
+  ['Las venas llevan la sangre desde el corazón hacia los órganos.',false,'Eso lo hacen las arterias. Por las venas la sangre regresa al corazón.'],
+  ['Los capilares se unen y forman vasos cada vez más gruesos: las venas.',true,'Después del intercambio, los capilares se comunican entre sí y forman las venas.'],
+  ['El plasma es la parte sólida de la sangre.',false,'El plasma es la parte líquida.'],
+  ['Los órganos del cuerpo están formados por células.',true,'Y las células usan los nutrientes y el oxígeno que les lleva la sangre.']
+ ],
+ cloze:[
+  {t:'La sangre tiene una parte líquida, el {plasma}, y una parte sólida formada por los {glóbulos rojos}, los {glóbulos blancos} y las {plaquetas}.',d:['capilares','alvéolos']},
+  {t:'Las {arterias} llevan la sangre desde el corazón. Los {capilares} hacen el intercambio con las células. Por las {venas} la sangre regresa al corazón.',d:['válvulas','aurículas']}
+ ],
+ make:function(){
+  return [
+   MATCH(pick([['Plasma','Transporta nutrientes y otras sustancias'],['Glóbulos rojos','Transportan oxígeno'],['Glóbulos blancos','Defienden al organismo'],['Plaquetas','Forman coágulos']],4),'Uní cada componente de la sangre con su función.'),
+   MATCH([['Arterias','Llevan la sangre desde el corazón'],['Capilares','Son finos como un cabello y hacen el intercambio'],['Venas','Llevan la sangre de regreso al corazón'],['Corazón','Impulsa la sangre al contraerse']],'Uní cada parte con lo que hace.'),
+   ORDER('Ordená lo que pasa desde que el corazón se contrae.',['El corazón se contrae e impulsa la sangre.','La sangre viaja por las arterias.','En los capilares, la sangre entrega nutrientes y oxígeno a las células.','La sangre recibe dióxido de carbono y otros desechos.','La sangre regresa al corazón por las venas.'])
+  ].concat(mcs(this.mc,4),tfs(this.tf,2),[CLOZE(rnd(this.cloze))]);
+ }
+};
+/* ===== LA EXCRECIÓN ===== */
+T.excrecion={
+ mc:[
+  ['¿Qué es la excreción?','La eliminación de desechos que, si se acumularan, serían tóxicos',['La entrada de los alimentos al cuerpo','El transporte del oxígeno por la sangre','La fabricación de nutrientes'],'El cuerpo elimina desechos y productos que, de acumularse, serían tóxicos: eso es la excreción.'],
+  ['¿Qué desecho elimina el sistema respiratorio?','El dióxido de carbono',['El sudor','La orina','Las plaquetas'],'El sistema respiratorio excreta permanentemente el dióxido de carbono.'],
+  ['¿De dónde viene el dióxido de carbono que eliminan los pulmones?','Llega por la sangre desde las células',['Del aire que respiramos','De los riñones','Del sudor'],'Las células lo producen y la sangre lo lleva hasta los pulmones.'],
+  ['¿Cuál es el órgano más grande del cuerpo humano?','La piel',['El corazón','Los riñones','Los pulmones'],'La piel es el órgano más grande del organismo.'],
+  ['¿Cómo se llaman las glándulas de la piel que eliminan el sudor?','Glándulas sudoríparas',['Glándulas renales','Glándulas pulmonares','Glándulas urinarias'],'Las glándulas sudoríparas están en el interior de la piel.'],
+  ['¿De qué está compuesto el sudor?','De agua y pequeñas cantidades de sales y desechos',['De sangre y plaquetas','De dióxido de carbono','Solo de sal'],'El sudor es un líquido compuesto por agua y, en pequeñas cantidades, sales y desechos.'],
+  ['¿Dónde están ubicados los riñones?','En la parte posterior del abdomen, a la altura de la cintura',['En el tórax, entre los pulmones','Debajo de la vejiga','En la parte de adelante del cuello'],'Son dos órganos ubicados en la parte posterior del abdomen.'],
+  ['Además de excretar, ¿qué otra función cumple la piel?','Es una barrera de protección',['Bombea la sangre','Fabrica la orina','Hace el intercambio gaseoso'],'La piel actúa como barrera de protección y además es un órgano excretor.']
+ ],
+ tf:[
+  ['La piel es un órgano excretor.',true,'Elimina sudor a través de las glándulas sudoríparas.'],
+  ['Los riñones están en la parte de adelante del abdomen.',false,'Están en la parte posterior del abdomen, a la altura de la cintura.'],
+  ['Si los desechos se acumularan en el cuerpo, serían tóxicos.',true,'Por eso el cuerpo necesita eliminarlos.'],
+  ['El sudor está formado principalmente por agua.',true,'Tiene agua y, en pequeñas cantidades, sales y desechos.'],
+  ['Los pulmones eliminan el sudor.',false,'Los pulmones eliminan dióxido de carbono. El sudor lo eliminan las glándulas sudoríparas de la piel.']
+ ],
+ cloze:[
+  {t:'La eliminación de desechos se llama {excreción}. Los pulmones eliminan {dióxido de carbono}, la piel elimina {sudor} y los riñones producen {orina}.',d:['oxígeno','nutrientes']},
+  {t:'La piel es el órgano más {grande} del cuerpo. En su interior tiene glándulas {sudoríparas} que eliminan el sudor por los {poros}.',d:['pequeño','riñones']}
+ ],
+ make:function(){
+  return [
+   MATCH([['Pulmones','Dióxido de carbono'],['Piel','Sudor'],['Riñones','Orina']],'Uní cada órgano con lo que elimina.'),
+   LABEL('skin',['pelo','poro','gland'],['Uréter']),
+   SORT('¿De qué órgano habla cada frase?',['Pulmones','Piel','Riñones'],pick([['Eliminan dióxido de carbono',0],['Son parte del sistema respiratorio',0],['Tiene glándulas sudoríparas',1],['Es el órgano más grande',1],['Producen la orina',2],['Están a la altura de la cintura',2]],6))
+  ].concat(mcs(this.mc,4),tfs(this.tf,2),[CLOZE(rnd(this.cloze))]);
+ }
+};
+/* ===== LA FORMACIÓN DE LA ORINA ===== */
+T.orina={
+ mc:[
+  ['Cuando la sangre pasa por el filtro del riñón, ¿qué queda dentro de los vasos sanguíneos?','Las células de la sangre y las sustancias de gran tamaño',['El agua y las sales','La orina','El alcohol y los medicamentos'],'Lo que se filtra es agua y sustancias disueltas. Las células y las sustancias grandes se quedan en los vasos.'],
+  ['Un día de mucho calor transpirás mucho. ¿Cómo es tu orina?','Más concentrada, con menos agua',['Más clara, con más agua','Igual que siempre','No se forma orina'],'Así el cuerpo compensa el agua que perdió por la transpiración.'],
+  ['¿Cuánta orina puede acumular la vejiga?','Hasta medio litro',['Hasta cinco litros','Solo unas gotas','Hasta dos litros'],'La vejiga es elástica y puede acumular hasta medio litro de orina.'],
+  ['¿Qué pasa con parte del agua que se filtra en los riñones?','Según lo que necesita el cuerpo, se recupera y vuelve a la sangre',['Siempre se va toda con la orina','Se convierte en sudor','Viaja a los pulmones'],'Parte del agua y algunas sustancias se recuperan y vuelven a la sangre.'],
+  ['¿Cómo es la vejiga?','Un órgano hueco y elástico',['Un conducto largo y delgado','Una glándula de la piel','Un vaso sanguíneo'],'Es hueca y elástica, y permite almacenar la orina.'],
+  ['¿Cómo son los uréteres?','Conductos largos y delgados',['Órganos huecos y elásticos','Glándulas que fabrican sudor','Vasos que llevan sangre'],'Por los uréteres la orina baja desde los riñones hasta la vejiga.'],
+  ['Además de formar la orina, ¿en qué interviene el sistema urinario?','En la cantidad de agua del cuerpo',['En los latidos del corazón','En la digestión de los alimentos','En el intercambio gaseoso'],'El sistema urinario también interviene en la cantidad de agua del cuerpo.'],
+  ['¿De qué está compuesta la mayor parte de la orina?','De agua',['De sales','De sangre','De dióxido de carbono'],'La mayor parte es agua, con una pequeña porción de sales y materiales tóxicos.'],
+  ['¿Qué pasa cuando la vejiga está llena?','Se perciben las ganas de orinar',['La orina vuelve a los riñones','La orina pasa a la sangre','Se forma sudor'],'Cuando la vejiga está llena sentimos ganas de orinar y la orina sale por la uretra.']
+ ],
+ tf:[
+  ['La orina se produce en la vejiga.',false,'Se produce en los riñones. La vejiga la almacena.'],
+  ['Los uréteres son conductos largos y delgados.',true,'Llevan la orina desde los riñones hasta la vejiga.'],
+  ['Los glóbulos rojos pasan a la orina.',false,'Las células de la sangre quedan en los vasos sanguíneos.'],
+  ['Los riñones tienen una gran cantidad de vasos sanguíneos.',true,'Y estructuras especiales que funcionan como un filtro.'],
+  ['El alcohol y los medicamentos se eliminan con la orina.',true,'Los desechos y otras sustancias como el alcohol o los medicamentos se van con la orina.']
+ ],
+ cloze:[
+  {t:'La orina se forma en los {riñones}, baja por los {uréteres}, se almacena en la {vejiga} y sale por la {uretra}.',d:['arterias','pulmones']},
+  {t:'En los riñones la sangre pasa como por un {filtro}. Lo filtrado, que es {agua} y sustancias disueltas, formará parte de la {orina}.',d:['sudor','tabique']}
+ ],
+ make:function(){
+  return [
+   LABEL('uri',['rin','ure','vej','uret'],['Glándula sudorípara']),
+   ORDER('Ordená el camino de la orina.',['Los riñones filtran la sangre y forman la orina.','La orina baja por los uréteres.','La orina se almacena en la vejiga.','Se perciben las ganas de orinar.','La orina sale por la uretra.']),
+   MATCH([['Riñones','Filtran la sangre y forman la orina'],['Uréteres','Llevan la orina hasta la vejiga'],['Vejiga','Almacena la orina'],['Uretra','Elimina la orina hacia afuera']],'Uní cada órgano del sistema urinario con su función.')
+  ].concat(mcs(this.mc,4),tfs(this.tf,2),[CLOZE(rnd(this.cloze))]);
+ }
+};
+/* ===== COMIDA, ALIMENTO Y NUTRIENTE ===== */
+T.nutrientes={
+ mc:[
+  ['¿Qué son los nutrientes?','Materiales más sencillos en los que el sistema digestivo transforma los alimentos',['Combinaciones de alimentos cocinados','Los platos que se comen en familia','Las golosinas'],'Los alimentos se transforman en el sistema digestivo en materiales más sencillos: los nutrientes.'],
+  ['¿Qué es una comida?','Una combinación de alimentos que pasó por un proceso de elaboración',['Una sustancia que aporta energía sin cocinar','Un material sencillo que forma el sistema digestivo','Un tipo de nutriente'],'Las comidas son combinaciones de alimentos que se elaboraron.'],
+  ['¿Qué nutriente es una fuente rápida de energía?','Los hidratos de carbono',['Las proteínas','Los lípidos','El agua'],'Los hidratos de carbono son fuente rápida de energía para el organismo.'],
+  ['¿Qué nutriente es necesario para la construcción del cuerpo?','Las proteínas',['Los hidratos de carbono','Los lípidos','Los dulces'],'Las proteínas son necesarias para la construcción del cuerpo.'],
+  ['¿Qué nutriente constituye una reserva de energía?','Los lípidos',['Las proteínas','Los hidratos de carbono','Las vitaminas'],'Los lípidos constituyen una reserva de energía para el organismo.'],
+  ['¿Por qué no todas las personas comen lo mismo?','Porque varía según la cultura, el momento histórico, las creencias, los valores sociales y la posibilidad de conseguir alimentos',['Solo porque a cada uno le gustan cosas distintas','Solo por la edad','Porque hay alimentos prohibidos en todo el mundo'],'La alimentación varía según muchos factores, no solo el gusto.'],
+  ['Las tradiciones alimentarias en la familia cumplen una función…','biológica y también social',['solo biológica','solo social','ninguna'],'Al compartir la mesa se incorporan costumbres: además de alimentarnos, tiene una función social.'],
+  ['¿Dónde se transforman los alimentos en nutrientes?','En el sistema digestivo',['En el sistema excretor','En el corazón','En la piel'],'El sistema digestivo transforma los alimentos en nutrientes.'],
+  ['En los primeros años de vida, ¿qué conocen las personas de los alimentos?','Sus sabores, texturas, olores y colores',['Solo cuánto cuestan','Solo cuántos nutrientes tienen','Solo su nombre'],'Explorar los alimentos estimula los sentidos, los aprendizajes y los gustos.']
+ ],
+ tf:[
+  ['Comida, alimento y nutriente significan lo mismo.',false,'Se usan como sinónimos, pero sus significados no son iguales.'],
+  ['Todas las personas comen lo mismo.',false,'Todas necesitan comer para vivir, pero no todas comen lo mismo.'],
+  ['Al cocinar y compartir tradiciones, los chicos se animan a probar más variedad de alimentos.',true,'Lo dice el epígrafe de la foto del material.'],
+  ['Los alimentos aportan materiales y energía para el desarrollo y el mantenimiento del organismo.',true,'Esa es la definición de alimento.'],
+  ['Las proteínas son una fuente rápida de energía.',false,'Las proteínas sirven para construir el cuerpo. La fuente rápida de energía son los hidratos de carbono.']
+ ],
+ cloze:[
+  {t:'Los {alimentos} aportan materiales y energía. En el sistema digestivo se transforman en materiales más sencillos, llamados {nutrientes}.',d:['comidas','lípidos']},
+  {t:'Las {proteínas} son necesarias para construir el cuerpo, los {hidratos de carbono} son fuente rápida de energía y los {lípidos} son una reserva de energía.',d:['comidas','plaquetas']}
+ ],
+ sort:[[0,'Milanesa con puré'],[0,'Guiso de lentejas'],[0,'Ensalada de frutas'],[0,'Empanadas'],[1,'Manzana'],[1,'Leche'],[1,'Huevo'],[1,'Zanahoria'],[2,'Proteínas'],[2,'Hidratos de carbono'],[2,'Lípidos']],
+ make:function(){
+  var by=[0,1,2].map(function(c){return pick(T.nutrientes.sort.filter(function(x){return x[0]===c;}),2).map(function(x){return [x[1],x[0]];});});
+  return [
+   SORT('¿Es una comida, un alimento o un nutriente?',['Comida','Alimento','Nutriente'],shuffle(by[0].concat(by[1],by[2]))),
+   MATCH([['Proteínas','Construcción del cuerpo'],['Hidratos de carbono','Fuente rápida de energía'],['Lípidos','Reserva de energía']],'Uní cada nutriente con su función.')
+  ].concat(mcs(this.mc,4),tfs(this.tf,2),[CLOZE(rnd(this.cloze))]);
+ }
+};
+/* ===== LA GRÁFICA DE ALIMENTACIÓN DIARIA ===== */
+var FOODS=[
+ ['🍎','Manzana','vf'],['🥕','Zanahoria','vf'],['🍅','Tomate','vf'],['🍌','Banana','vf'],['🥬','Lechuga','vf'],
+ ['🫘','Lentejas','leg',''],['🍚','Arroz','leg'],['🍝','Fideos','leg'],['🍞','Pan','leg'],['🥔','Papa','leg','La papa está en el grupo de legumbres, cereales, papa, pan y pastas.'],['🍠','Batata','leg','¡Ojo! El texto dice que la batata se incluye en el grupo de legumbres, cereales, papa, pan y pastas.'],['🌽','Choclo','leg','¡Ojo! El texto dice que el choclo se incluye en el grupo de legumbres, cereales, papa, pan y pastas.'],
+ ['🥛','Leche','leche'],['🧀','Queso','leche'],['🥣','Yogur','leche'],
+ ['🍗','Pollo','carnes'],['🥚','Huevo','carnes'],['🐟','Pescado','carnes'],['🥩','Carne de vaca','carnes'],
+ ['🫒','Aceite de oliva','aceites'],['🥜','Maní','aceites'],['🌰','Nueces','aceites'],['🌻','Semillas de girasol','aceites'],
+ ['🍬','Caramelos','dulces'],['🍫','Alfajor','dulces'],['🧈','Manteca','dulces','La manteca es una grasa: va en el grupo de opcionales, dulces y grasas.']
+];
+T.grafica={
+ mc:[
+  ['¿Qué grupo es el más grande de la gráfica?','Verduras y frutas',['Legumbres, cereales, papa, pan y pastas','Carnes y huevos','Leche, yogur y queso'],'Se sugiere que las frutas y verduras sean la mayor parte de la alimentación.'],
+  ['¿Qué grupo le sigue en tamaño al de frutas y verduras?','Legumbres, cereales, papa, pan y pastas',['Carnes y huevos','Aceites, frutas secas y semillas','Opcionales: dulces y grasas'],'Es el segundo grupo más grande: lentejas, arroz, panes, fideos, batata, choclo…'],
+  ['¿Qué grupo es el más chico de la gráfica?','Opcionales: dulces y grasas',['Leche, yogur y queso','Carnes y huevos','Verduras y frutas'],'Es el más chico porque no aporta nutrientes esenciales.'],
+  ['¿Qué indica el tamaño de cada grupo en la gráfica?','La proporción en la que se recomienda incorporarlo',['Cuánto cuesta cada alimento','Qué tan rico es','El orden en que hay que comerlos'],'El tamaño de cada grupo indica la proporción recomendada.'],
+  ['¿Cómo hay que cocinar la carne?','Hasta que no queden partes rojas o rosas',['Poco, que quede roja por dentro','Con mucha grasa visible','No importa cómo'],'Así se evitan las enfermedades transmitidas por alimentos.'],
+  ['¿Por qué hay que cocinar bien la carne?','Para evitar enfermedades transmitidas por alimentos',['Para que tenga más grasa','Para que tenga más proteínas','Para que se coma más rápido'],'Cocinarla bien evita enfermedades transmitidas por alimentos.'],
+  ['¿Cómo se recomienda consumir el aceite?','Crudo',['Frito','Quemado','Nunca'],'El texto recomienda consumir el aceite crudo.'],
+  ['¿Con qué frecuencia se recomienda consumir leche, yogur y quesos?','Todos los días',['Una vez por mes','Nunca','Solo en verano'],'Se recomienda consumirlos diariamente.'],
+  ['¿Por qué los dulces y grasas se comen solo de vez en cuando?','Porque no aportan nutrientes esenciales',['Porque son el grupo más grande','Porque tienen muchas proteínas','Porque son caros'],'No aportan nutrientes esenciales, por eso no deberían formar parte de la alimentación diaria.'],
+  ['¿Cuántos grupos de alimentos tiene la gráfica?','Seis',['Cuatro','Diez','Tres'],'La gráfica tiene seis grupos. Los «10 mensajes» son los consejos que la acompañan.'],
+  ['¿Qué hay en el centro de la gráfica?','El agua',['La sal','Los dulces','La carne'],'El agua está en el centro de la gráfica.'],
+  ['¿Qué se recomienda hacer con la grasa visible de la carne?','Quitarla',['Dejarla siempre','Agregar más','Freírla aparte'],'En el grupo de carnes y huevos se recomienda quitar la grasa visible.']
+ ],
+ tf:[
+  ['Las frutas y verduras deberían ser la mayor parte de la alimentación.',true,'Por eso es el grupo más grande de la gráfica.'],
+  ['Los dulces y grasas deberían comerse todos los días.',false,'Solo en forma ocasional: no aportan nutrientes esenciales.'],
+  ['La gráfica de alimentación diaria está acompañada de 10 mensajes con consejos.',true,'Son consejos para alimentarse saludablemente.'],
+  ['La batata y el choclo están en el grupo de verduras y frutas.',false,'El texto los incluye en el grupo de legumbres, cereales, papa, pan y pastas.'],
+  ['Las recomendaciones de la gráfica tienen en cuenta los alimentos y costumbres de la Argentina.',true,'Se elaboraron para nuestra población, según los alimentos y costumbres de nuestro país.'],
+  ['El grupo de aceites, frutas secas y semillas aporta nutrientes esenciales.',true,'Y es recomendable consumir el aceite crudo.']
+ ],
+ make:function(){
+  var f=pick(FOODS,4);
+  return [LABEL('plate',pick(['vf','leg','leche','carnes','aceites','dulces','agua'],4))]
+   .concat(f.map(PLATE),mcs(this.mc,3),tfs(this.tf,2));
+ }
+};
+/* ===== ALIMENTACIÓN SALUDABLE Y ACTIVIDAD FÍSICA ===== */
+T.saludable={
+ mc:[
+  ['¿De qué dependen las necesidades de energía de una persona?','De la edad y del tipo de actividades que realiza, entre otros factores',['Solo de lo que le gusta comer','Del día de la semana','De la cantidad de hermanos'],'Las necesidades energéticas dependen de la edad y del tipo de actividades, entre otros factores.'],
+  ['Cuando hacés actividad física, ¿qué le pasa al organismo?','Usa más energía, necesita más nutrientes y siente hambre',['Usa menos energía','Deja de producir desechos','Necesita menos oxígeno'],'Al aumentar el movimiento, el organismo usa más energía y necesita más nutrientes.'],
+  ['¿Por qué al hacer ejercicio respirás más rápido?','Porque el organismo requiere más oxígeno',['Porque necesita menos oxígeno','Para eliminar el sudor','Porque el corazón se detiene'],'Con la actividad física se requiere mayor cantidad de oxígeno a través de la respiración.'],
+  ['Al hacer ejercicio aumentan los desechos. ¿Cómo se eliminan?','Mediante la transpiración y la orina',['Por la sangre que sale del cuerpo','Por los alimentos','No se eliminan'],'Aumenta la cantidad de desechos que se producen mediante la transpiración y la orina.'],
+  ['¿Cuál de estos NO es un beneficio de la actividad física según el texto?','Hace que ya no necesites comer',['Mejora el humor y el descanso','Favorece el crecimiento','Ayuda a prevenir el sobrepeso y la obesidad'],'Al contrario: al moverte, necesitás más nutrientes y sentís hambre.'],
+  ['Además de comer saludable, ¿qué cuida la salud según el texto?','Hidratarse y hacer actividad física',['Comer solo dulces','Dormir poco','No tomar agua'],'Hidratarse y hacer actividad física le dan al organismo condiciones para funcionar mejor.'],
+  ['Que los alimentos sean «variados» quiere decir…','comer alimentos de distintos grupos',['comer siempre lo mismo','comer mucha cantidad','comer solo verduras'],'Una alimentación variada incluye alimentos de los distintos grupos de la gráfica.'],
+  ['¿Por qué hacer actividad física es muy importante?','Porque los órganos del cuerpo funcionan más y mejor',['Porque el cuerpo deja de producir desechos','Porque ya no hace falta comer','Porque el corazón late menos'],'Los órganos funcionan más y mejor, y eso favorece el crecimiento y la salud.']
+ ],
+ tf:[
+  ['Todas las personas necesitan exactamente la misma cantidad de energía.',false,'Depende de la edad y del tipo de actividades, entre otros factores.'],
+  ['Hacer actividad física mejora el rendimiento mental.',true,'También mejora el humor y el descanso.'],
+  ['Al hacer actividad física, el organismo produce menos desechos.',false,'Produce más desechos, que se eliminan con la transpiración y la orina.'],
+  ['Hidratarse ayuda a que el organismo funcione mejor.',true,'Es una de las condiciones para cuidar la salud.'],
+  ['La actividad física ayuda a prevenir el sobrepeso, la obesidad y otras enfermedades.',true,'Además favorece el crecimiento.']
+ ],
+ cloze:[
+  {t:'La alimentación saludable es {suficiente}, {completa}, {armónica} y {adecuada} para cada persona.',d:['rápida','dulce'],any:true,e:'Las cuatro palabras pueden ir en cualquier orden.'},
+  {t:'Al hacer actividad física, el organismo usa más {energía}, necesita más {nutrientes} y requiere más {oxígeno}.',d:['sudor','grasas']}
+ ],
+ make:function(){
+  return [CLOZE(this.cloze[0]),CLOZE(this.cloze[1])].concat(mcs(this.mc,5),tfs(this.tf,3));
+ }
+};
+
+var TOPICS=[
+ {id:'corazon',sys:'circ',sysName:'Sistema circulatorio',title:'El corazón',sub:'Aurículas, ventrículos, válvulas y vasos',
+  lesson:function(){return '<h3>El sistema circulatorio</h3><p>Está formado por la <b>sangre</b>, los <b>vasos sanguíneos</b> y el <b>corazón</b>. Actúan de manera coordinada para distribuir sustancias por todo el cuerpo.</p>'+
+   '<h3>¿Cómo es el corazón?</h3><ul><li>Está en la <b>parte central del tórax</b>, entre los dos pulmones.</li><li>Sus <b>latidos</b> se producen por la contracción y relajación de sus paredes musculares. Así impulsa la sangre.</li><li>Tiene <b>cuatro cavidades</b>: arriba las <b>aurículas</b> y abajo los <b>ventrículos</b>.</li><li>La aurícula derecha se comunica con el ventrículo derecho, y la izquierda con el izquierdo, por un orificio con una <b>válvula</b>. La válvula se abre y se cierra para que la sangre circule siempre en el mismo sentido.</li><li>El lado derecho y el izquierdo <b>no se comunican</b>: los separa un <b>tabique</b>.</li></ul>'+
+   studyFig('heart',['ad','ai','vd','vi','tab','valv','vcs','vci','ap','ao','vp'],BLOOD_KEY)+
+   '<div class="tip"><b>¡Ojo con los lados!</b> El esquema muestra el corazón visto de frente, como si miraras a una persona. Por eso el <b>lado derecho</b> del corazón queda a la <b>izquierda</b> de la hoja.</div>';}},
+ {id:'recorrido',sys:'circ',sysName:'Sistema circulatorio',title:'El recorrido de la sangre',sub:'Circuito menor y circuito mayor',
+  lesson:function(){return '<h3>Un circuito cerrado</h3><p>La sangre se aleja del corazón por unos vasos y regresa por otros. Nunca sale de los vasos.</p>'+
+   '<h3>Circuito menor: corazón → pulmones → corazón</h3><ul><li>La sangre ingresa por las <b>venas cavas</b> a la <b>aurícula derecha</b>. Trae mucho <b>dióxido de carbono</b>.</li><li>Pasa al <b>ventrículo derecho</b>, que la impulsa hacia los pulmones por la <b>arteria pulmonar</b>.</li><li>En los <b>alvéolos</b> de los pulmones se hace el <b>intercambio gaseoso</b>.</li><li>La sangre con más oxígeno vuelve por las <b>venas pulmonares</b> a la <b>aurícula izquierda</b>.</li></ul>'+
+   '<h3>Circuito mayor: corazón → todo el cuerpo → corazón</h3><ul><li>De la aurícula izquierda pasa al <b>ventrículo izquierdo</b>. Sus paredes gruesas la impulsan por la <b>arteria aorta</b> hacia todo el organismo.</li><li>En los <b>capilares de los órganos</b> entrega oxígeno y nutrientes, y recibe dióxido de carbono.</li><li>Vuelve al corazón por las <b>venas cavas</b>, y el recorrido empieza otra vez.</li></ul>'+
+   studyFig('circ',['pul','ap','vp','cor','ao','cap','vc'],BLOOD_KEY);}},
+ {id:'sangre',sys:'circ',sysName:'Sistema circulatorio',title:'La sangre y los vasos',sub:'Plasma, glóbulos, plaquetas, arterias, venas y capilares',
+  lesson:function(){return '<h3>¿Qué hace la sangre?</h3><p>Viaja por los <b>vasos sanguíneos</b> y transporta los <b>nutrientes</b> de los alimentos, el <b>oxígeno</b> del aire y otras sustancias a todos los órganos, que están formados por <b>células</b>. Las células usan los nutrientes y el oxígeno para obtener energía, crecer y reproducirse. Los <b>desechos</b> que generan los liberan a la sangre.</p>'+
+   '<h3>Los vasos sanguíneos</h3><ul><li><b>Arterias</b>: vasos gruesos por los que el corazón impulsa la sangre. Se ramifican por todo el cuerpo.</li><li><b>Capilares</b>: los más finos, como un cabello. Entregan nutrientes y oxígeno a las células y reciben dióxido de carbono y desechos.</li><li><b>Venas</b>: los capilares se unen y forman vasos cada vez más gruesos. Por las venas la sangre regresa al corazón.</li></ul>'+
+   '<h3>Los componentes de la sangre</h3><ul><li><b>Plasma</b> (parte líquida): transporta nutrientes y otras sustancias.</li><li><b>Glóbulos rojos</b>: transportan oxígeno y parte del dióxido de carbono.</li><li><b>Glóbulos blancos</b>: defienden al organismo de partículas extrañas o microorganismos.</li><li><b>Plaquetas</b>: forman coágulos que impiden la pérdida de sangre.</li></ul>';}},
+ {id:'excrecion',sys:'excr',sysName:'Sistema excretor',title:'La excreción',sub:'Pulmones, piel y riñones',
+  lesson:function(){return '<h3>¿Qué es la excreción?</h3><p>El cuerpo elimina desechos y productos que, si se acumularan, serían <b>tóxicos</b>. Esa eliminación se llama <b>excreción</b>. Participan distintos órganos:</p>'+
+   '<ul><li><b>Sistema respiratorio</b>: elimina todo el tiempo el <b>dióxido de carbono</b> que llega por la sangre desde las células.</li><li><b>Piel</b>: es el órgano <b>más grande</b> del cuerpo. Es una barrera de protección y también un órgano excretor. Sus glándulas <b>sudoríparas</b> eliminan el <b>sudor</b>: agua con pequeñas cantidades de sales y desechos.</li><li><b>Riñones</b>: dos órganos en la parte <b>posterior</b> del abdomen, a la altura de la cintura. Producen la <b>orina</b>.</li></ul>'+
+   studyFig('skin',['pelo','poro','gland'],'<p class="hint" style="margin-top:8px">Corte de piel. El sudor sale por los poros.</p>');}},
+ {id:'orina',sys:'excr',sysName:'Sistema excretor',title:'La formación de la orina',sub:'Riñones, uréteres, vejiga y uretra',
+  lesson:function(){return '<h3>¿Qué es la orina?</h3><p>Es un líquido amarillo claro que se produce en los <b>riñones</b>. La mayor parte es <b>agua</b>, con una pequeña porción de sales y materiales tóxicos.</p>'+
+   '<h3>¿Cómo se forma?</h3><ul><li>Los riñones tienen muchos vasos sanguíneos y estructuras que funcionan como un <b>filtro</b>.</li><li>En los vasos <b>quedan</b> las células de la sangre y las sustancias de gran tamaño.</li><li>Lo filtrado (agua y sustancias disueltas) formará parte de la orina.</li><li>Según lo que necesita el cuerpo, parte del agua y algunas sustancias <b>se recuperan</b> y vuelven a la sangre.</li><li>Los desechos, el alcohol y los medicamentos se van con la orina.</li></ul>'+
+   '<div class="tip">Un día de mucho calor perdés mucha agua al transpirar. Entonces la orina es <b>más concentrada</b> (tiene menos agua) y así se compensa la pérdida.</div>'+
+   '<h3>El camino de la orina</h3><p>Riñones → <b>uréteres</b> (conductos largos y delgados) → <b>vejiga</b> (órgano hueco y elástico que la almacena; puede acumular hasta medio litro) → <b>uretra</b>. Cuando la vejiga está llena, sentimos ganas de orinar. Todo este conjunto es el <b>sistema urinario</b>, que también interviene en la cantidad de agua del cuerpo.</p>'+
+   studyFig('uri',['rin','ure','vej','uret']);}},
+ {id:'nutrientes',sys:'nut',sysName:'Alimentación y nutrición',title:'Comida, alimento y nutriente',sub:'Proteínas, hidratos de carbono y lípidos',
+  lesson:function(){return '<h3>La alimentación en los humanos</h3><p>En los primeros años de vida conocemos los sabores, texturas, olores y colores de los alimentos. Todas las personas necesitan comer para vivir, pero <b>no todas comen lo mismo</b>: depende de la cultura, el momento histórico, las creencias, los valores sociales y la posibilidad de conseguir alimentos.</p><p>Al compartir la mesa se incorporan costumbres. Por eso las tradiciones alimentarias en la familia cumplen una función <b>biológica</b> y también una <b>social</b>.</p>'+
+   '<h3>No son sinónimos</h3><ul><li><b>Comida</b>: combinación de alimentos que pasó por un proceso de elaboración. Ej.: guiso de lentejas.</li><li><b>Alimento</b>: sustancia o mezcla de sustancias que aporta materiales y energía para el desarrollo y mantenimiento del organismo. Ej.: lentejas.</li><li><b>Nutriente</b>: material más sencillo en el que el sistema digestivo transforma los alimentos.</li></ul>'+
+   '<h3>Algunos nutrientes</h3><ul><li><b>Proteínas</b>: necesarias para la construcción del cuerpo.</li><li><b>Hidratos de carbono</b>: fuente rápida de energía.</li><li><b>Lípidos</b>: reserva de energía para el organismo.</li></ul>';}},
+ {id:'grafica',sys:'nut',sysName:'Alimentación y nutrición',title:'La gráfica de alimentación diaria',sub:'Los seis grupos y sus proporciones',
+  lesson:function(){return '<h3>¿Qué es?</h3><p>En la Argentina se elaboraron recomendaciones para una alimentación <b>variada y equilibrada</b>, según los alimentos y costumbres de nuestro país. Incluyen la <b>gráfica de alimentación diaria</b>, que muestra los grupos de alimentos y en qué proporciones comerlos. La acompañan <b>10 mensajes</b> con consejos.</p>'+
+   studyFig('plate',['vf','leg','leche','carnes','aceites','dulces','agua'],'<p class="hint" style="margin-top:8px">Esquema simplificado. El tamaño de cada grupo indica la proporción recomendada.</p>')+
+   '<h3>Los seis grupos</h3><ul><li><b>Verduras y frutas</b>: el grupo más grande. Deberían ser la mayor parte de la alimentación.</li><li><b>Legumbres, cereales, papa, pan y pastas</b>: le sigue en tamaño. Lentejas, arroz, panes, fideos… ¡y también batata y choclo!</li><li><b>Leche, yogur y queso</b>: se recomienda consumirlos todos los días.</li><li><b>Carnes y huevos</b>: quitar la grasa visible y cocinar la carne hasta que no queden partes rojas o rosas, para evitar enfermedades transmitidas por alimentos.</li><li><b>Aceites, frutas secas y semillas</b>: aportan nutrientes esenciales. Conviene consumir el aceite crudo.</li><li><b>Opcionales: dulces y grasas</b>: el grupo más chico. No aportan nutrientes esenciales: solo de vez en cuando.</li></ul>';}},
+ {id:'saludable',sys:'nut',sysName:'Alimentación y nutrición',title:'Comer variado y moverse',sub:'Alimentación saludable y actividad física',
+  lesson:function(){return '<h3>Alimentación saludable</h3><p>Es <b>suficiente, completa, armónica y adecuada</b> para cada persona. Los alimentos tienen que ser variados, proporcionados y adecuados a las necesidades de energía de cada uno, que dependen de la <b>edad</b> y del <b>tipo de actividades</b>, entre otros factores.</p>'+
+   '<h3>Cuidar la salud</h3><p>Además de comer saludable, el cuerpo funciona mejor si nos <b>hidratamos</b> y hacemos <b>actividad física</b>.</p>'+
+   '<h3>¿Qué pasa cuando te movés?</h3><ul><li>El organismo usa más <b>energía</b>, necesita más <b>nutrientes</b> y siente <b>hambre</b>.</li><li>Produce más <b>desechos</b>, que se eliminan con la <b>transpiración</b> y la <b>orina</b>.</li><li>Necesita más <b>oxígeno</b>, que entra con la respiración.</li></ul>'+
+   '<div class="tip">Fijate cómo se conecta todo: la <b>alimentación</b> aporta los nutrientes, el <b>sistema circulatorio</b> los lleva a las células y el <b>sistema excretor</b> elimina los desechos.</div>'+
+   '<h3>Beneficios de la actividad física</h3><ul><li>Los órganos funcionan más y mejor.</li><li>Favorece el crecimiento.</li><li>Ayuda a prevenir el sobrepeso, la obesidad y otras enfermedades.</li><li>Mejora el humor, el descanso y el rendimiento mental.</li></ul>';}}
+];
+TOPICS.forEach(function(t){t.make=function(){return T[t.id].make().map(function(q){q.sys=t.sys;return q;});};});
+function topicById(id){for(var i=0;i<TOPICS.length;i++)if(TOPICS[i].id===id)return TOPICS[i];return null;}
+var SYS=[{k:'circ',n:'Sistema circulatorio'},{k:'excr',n:'Sistema excretor'},{k:'nut',n:'Alimentación y nutrición'}];
+var TF_ALL=[];TOPICS.forEach(function(t){T[t.id].tf.forEach(function(x){TF_ALL.push({s:x[0],v:x[1],sys:t.sys});});});
+
+/* ---------- pantallas ---------- */
+var S=null,C=null;
+function topbar(){
+  return '<div class="top"><button class="brand" data-act="home" aria-label="Volver a los temas"><span class="mark">PI</span>Comprobación de PI</button><span class="sp"></span>'+
+   (HUB?'<a class="hub" href="'+HUB+'">Inicio</a>':'')+
+   '<button class="iconbtn" data-act="mute" aria-label="'+(muted?'Activar sonido':'Silenciar')+'">'+(muted?'🔇':'🔊')+'</button></div>';
+}
+function starsFor(p){return p>=0.9?3:p>=0.7?2:p>=0.5?1:0;}
+function starStr(p){
+  if(p===undefined)return '<span class="stars none">Sin jugar todavía</span>';
+  var n=starsFor(p);return '<span class="stars" aria-label="'+n+' de 3 estrellas">'+'★★★'.slice(0,n)+'<span class="off">'+'★★★'.slice(0,3-n)+'</span></span>';
+}
+function daysLeft(){var now=new Date();var a=new Date(now.getFullYear(),now.getMonth(),now.getDate());return Math.round((new Date(2026,9,13)-a)/86400000);}
+function countdown(){var d=daysLeft();if(d>1)return 'Faltan '+d+' días';if(d===1)return '¡Es mañana!';if(d===0)return '¡Es hoy!';return 'Ya pasó: podés seguir repasando';}
+function stopClock(){if(C&&C.timer)clearInterval(C.timer);C=null;}
+
+function renderHome(){
+  S=null;stopClock();
+  var best=loadBest();
+  app.innerHTML=topbar()+
+   '<section class="hero"><p class="mono" style="margin:0;color:var(--ink-2)">Proyectos de Investigación · 5.° grado</p>'+
+   '<h1>Comprobación de PI</h1>'+
+   '<svg class="ecg" viewBox="0 0 880 54" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 H170 l12 -6 l10 6 H230 l8 10 l12 -38 l12 46 l9 -18 H330 l14 -8 l14 8 H520 l12 -6 l10 6 H580 l8 10 l12 -38 l12 46 l9 -18 H680 l14 -8 l14 8 H880"/></svg>'+
+   '<div class="when"><span class="date"><span class="mono">Fecha</span><b>Martes 13 de octubre</b></span><span class="left">'+countdown()+'</span></div>'+
+   '<p class="lead">Repasá cada tema, rotulá los esquemas y practicá. Las estrellas guardan tu mejor resultado.</p>'+
+   '<ol class="flow"><li class="c-nut"><span class="mono">Alimentación</span><b>Los alimentos</b><span class="t">se transforman en nutrientes.</span></li><li class="c-circ"><span class="mono">Circulación</span><b>La sangre</b><span class="t">lleva nutrientes y oxígeno a las células.</span></li><li class="c-excr"><span class="mono">Excreción</span><b>Los desechos</b><span class="t">se eliminan por pulmones, piel y riñones.</span></li></ol></section>'+
+   '<div class="big-actions"><button class="exam" data-act="start" data-id="exam"><span><span class="t">Prueba de práctica</span><span class="s">16 preguntas de los tres temas, como en la comprobación</span></span>'+starStr(best.exam)+'</button>'+
+   '<button class="exam alt" data-act="clock"><span><span class="t">V o F relámpago</span><span class="s">'+(best.reloj!==undefined?'Récord: '+best.reloj+' en 60 s':'¿Cuántas acertás en 60 segundos?')+'</span></span></button></div>'+
+   SYS.map(function(sy){var ts=TOPICS.filter(function(t){return t.sys===sy.k;});
+     return '<section class="sec c-'+sy.k+'"><div class="sec-head"><span class="vessel"></span><h2>'+sy.n+'</h2><span class="mono">'+ts.length+' temas</span></div><div class="grid">'+
+     ts.map(function(t){return '<button class="card" data-act="lesson" data-id="'+t.id+'"><span class="mono">'+esc(sy.n)+'</span><span class="ct">'+esc(t.title)+'</span><span class="sub">'+esc(t.sub)+'</span><span class="meta">'+starStr(best[t.id])+'</span></button>';}).join('')+'</div></section>';}).join('')+
+   '<section class="sec"><div class="sec-head"><span class="vessel" style="background:var(--ink)"></span><h2>Videos de la seño</h2></div><div class="videos">'+
+   '<a href="https://www.youtube.com/watch?v=6jPROzGH-aY" target="_blank" rel="noopener">Sistema circulatorio</a><a href="https://www.youtube.com/watch?v=Cn_GQcfS9-Q" target="_blank" rel="noopener">Corazón humano</a><a href="https://www.youtube.com/watch?v=ni9yNF0jLdU" target="_blank" rel="noopener">Sistema excretor</a></div></section>'+
+   '<footer>Hecho para repasar en casa · ¡Éxitos en la comprobación!</footer>';
+  window.scrollTo(0,0);
+}
+function renderLesson(id){
+  stopClock();S=null;var t=topicById(id);
+  app.innerHTML=topbar()+'<div class="c-'+t.sys+'"><div class="lesson-head"><span class="mono">'+esc(t.sysName)+'</span><h1>'+esc(t.title)+'</h1></div>'+
+   '<div class="sheet">'+t.lesson()+'</div>'+
+   '<div class="actions"><button class="btn" data-act="start" data-id="'+t.id+'">Empezar a practicar</button><button class="btn ghost" data-act="home">Volver a los temas</button></div></div>';
+  window.scrollTo(0,0);
+}
+function examQs(){var qs=[];TOPICS.forEach(function(t){qs=qs.concat(pick(t.make(),2));});return shuffle(qs);}
+
+function startRound(id,custom){
+  stopClock();var qs,title,topicId=id;
+  if(custom){qs=custom;title='Repaso de errores';topicId=null;}
+  else if(id==='exam'){qs=examQs();title='Prueba de práctica';}
+  else{var t=topicById(id);qs=t.make();title=t.title;}
+  S={topicId:topicId,title:title,qs:qs,i:0,score:0,wrong:[],answered:false};
+  renderQ();
+}
+var PAIR_COLORS=['#2d63c8','#d62f45','#2c9a57','#b7791f','#7c4dbd'];
+function renderQ(){
+  var q=S.qs[S.i];S.answered=false;
+  S.lab={};S.selChip=null;S.selRow=null;S.ml={};S.selL=null;S.selR=null;S.order=[];S.cl=[];S.selBlank=null;S.srt={};
+  var body='';
+  if(q.type==='mc'){
+    if(q.tf)body='<p class="stmt">'+esc(q.stmt)+'</p>';
+    body+='<div class="options '+(q.tf?'tf':(q.stack?'stack':''))+'">'+q.options.map(function(o,k){return '<button class="opt" data-k="'+k+'">'+esc(o)+'</button>';}).join('')+'</div>';
+  }else if(q.type==='label'){
+    var D=DIAG[q.diag],P={};q.keys.forEach(function(k,i){P[k]={n:i+1,row:i};});
+    S.bank=shuffle(q.keys.map(function(k){return D.lbl[k];}).concat(q.extra));
+    body='<div class="lab"><div class="dgbox">'+D.svg(P)+'</div><div style="display:flex;flex-direction:column;gap:12px"><div class="rows">'+
+      q.keys.map(function(k,i){return '<button class="lrow" data-row="'+i+'"><span class="n">'+(i+1)+'</span><span class="v">Tocá para ubicar</span></button>';}).join('')+
+      '</div><div class="bank">'+S.bank.map(function(l,i){return '<button class="chip" data-chip="'+i+'">'+esc(l)+'</button>';}).join('')+'</div>'+
+      '<div><button class="btn" data-act="check" id="chk" disabled>Comprobar</button></div></div></div>';
+  }else if(q.type==='match'){
+    S.right=shuffle(q.pairs.map(function(p,i){return i;}));
+    body='<div class="match"><div class="col">'+q.pairs.map(function(p,i){return '<button class="mi lft" data-ml="'+i+'"><span class="b"></span>'+esc(p[0])+'</button>';}).join('')+'</div>'+
+      '<div class="col">'+S.right.map(function(j){return '<button class="mi" data-mr="'+j+'"><span class="b"></span>'+esc(q.pairs[j][1])+'</button>';}).join('')+'</div></div>'+
+      '<div><button class="btn" data-act="check" id="chk" disabled>Comprobar</button></div>';
+  }else if(q.type==='order'){
+    S.pool=shuffle(q.items.map(function(x,i){return i;}));
+    body='<div class="slots" id="slots"></div><div class="options stack" id="pool"></div><div class="actions" style="margin-top:0"><button class="btn" data-act="check" id="chk" disabled>Comprobar</button><button class="btn ghost" data-act="oreset">Empezar de nuevo</button></div>';
+  }else if(q.type==='cloze'){
+    var ans=[];var html=esc(q.text).replace(/\{([^}]+)\}/g,function(m,a){ans.push(a);return '<button class="blank empty" data-bl="'+(ans.length-1)+'">'+(ans.length)+'</button>';});
+    S.ans=ans;S.words=shuffle(ans.concat(q.dist));S.cl=ans.map(function(){return null;});
+    body='<p class="cloze">'+html+'</p><div class="bank">'+S.words.map(function(w,i){return '<button class="chip" data-cw="'+i+'">'+esc(w)+'</button>';}).join('')+'</div><div><button class="btn" data-act="check" id="chk" disabled>Comprobar</button></div>';
+  }else if(q.type==='sort'){
+    body='<div class="sorts">'+q.items.map(function(it,i){return '<div class="srow" data-srow="'+i+'"><span class="it">'+esc(it[0])+'</span><span class="cats">'+q.cats.map(function(c,ci){return '<button class="cat" data-si="'+i+'" data-sc="'+ci+'">'+esc(c)+'</button>';}).join('')+'</span></div>';}).join('')+'</div><div><button class="btn" data-act="check" id="chk" disabled>Comprobar</button></div>';
+  }else if(q.type==='plate'){
+    var f=q.food;
+    body='<div class="food"><span class="e" aria-hidden="true">'+f[0]+'</span><b>'+esc(f[1])+'</b></div><div class="plate-q"><div>'+plateSVG({},true)+'</div><div class="groups">'+
+      GROUPS.map(function(g){return '<button class="grp" data-g="'+g.k+'"><i class="sw-'+g.k+'"></i>'+esc(g.n)+'</button>';}).join('')+'</div></div>';
+  }
+  app.innerHTML=topbar()+'<div class="c-'+(q.sys||'circ')+'">'+
+   '<div class="qhead"><button class="link" data-act="home">← Temas</button><span class="count">'+(S.i+1)+' / '+S.qs.length+'</span><span class="score" aria-label="Respuestas correctas">✔ '+S.score+'</span></div>'+
+   '<div class="bar"><span style="width:'+(S.i/S.qs.length*100)+'%"></span></div>'+
+   '<section class="qcard"><p class="qtag mono">'+esc(q.tag||'Elegí la respuesta')+'</p><h2 class="prompt">'+q.prompt+'</h2>'+body+'<div id="fb" aria-live="polite"></div></section></div>';
+  all('.grp i').forEach(function(el){var k=el.className.replace('sw-','');el.style.background=getComputedStyle(document.querySelector('.s-'+k)).fill;});
+  if(q.type==='order')drawOrder();
+}
+function enableCheck(on){var b=document.getElementById('chk');if(b)b.disabled=!on||S.answered;}
+/* label */
+function drawLabel(){
+  var q=S.qs[S.i];
+  all('.lrow').forEach(function(el){var r=+el.dataset.row,v=S.lab[r];el.classList.toggle('filled',v!==undefined);el.classList.toggle('on',S.selRow===r);el.querySelector('.v').textContent=v!==undefined?S.bank[v]:'Tocá para ubicar';});
+  all('.pin[data-row]').forEach(function(el){el.classList.toggle('on',S.selRow===+el.dataset.row);});
+  var used={};Object.keys(S.lab).forEach(function(r){used[S.lab[r]]=1;});
+  all('.chip[data-chip]').forEach(function(el){var i=+el.dataset.chip;el.classList.toggle('used',!!used[i]);el.classList.toggle('on',S.selChip===i);});
+  enableCheck(Object.keys(S.lab).length===q.keys.length);
+}
+function placeLabel(row,chip){Object.keys(S.lab).forEach(function(r){if(S.lab[r]===chip)delete S.lab[r];});S.lab[row]=chip;S.selChip=null;S.selRow=null;drawLabel();}
+/* match */
+function drawMatch(){
+  var q=S.qs[S.i],inv={};Object.keys(S.ml).forEach(function(l){inv[S.ml[l]]=+l;});
+  var order=Object.keys(S.ml).map(Number).sort();
+  function col(l){return PAIR_COLORS[order.indexOf(l)%PAIR_COLORS.length];}
+  all('.mi[data-ml]').forEach(function(el){var l=+el.dataset.ml,p=S.ml[l]!==undefined,b=el.querySelector('.b');el.classList.toggle('paired',p);el.classList.toggle('on',S.selL===l);b.style.background=p?col(l):'';b.style.borderColor=p?col(l):'';b.textContent=p?(order.indexOf(l)+1):'';});
+  all('.mi[data-mr]').forEach(function(el){var r=+el.dataset.mr,l=inv[r],p=l!==undefined,b=el.querySelector('.b');el.classList.toggle('paired',p);el.classList.toggle('on',S.selR===r);b.style.background=p?col(l):'';b.style.borderColor=p?col(l):'';b.textContent=p?(order.indexOf(l)+1):'';});
+  enableCheck(Object.keys(S.ml).length===q.pairs.length);
+}
+function pairUp(l,r){Object.keys(S.ml).forEach(function(k){if(S.ml[k]===r)delete S.ml[k];});S.ml[l]=r;S.selL=null;S.selR=null;drawMatch();}
+/* order */
+function drawOrder(){
+  var q=S.qs[S.i];
+  document.getElementById('slots').innerHTML=q.items.map(function(x,i){var v=S.order[i];return '<div class="slot'+(v!==undefined?' filled':'')+'"><span class="n">'+(i+1)+'.</span><span>'+(v!==undefined?esc(q.items[v]):'')+'</span></div>';}).join('');
+  document.getElementById('pool').innerHTML=S.pool.filter(function(i){return S.order.indexOf(i)<0;}).map(function(i){return '<button class="opt" data-oi="'+i+'">'+esc(q.items[i])+'</button>';}).join('');
+  enableCheck(S.order.length===q.items.length);
+}
+/* cloze */
+function drawCloze(){
+  all('.blank').forEach(function(el){var i=+el.dataset.bl,w=S.cl[i];el.textContent=w===null?(i+1):S.words[w];el.classList.toggle('empty',w===null);el.classList.toggle('on',S.selBlank===i);});
+  all('.chip[data-cw]').forEach(function(el){el.classList.toggle('used',S.cl.indexOf(+el.dataset.cw)>=0);});
+  enableCheck(S.cl.every(function(x){return x!==null;}));
+}
+/* sort */
+function drawSort(){
+  var q=S.qs[S.i];
+  all('.cat').forEach(function(el){el.classList.toggle('on',S.srt[+el.dataset.si]===+el.dataset.sc);});
+  enableCheck(Object.keys(S.srt).length===q.items.length);
+}
+
+var PRAISE=['¡Muy bien!','¡Excelente!','¡Genial!','¡Perfecto!','¡Bravo!','¡Así se hace!'];
+var OOPS=['Casi…','¡Ups! Revisemos','No es así','Mirá bien'];
+function check(choice){
+  if(S.answered)return;
+  var q=S.qs[S.i],ok=false,extra='';
+  if(q.type==='mc'){
+    ok=q.options[choice]===q.answer;
+    all('.opt').forEach(function(el,k){el.disabled=true;if(q.options[k]===q.answer)el.classList.add('right');else if(k===choice)el.classList.add('wrong');});
+  }else if(q.type==='label'){
+    var D=DIAG[q.diag];ok=true;
+    q.keys.forEach(function(k,i){var good=S.bank[S.lab[i]]===D.lbl[k];if(!good)ok=false;
+      var row=document.querySelector('.lrow[data-row="'+i+'"]');row.classList.add(good?'right':'wrong');row.classList.remove('on');
+      if(!good)row.querySelector('.v').innerHTML='<s>'+esc(S.bank[S.lab[i]])+'</s><span class="fix">Es: '+esc(D.lbl[k])+'</span>';
+      var p=document.querySelector('.pin[data-row="'+i+'"]');if(p){p.classList.remove('on');p.classList.add(good?'right':'wrong');}});
+    all('.lrow,.chip').forEach(function(el){el.disabled=true;});
+  }else if(q.type==='match'){
+    ok=true;q.pairs.forEach(function(p,l){var good=S.ml[l]===l;if(!good)ok=false;document.querySelector('.mi[data-ml="'+l+'"]').classList.add(good?'right':'wrong');});
+    all('.mi').forEach(function(el){el.disabled=true;});
+    if(!ok)extra='<p><b>Las parejas correctas son:</b></p><ul style="margin:0;padding-left:1.2em">'+q.pairs.map(function(p){return '<li>'+esc(p[0])+' → '+esc(p[1])+'</li>';}).join('')+'</ul>';
+  }else if(q.type==='order'){
+    ok=S.order.every(function(v,i){return v===i;});
+    all('#pool .opt').forEach(function(el){el.disabled=true;});
+    if(!ok)extra='<p><b>El orden correcto es:</b></p><ol style="padding-left:1.4em">'+q.items.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>';
+  }else if(q.type==='cloze'){
+    var got=S.cl.map(function(w){return S.words[w];});
+    if(q.any){var a=S.ans.slice().sort().join('|'),b=got.slice().sort().join('|');ok=a===b;
+      all('.blank').forEach(function(el,i){el.classList.add(S.ans.indexOf(got[i])>=0?'right':'wrong');});}
+    else{ok=true;all('.blank').forEach(function(el,i){var g=got[i]===S.ans[i];if(!g)ok=false;el.classList.add(g?'right':'wrong');});}
+    all('.blank,.chip').forEach(function(el){el.disabled=true;});
+    if(!ok)extra='<p><b>Así queda completo:</b> '+esc(q.text).replace(/\{([^}]+)\}/g,'<b><u>$1</u></b>')+'</p>';
+  }else if(q.type==='sort'){
+    ok=true;q.items.forEach(function(it,i){var good=S.srt[i]===it[1];if(!good)ok=false;var r=document.querySelector('.srow[data-srow="'+i+'"]');r.classList.add(good?'right':'wrong');
+      if(!good)r.querySelector('.it').innerHTML=esc(it[0])+'<span class="fix">Va en: '+esc(q.cats[it[1]])+'</span>';});
+    all('.cat').forEach(function(el){el.disabled=true;});
+  }else if(q.type==='plate'){
+    var f=q.food;ok=choice===f[2];
+    all('.grp').forEach(function(el){el.disabled=true;if(el.dataset.g===f[2])el.classList.add('right');else if(el.dataset.g===choice)el.classList.add('wrong');});
+    all('.sector.clickable').forEach(function(el){el.classList.remove('clickable');if(el.dataset.g===f[2])el.classList.add('right');else if(el.dataset.g===choice)el.classList.add('wrong');el.style.cursor='default';});
+    q.explain=f[3]||(esc(f[1])+' va en el grupo <b>'+esc(gByK(f[2]).n)+'</b>.');
+  }
+  S.answered=true;
+  if(ok){S.score++;sOk();}else{S.wrong.push(q);sBad();}
+  enableCheck(false);all('[data-act=oreset]').forEach(function(el){el.disabled=true;});
+  var fb=document.getElementById('fb');
+  fb.innerHTML='<div class="fb '+(ok?'ok':'bad')+'"><p class="verdict">'+(ok?rnd(PRAISE):rnd(OOPS))+'</p>'+(q.explain?'<p>'+q.explain+'</p>':'')+(ok?'':extra)+
+   '<button class="btn" data-act="next">'+(S.i+1<S.qs.length?'Siguiente →':'Ver resultado')+'</button></div>';
+  var nb=fb.querySelector('[data-act=next]');nb.focus({preventScroll:true});fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function renderResult(){
+  var total=S.qs.length,pct=S.score/total,n=starsFor(pct);
+  if(S.topicId)saveBest(S.topicId,pct);
+  if(n>=2)sWin();
+  var msg=n===3?'¡Lo sabés muy bien! Estás listo para la comprobación.':n===2?'¡Muy bien! Repasá los errores y vas a llegar a las tres estrellas.':n===1?'Vas bien. Volvé a leer el repaso y probá otra vez.':'Leé el repaso con calma y volvé a intentarlo.';
+  app.innerHTML=topbar()+'<section class="qcard result"><p class="qtag mono">'+esc(S.title)+'</p><span class="big">'+S.score+' / '+total+'</span>'+starStr(pct)+'<p>'+msg+'</p>'+
+   '<div class="actions">'+(S.wrong.length?'<button class="btn" data-act="review">Repasar mis errores ('+S.wrong.length+')</button>':'')+
+   (S.topicId?'<button class="btn'+(S.wrong.length?' ghost':'')+'" data-act="start" data-id="'+S.topicId+'">Jugar otra vez</button>':'')+
+   '<button class="btn ghost" data-act="home">Volver a los temas</button></div></section>';
+  window.scrollTo(0,0);
+}
+/* ---------- V o F relámpago ---------- */
+function startClock(){
+  stopClock();S=null;C={left:60,score:0,tries:0,deck:shuffle(TF_ALL),k:0,lock:false,timer:null};nextClock();
+  C.timer=setInterval(function(){if(!C)return;C.left--;var el=document.getElementById('ctime');if(el){el.textContent=C.left+' s';el.classList.toggle('low',C.left<=10);}if(C.left<=0)endClock();},1000);
+}
+function nextClock(){
+  if(C.k>=C.deck.length){C.deck=shuffle(TF_ALL);C.k=0;}
+  C.cur=C.deck[C.k++];C.lock=false;
+  app.innerHTML=topbar()+'<div class="c-'+C.cur.sys+'"><div class="clock"><button class="link" data-act="home">← Salir</button><span>✔ '+C.score+'</span><span class="time'+(C.left<=10?' low':'')+'" id="ctime">'+C.left+' s</span></div>'+
+   '<section class="qcard" id="ccard" style="margin-top:14px"><p class="qtag mono">V o F relámpago</p><p class="stmt">'+esc(C.cur.s)+'</p>'+
+   '<div class="options tf"><button class="opt" data-cv="1">Verdadero</button><button class="opt" data-cv="0">Falso</button></div></section></div>';
+}
+function answerClock(v){
+  if(!C||C.lock)return;C.lock=true;C.tries++;
+  var ok=(v==='1')===C.cur.v,card=document.getElementById('ccard');
+  all('.opt').forEach(function(el){el.disabled=true;if((el.dataset.cv==='1')===C.cur.v)el.classList.add('right');else if(el.dataset.cv===v)el.classList.add('wrong');});
+  if(ok){C.score++;sOk();card.classList.add('flash-ok');}else{sBad();card.classList.add('flash-bad');}
+  setTimeout(function(){if(C&&C.left>0)nextClock();},ok?450:1200);
+}
+function endClock(){
+  var score=C.score,tries=C.tries;clearInterval(C.timer);C=null;var rec=saveBest('reloj',score);sWin();
+  app.innerHTML=topbar()+'<section class="qcard result"><p class="qtag mono">V o F relámpago</p><span class="big">'+score+'</span><p>aciertos en un minuto ('+tries+' respondidas)</p><p><b>'+(rec&&score>0?'¡Nuevo récord!':'Tu récord: '+(loadBest().reloj||0))+'</b></p>'+
+   '<div class="actions"><button class="btn" data-act="clock">Jugar otra vez</button><button class="btn ghost" data-act="home">Volver a los temas</button></div></section>';
+}
+
+/* ---------- eventos ---------- */
+app.addEventListener('click',function(e){
+  var el=e.target.closest('button,.pin[data-row],.sector[data-g]');if(!el||el.disabled)return;
+  var act=el.dataset?el.dataset.act:null;
+  if(act==='home')return renderHome();
+  if(act==='mute'){muted=!muted;sset('-mute',muted);el.textContent=muted?'🔇':'🔊';el.setAttribute('aria-label',muted?'Activar sonido':'Silenciar');return;}
+  if(act==='lesson')return renderLesson(el.dataset.id);
+  if(act==='start')return startRound(el.dataset.id);
+  if(act==='clock')return startClock();
+  if(act==='review')return startRound(null,shuffle(S.wrong));
+  if(act==='next'){S.i++;if(S.i>=S.qs.length)return renderResult();renderQ();window.scrollTo({top:0});return;}
+  if(act==='check')return check();
+  if(act==='oreset'){S.order=[];drawOrder();return;}
+  var d=el.dataset||{};
+  if(d.cv!==undefined)return answerClock(d.cv);
+  if(!S||S.answered)return;
+  var q=S.qs[S.i];
+  if(d.k!==undefined)return check(+d.k);
+  if(d.g!==undefined&&q.type==='plate')return check(d.g);
+  if(d.row!==undefined&&q.type==='label'){var r=+d.row;
+    if(S.selChip!==null)return placeLabel(r,S.selChip);
+    if(S.lab[r]!==undefined&&S.selRow===r){delete S.lab[r];}
+    S.selRow=r;return drawLabel();}
+  if(d.chip!==undefined){var c=+d.chip;
+    if(S.selRow!==null){return placeLabel(S.selRow,c);}
+    S.selChip=S.selChip===c?null:c;return drawLabel();}
+  if(d.ml!==undefined){var l=+d.ml;if(S.selR!==null)return pairUp(l,S.selR);if(S.ml[l]!==undefined&&S.selL===null){delete S.ml[l];}S.selL=S.selL===l?null:l;return drawMatch();}
+  if(d.mr!==undefined){var rr=+d.mr;if(S.selL!==null)return pairUp(S.selL,rr);
+    var owner=null;Object.keys(S.ml).forEach(function(k){if(S.ml[k]===rr)owner=k;});if(owner!==null&&S.selR===null){delete S.ml[owner];}
+    S.selR=S.selR===rr?null:rr;return drawMatch();}
+  if(d.oi!==undefined){S.order.push(+d.oi);drawOrder();return;}
+  if(d.bl!==undefined){var b=+d.bl;if(S.cl[b]!==null){S.cl[b]=null;}S.selBlank=b;drawCloze();return;}
+  if(d.cw!==undefined){var w=+d.cw;if(S.cl.indexOf(w)>=0)return;
+    var tgt=S.selBlank!==null&&S.cl[S.selBlank]===null?S.selBlank:S.cl.indexOf(null);
+    if(tgt<0)return;S.cl[tgt]=w;S.selBlank=null;drawCloze();return;}
+  if(d.si!==undefined){S.srt[+d.si]=+d.sc;drawSort();return;}
+});
+
+window.__PI={cur:function(){return S&&S.qs[S.i];},st:function(){return S;},TOPICS:TOPICS,T:T,DIAG:DIAG,FOODS:FOODS,TF_ALL:TF_ALL,examQs:examQs};
+renderHome();
+})();
+</script>
+</body>
+</html>
