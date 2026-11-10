@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Evaluación final de PDL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Andika:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* Layout: noche de lapislázuli sobre el Nilo. El fondo es azul profundo con bandas doradas;
+   el contenido se lee sobre hojas de papiro. El título va en un cartucho, como los nombres
+   de los faraones. Los colores de los tiempos verbales y de los tipos de palabras son los
+   mismos que usa la seño en sus láminas. */
+:root{
+  --lapis:#173a7c; --lapis-2:#0e2858; --gold:#ecbd4f; --gold-2:#c48f24;
+  --papyrus:#fcf5e3; --papyrus-2:#f3e7c9; --ink:#2a2116; --ink-2:#6a5940; --line:#e2d2ab;
+  --suj:#11867c; --suj-bg:#d3f0eb; --pred:#c0412b; --pred-bg:#fbe1da;
+  --pps:#2f5fc4; --pps-bg:#dfe8fb; --pi:#3a8f33; --pi-bg:#e0f1dc; --ppc:#8a4fc4; --ppc-bg:#ece0f8;
+  --agu:#d1453a; --gra:#4f9a2e; --esd:#8b4fbf;
+  --ok:#23803a; --ok-bg:#e3f5e4; --bad:#c2410c; --bad-bg:#fff0e3; --sel:#ffe27a;
+  --f-display:'Lilita One','Trebuchet MS',system-ui,sans-serif;
+  --f-body:'Andika','Segoe UI',system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{font-family:var(--f-body);color:var(--ink);font-size:17px;line-height:1.5;-webkit-text-size-adjust:100%;min-height:100vh;
+  background-color:var(--lapis);
+  background-image:radial-gradient(rgba(236,189,79,.16) 1px,transparent 1.4px),linear-gradient(180deg,var(--lapis) 0,var(--lapis-2) 100%);
+  background-size:26px 26px,100% 100%;background-attachment:fixed}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:6px 56px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:8px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;line-height:1.1;text-wrap:balance;margin:0;letter-spacing:.01em}
+.label{font-weight:700;font-size:.76rem;letter-spacing:.09em;text-transform:uppercase}
+
+/* top */
+.top{display:flex;align-items:center;gap:10px;padding-block:12px;color:var(--papyrus)}
+.brand{display:flex;align-items:center;gap:9px;background:none;border:0;cursor:pointer;font-family:var(--f-display);font-size:1.15rem;color:var(--papyrus);padding:4px}
+.brand .eye{width:36px;height:36px}
+.top .sp{flex:1}
+.hub{color:var(--gold);font-weight:700;font-size:.92rem;text-decoration:none}
+.hub:hover{text-decoration:underline}
+.iconbtn{background:rgba(255,255,255,.1);border:1.5px solid rgba(236,189,79,.5);border-radius:12px;width:42px;height:42px;cursor:pointer;font-size:1.05rem}
+
+/* hero */
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding-block:12px 4px;color:var(--papyrus)}
+.cartouche{position:relative;border:4px double var(--gold);border-radius:999px;padding:16px 46px 16px 34px;background:rgba(14,40,88,.55)}
+.cartouche::after{content:"";position:absolute;right:-4px;top:10%;bottom:10%;width:10px;border-radius:4px;background:var(--gold)}
+.cartouche h1{font-size:clamp(1.9rem,7vw,3.2rem);color:var(--gold)}
+.hero .sub{margin:0;max-width:48ch;color:#dfe6f5}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.pill{display:inline-flex;gap:8px;align-items:center;background:var(--papyrus);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.95rem}
+.pill.gold{background:var(--gold);color:var(--lapis-2)}
+.nile{width:100%;max-width:560px;height:30px;display:block}
+.nile path{fill:none;stroke:var(--gold);stroke-width:2.5;stroke-linecap:round;opacity:.8}
+
+/* sections & cards */
+.sec{margin-top:34px}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px;color:var(--papyrus);flex-wrap:wrap}
+.sec-head h2{font-size:1.6rem;color:var(--gold)}
+.sec-head p{margin:0;color:#c9d4ec;font-size:.95rem}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:440px){.grid{grid-template-columns:1fr}}
+.card{text-align:left;background:var(--papyrus);border:0;border-radius:6px;padding:16px 16px 14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;position:relative;
+  box-shadow:inset 0 0 0 1px var(--line),0 6px 0 -2px var(--papyrus-2);transition:transform .12s}
+.card:hover{transform:translateY(-3px)}
+.card .tag{align-self:flex-start;border-radius:999px;padding:2px 10px;color:#fff;background:var(--k,var(--lapis))}
+.card .ct{font-family:var(--f-display);font-size:1.22rem;line-height:1.15}
+.card .sub{color:var(--ink-2);font-size:.93rem}
+.card .meta{margin-top:auto;padding-top:6px}
+.stars{color:var(--gold-2);font-size:1.05rem;letter-spacing:2px}
+.stars .off{color:var(--line)}
+.stars.none{font-size:.82rem;letter-spacing:0;color:var(--ink-2)}
+.k-lec{--k:#a0602a} .k-tie{--k:var(--pps)} .k-ace{--k:var(--agu)} .k-suj{--k:var(--suj)}
+.big-actions{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:24px}
+@media (max-width:560px){.big-actions{grid-template-columns:1fr}}
+.exam{display:flex;align-items:center;gap:14px;text-align:left;background:var(--gold);color:var(--lapis-2);border:0;border-radius:16px;padding:18px 20px;cursor:pointer;box-shadow:0 6px 0 var(--gold-2)}
+.exam:hover{filter:brightness(1.05)}
+.exam:active{transform:translateY(3px);box-shadow:0 3px 0 var(--gold-2)}
+.exam > span:first-child{flex:1;min-width:0}
+.exam .t{display:block;font-family:var(--f-display);font-size:1.4rem}
+.exam .s{display:block;font-size:.92rem}
+.exam .stars{color:var(--lapis-2)} .exam .stars .off{color:rgba(14,40,88,.25)} .exam .stars.none{color:var(--lapis-2)}
+.exam.alt{background:var(--papyrus);box-shadow:0 6px 0 var(--papyrus-2)}
+
+/* lesson */
+.lesson-head{display:flex;flex-direction:column;gap:6px;margin:6px 0 16px;color:var(--papyrus)}
+.lesson-head .label{color:var(--gold)}
+.lesson-head h1{font-size:clamp(1.9rem,6vw,2.6rem)}
+.sheet{background:var(--papyrus);border-radius:8px;padding:20px 18px;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 0 0 1px var(--line)}
+.sheet h3{font-size:1.3rem;margin-top:6px}
+.sheet p,.sheet ul{margin:0;max-width:68ch}
+.sheet ul{padding-left:1.2em;display:flex;flex-direction:column;gap:5px}
+.tip{background:var(--papyrus-2);border-radius:10px;padding:11px 14px;font-size:.98rem}
+.ex{background:#fff;border:1.5px dashed var(--line);border-radius:10px;padding:10px 12px;overflow-x:auto}
+.ex .q{font-size:.92rem;color:var(--ink-2);margin:6px 0 0}
+.tbox{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;background:var(--bg);border:2px solid var(--c)}
+.tbox h4{margin:0;font-family:var(--f-display);font-weight:400;font-size:1.15rem;color:var(--c)}
+.tbox p,.tbox ul{margin:0}
+.t-pps{--c:var(--pps);--bg:var(--pps-bg)} .t-pi{--c:var(--pi);--bg:var(--pi-bg)} .t-ppc{--c:var(--ppc);--bg:var(--ppc-bg)}
+.t-agu{--c:var(--agu);--bg:#fbe3e0} .t-gra{--c:var(--gra);--bg:#e4f2dc} .t-esd{--c:var(--esd);--bg:#efe3f8}
+.tboxes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.tboxes{grid-template-columns:1fr}}
+.vb{font-weight:700;border-radius:4px;padding:0 3px}
+.vb.pps{color:var(--pps)} .vb.pi{color:var(--pi)} .vb.ppc{color:var(--ppc)} .vb.hl{background:var(--sel);color:var(--ink)}
+.tablewrap{overflow-x:auto}
+table.conj{border-collapse:collapse;font-size:.95rem;min-width:420px}
+table.conj td,table.conj th{border:1.5px solid var(--line);padding:6px 10px;text-align:left}
+table.conj th{background:var(--papyrus-2)}
+table.conj th.pps{color:var(--pps)} table.conj th.pi{color:var(--pi)} table.conj th.ppc{color:var(--ppc)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.btn{background:var(--lapis);color:var(--papyrus);border:0;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer;font-size:1rem}
+.btn:hover{background:#21489a}
+.btn.gold{background:var(--gold);color:var(--lapis-2)}
+.btn.ghost{background:var(--papyrus);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.texts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:560px){.texts{grid-template-columns:1fr}}
+
+/* syllables display */
+.sy{display:inline-flex;gap:3px;flex-wrap:wrap;font-size:1.15rem}
+.sy span{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:1px 8px}
+.sy span.ton{background:var(--sel);border-color:var(--gold-2);font-weight:700}
+
+/* analysis (formato carpeta) */
+.an{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px;font-size:1.12rem;line-height:1.3}
+.seg{display:inline-flex;flex-direction:column;min-width:0;max-width:100%}
+.wrow{display:flex;flex-wrap:wrap;gap:0 .3em;padding-top:1.05em}
+.w{position:relative;white-space:nowrap}
+.w.nuc{font-weight:700}
+.mk{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-style:normal;font-weight:700;font-size:.85em;line-height:1.05}
+.brk{position:relative;margin-top:3px;padding-top:.72em;text-align:center;font-weight:700;font-size:.9em;line-height:1}
+.brk::before{content:"";position:absolute;top:0;left:1px;right:1px;height:.5em;border:2.5px solid currentColor;border-top:0;border-radius:0 0 6px 6px}
+.seg-s .mk,.seg-s .brk{color:var(--suj)}
+.seg-p .mk,.seg-p .brk{color:var(--pred)}
+.seg-st{color:var(--suj)}
+.seg-st .brk::before{border-style:dashed}
+.t-s{color:var(--suj)} .t-p{color:var(--pred)}
+
+/* question */
+.qhead{display:flex;align-items:center;gap:12px;font-weight:700;font-size:.92rem;color:var(--papyrus)}
+.qhead .count{margin-left:auto;color:#c9d4ec}
+.qhead .score{color:var(--gold)}
+.link{background:none;border:0;cursor:pointer;color:var(--gold);font-weight:700;padding:4px 0}
+.link:hover{text-decoration:underline}
+.bar{height:10px;border-radius:99px;margin:10px 0 18px;overflow:hidden;background:rgba(255,255,255,.15)}
+.bar span{display:block;height:100%;background:var(--gold);border-radius:99px;transition:width .3s}
+.qcard{background:var(--papyrus);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:inset 0 0 0 1px var(--line),0 10px 30px -18px #000}
+.qtag{margin:0;color:var(--ink-2)}
+.prompt{font-family:var(--f-body);font-weight:700;font-size:1.15rem;line-height:1.4;margin:0}
+.sent{font-size:1.28rem;background:#fff;border-radius:10px;padding:12px 14px;border-bottom:2px solid var(--line);margin:0}
+.bigword{font-family:var(--f-display);font-size:2.2rem;text-align:center;background:#fff;border-radius:12px;padding:10px;letter-spacing:.02em}
+.passage{border:1.5px solid var(--line);border-radius:10px;background:#fff}
+.passage summary{cursor:pointer;padding:10px 14px;font-weight:700}
+.passage .ptext{padding:0 16px 14px;max-height:46vh;overflow:auto;font-size:1.02rem;line-height:1.65}
+.passage .ptext p{margin:0 0 .7em}
+.passage h4{font-family:var(--f-display);font-weight:400;font-size:1.25rem;margin:4px 0 8px}
+.passage h5{font-size:1rem;margin:10px 0 2px}
+.options{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.options.stack{grid-template-columns:1fr}
+.opt{text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;font-size:1.02rem;display:flex;flex-direction:column;gap:2px}
+.opt:hover:not(:disabled){border-color:var(--lapis)}
+.opt b{font-family:var(--f-display);font-weight:400;font-size:1.25rem;line-height:1.05}
+.opt small{color:var(--ink-2);font-size:.86rem}
+.opt.right{border-color:var(--ok);background:var(--ok-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt:disabled{cursor:default}
+.opt.o-pps b{color:var(--pps)} .opt.o-pi b{color:var(--pi)} .opt.o-ppc b{color:var(--ppc)}
+.opt.o-agu b{color:var(--agu)} .opt.o-gra b{color:var(--gra)} .opt.o-esd b{color:var(--esd)}
+.toks{display:flex;flex-wrap:wrap;gap:8px}
+.tok{background:#fff;border:2px solid var(--line);border-radius:10px;padding:6px 11px;font-size:1.15rem;cursor:pointer;line-height:1.3}
+.tok:hover:not(:disabled){border-color:var(--lapis)}
+.tok.in-s{background:var(--suj-bg);border-color:#86cfc5}
+.tok.in-p{background:var(--pred-bg);border-color:#efa898}
+.tok.sel{background:var(--sel);border-color:var(--ink)}
+.tok.right{background:var(--ok-bg);border-color:var(--ok)}
+.tok.wrong{background:var(--bad-bg);border-color:var(--bad);text-decoration:line-through}
+.tok.missed{border-color:var(--ok);border-style:dashed}
+.tok:disabled{cursor:default}
+.tok-st{font-size:.95rem;font-weight:700;border-style:dashed}
+/* syllable splitter */
+.split{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;background:#fff;border-radius:12px;padding:14px 8px;font-family:var(--f-display);font-size:2.3rem;line-height:1}
+.split .lt{padding:0 1px}
+.gap{width:26px;height:46px;border:0;background:transparent;cursor:pointer;position:relative;padding:0;margin:0 -4px}
+.gap::before{content:"";position:absolute;left:50%;top:8px;bottom:8px;width:2px;transform:translateX(-50%);background:var(--line);border-radius:2px}
+.gap:hover::before{background:var(--lapis)}
+.gap.on::before{width:6px;background:var(--gold-2);top:4px;bottom:4px}
+.gap.right::before{background:var(--ok);width:6px}
+.gap.wrong::before{background:var(--bad);width:6px}
+.gap.missed::before{background:var(--ok);width:4px;opacity:.5}
+.gap:disabled{cursor:default}
+/* syllable picker / tilde */
+.sylbtns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.sylb{background:#fff;border:2px solid var(--line);border-radius:12px;padding:8px 16px;font-family:var(--f-display);font-size:1.8rem;cursor:pointer}
+.sylb:hover:not(:disabled){border-color:var(--lapis)}
+.sylb.right{background:var(--ok-bg);border-color:var(--ok)}
+.sylb.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.sylb:disabled{cursor:default}
+.letters{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:2px;background:#fff;border-radius:12px;padding:16px 8px;font-family:var(--f-display);font-size:2.3rem;line-height:1}
+.letters .lt{padding:6px 2px}
+.vow{border:0;background:var(--papyrus-2);border-radius:8px;padding:6px 6px;cursor:pointer;font:inherit;line-height:1;min-width:1.1em}
+.vow:hover:not(:disabled){background:var(--sel)}
+.vow.on{background:var(--sel);box-shadow:inset 0 0 0 2px var(--gold-2)}
+.vow.right{background:var(--ok-bg);box-shadow:inset 0 0 0 2px var(--ok)}
+.vow.wrong{background:var(--bad-bg);box-shadow:inset 0 0 0 2px var(--bad)}
+.vow:disabled{cursor:default}
+.notilde{align-self:center;background:#fff;border:2px dashed var(--line);border-radius:999px;padding:8px 16px;font-weight:700;cursor:pointer}
+.notilde.on{background:var(--sel);border-style:solid;border-color:var(--ink)}
+.notilde.right{background:var(--ok-bg);border-color:var(--ok);border-style:solid}
+.notilde.wrong{background:var(--bad-bg);border-color:var(--bad);border-style:solid}
+/* narration */
+.narr{font-size:1.15rem;line-height:2;background:#fff;border-radius:12px;padding:12px 16px;margin:0}
+.blank{display:inline-block;min-width:5.5em;text-align:center;border-bottom:2.5px solid var(--ink);padding:0 6px;font-weight:700;line-height:1.5}
+.blank.empty{color:var(--ink-2);font-weight:400}
+.blank.right{border-color:var(--ok);background:var(--ok-bg)}
+.blank.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.nrows{display:flex;flex-direction:column;gap:8px}
+.nrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nrow .n{font-weight:700;width:2.4em;color:var(--ink-2)}
+.nopt{background:#fff;border:2px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;font-weight:700}
+.nopt:hover:not(:disabled){border-color:var(--lapis)}
+.nopt.on{background:var(--sel);border-color:var(--ink)}
+.nopt.right{background:var(--ok-bg);border-color:var(--ok)}
+.nopt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.nopt:disabled{cursor:default}
+/* sort */
+.sorts{display:flex;flex-direction:column;gap:10px}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px}
+@media (max-width:600px){.srow{grid-template-columns:1fr}}
+.srow .it{font-weight:700;font-size:1.08rem}
+.srow.right{border-color:var(--ok);background:var(--ok-bg)}
+.srow.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.srow .fix{display:block;font-weight:400;font-size:.88rem;color:var(--ok)}
+.cats{display:flex;flex-wrap:wrap;gap:6px}
+.cat{background:var(--papyrus);border:1.5px solid var(--line);border-radius:99px;padding:6px 12px;cursor:pointer;font-size:.9rem;font-weight:700}
+.cat.on{background:var(--lapis);color:var(--papyrus);border-color:var(--lapis)}
+.cat:disabled{cursor:default}
+/* order */
+.slots{display:flex;flex-direction:column;gap:8px}
+.slot{display:flex;gap:10px;align-items:center;border:2px dashed var(--line);border-radius:10px;padding:8px 12px;min-height:46px;background:rgba(255,255,255,.5)}
+.slot .n{font-weight:700;width:1.4em;color:var(--ink-2)}
+.slot.filled{border-style:solid;border-color:var(--ink-2);background:#fff}
+/* typed */
+.typeform{display:flex;gap:10px;flex-wrap:wrap}
+.answer{flex:1 1 200px;min-width:0;font:inherit;font-size:1.2rem;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+.answer:focus{outline:none;border-color:var(--lapis)}
+.answer.right{border-color:var(--ok);background:var(--ok-bg)}
+.answer.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.accents{display:flex;gap:6px;flex-wrap:wrap}
+.acc{background:#fff;border:1.5px solid var(--line);border-radius:8px;width:40px;height:40px;cursor:pointer;font-size:1.15rem;font-weight:700}
+.acc:hover{border-color:var(--lapis)}
+.reqtense{display:inline-block;border-radius:999px;padding:2px 10px;font-weight:700;color:#fff;background:var(--c)}
+/* feedback/result */
+.fb{border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;border:2px solid}
+.fb.ok{background:var(--ok-bg);border-color:var(--ok)}
+.fb.bad{background:var(--bad-bg);border-color:var(--bad)}
+.fb .verdict{font-family:var(--f-display);font-size:1.35rem;margin:0}
+.fb.ok .verdict{color:var(--ok)} .fb.bad .verdict{color:var(--bad)}
+.fb p,.fb ol{margin:0}
+.fb .an{background:#fff;border-radius:10px;padding:8px 12px 10px}
+.fb .btn{align-self:flex-start}
+.result{text-align:center;align-items:center;padding:26px 18px}
+.result .big{font-family:var(--f-display);font-size:3.4rem;line-height:1}
+.result .stars{font-size:2rem}
+.result p{margin:0;color:var(--ink-2)}
+.result .actions{justify-content:center}
+.clock{display:flex;justify-content:space-between;align-items:center;font-family:var(--f-display);font-size:1.4rem;color:var(--papyrus)}
+.clock .time{font-variant-numeric:tabular-nums;border-radius:12px;padding:4px 12px;background:var(--gold);color:var(--lapis-2)}
+.clock .time.low{background:var(--bad);color:#fff}
+.flash-ok{animation:fok .45s}
+.flash-bad{animation:fbad .45s}
+@keyframes fok{0%{box-shadow:0 0 0 0 var(--ok)}100%{box-shadow:0 0 0 14px transparent}}
+@keyframes fbad{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+footer{text-align:center;color:#c9d4ec;font-size:.88rem;padding-top:36px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+(function(){
+'use strict';
+var app=document.getElementById('app');
+var HUB='../../home.html';
+
+/* ---------- utilidades ---------- */
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function pick(a,n){return shuffle(a).slice(0,n);}
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+function all(sel){return [].slice.call(document.querySelectorAll(sel));}
+var STORE='pdl5-final';
+function sget(k,d){try{var v=localStorage.getItem(STORE+k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+function sset(k,v){try{localStorage.setItem(STORE+k,JSON.stringify(v));}catch(e){}}
+function loadBest(){var b=sget('-best',{});return (b&&typeof b==='object')?b:{};}
+function saveBest(id,val){var b=loadBest();if(b[id]===undefined||val>b[id]){b[id]=val;sset('-best',b);return true;}return false;}
+var muted=!!sget('-mute',false),actx=null;
+function tone(fs,d,type){if(muted)return;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();var t=actx.currentTime;fs.forEach(function(f,i){var o=actx.createOscillator(),g=actx.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+i*d);g.gain.exponentialRampToValueAtTime(0.16,t+i*d+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+(i+1)*d);o.connect(g);g.connect(actx.destination);o.start(t+i*d);o.stop(t+(i+1)*d+0.03);});}catch(e){}}
+function sOk(){tone([660,880],0.09,'triangle');}
+function sBad(){tone([240,190],0.13,'square');}
+function sWin(){tone([523,659,784,1046],0.11,'triangle');}
+
+/* =========================================================
+   ACENTUACIÓN
+   Cada palabra se escribe separada en sílabas, con su tilde si la lleva.
+   La sílaba tónica y el tipo se calculan con las reglas de la lámina.
+   ========================================================= */
+var ACC={'á':'a','é':'e','í':'i','ó':'o','ú':'u','Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U'};
+function strip(s){return s.replace(/[áéíóúÁÉÍÓÚ]/g,function(c){return ACC[c];});}
+function hasAcc(s){return /[áéíóúÁÉÍÓÚ]/.test(s);}
+var WORDS_SRC=[
+ // agudas con tilde
+ 'fa-ra-ón','Tu-tan-ka-món','Ram-sés','can-ción','ca-fé','co-ra-zón','ra-tón','ca-mión','des-pués','tam-bién','a-trás','ja-más','so-fá','co-li-brí','ma-ní','bal-cón','a-vión','al-mo-ha-dón','ja-ba-lí',
+ // agudas sin tilde
+ 'pa-pel','re-loj','ciu-dad','pin-cel','fe-liz','a-bril','ver-dad','na-riz','pa-red','tam-bor','es-cri-bir','a-zul','tra-ba-jar',
+ // graves con tilde
+ 'ár-bol','már-mol','lá-piz','a-zú-car','cár-cel','fá-cil','ú-til','di-fí-cil','cón-dor','cés-ped','fér-til','ám-bar','tré-bol','mó-vil','dé-bil',
+ // graves sin tilde
+ 'es-cri-ba','pa-pi-ro','Ni-lo','tem-plo','de-sier-to','es-fin-ge','mo-mia','a-re-na','tum-ba','bar-ca','te-so-ro','co-co-dri-lo','ca-me-llo','E-gip-to','e-xa-men','jo-ven','lu-nes','pa-la-cio','es-cue-la','mon-ta-ña','cie-lo','ta-za',
+ // esdrújulas
+ 'pi-rá-mi-de','je-ro-glí-fi-co','sar-có-fa-go','rá-pi-do','brú-ju-la','mú-si-ca','nú-me-ro','sá-ba-do','lám-pa-ra','pá-ja-ro','úl-ti-mo','plá-ta-no','mur-cié-la-go','miér-co-les','é-po-ca','ar-que-ó-lo-go','sí-la-ba','ce-rá-mi-ca'
+];
+var TYPES=[{k:'agu',n:'Aguda',pos:'última',rule:'llevan tilde cuando terminan en n, s o vocal'},{k:'gra',n:'Grave',pos:'penúltima',rule:'llevan tilde cuando NO terminan en n, s o vocal'},{k:'esd',n:'Esdrújula',pos:'antepenúltima',rule:'llevan tilde siempre'}];
+function mkWord(src){
+  var syl=src.split('-'),word=syl.join(''),t=-1;
+  syl.forEach(function(s,i){if(hasAcc(s))t=i;});
+  var last=strip(word).toLowerCase().slice(-1),endsNSV=/[nsaeiou]/.test(last);
+  if(t<0)t=endsNSV?syl.length-2:syl.length-1;
+  var fromEnd=syl.length-1-t,type=TYPES[Math.min(fromEnd,2)];
+  var needs=fromEnd===0?endsNSV:fromEnd===1?!endsNSV:true;
+  return {src:src,syl:syl,word:word,tonic:t,fromEnd:fromEnd,type:type,needs:needs,has:hasAcc(word),last:last,plain:strip(word)};
+}
+var WORDS=WORDS_SRC.map(mkWord);
+function sylHTML(w){return '<span class="sy">'+w.syl.map(function(s,i){return '<span'+(i===w.tonic?' class="ton"':'')+'>'+esc(s)+'</span>';}).join('')+'</span>';}
+function wordExplain(w){
+  var T=w.type,ends=w.last;
+  var s='«'+esc(w.word)+'» se separa así: '+sylHTML(w)+'. La sílaba tónica es «'+esc(w.syl[w.tonic])+'», la '+T.pos+': es <b>'+T.n.toLowerCase()+'</b>. ';
+  if(T.k==='esd')return s+'Las esdrújulas llevan tilde <b>siempre</b>.';
+  var endTxt=/[aeiou]/.test(ends)?'en vocal':'en «'+ends+'»';
+  return s+'Las '+T.n.toLowerCase()+'s '+T.rule+'. Termina '+endTxt+', por eso '+(w.has?'<b>lleva tilde</b>.':'<b>no lleva tilde</b>.');
+}
+function qSyl(w){return {type:'syl',w:w,tag:'Separá en sílabas',prompt:'Tocá entre las letras para separar la palabra en sílabas.',explain:'«'+esc(w.word)+'» se separa así: '+sylHTML(w)+'.'};}
+function qTonic(w){return {type:'tonic',w:w,tag:'Sílaba tónica',prompt:'¿Cuál es la sílaba tónica? Es la que se pronuncia con más fuerza.',explain:wordExplain(w)};}
+function qWType(w){return {type:'mc',tag:'Aguda, grave o esdrújula',visual:'<div class="bigword">'+esc(w.word)+'</div>',prompt:'¿Qué tipo de palabra es?',
+  options:TYPES.map(function(T){return {v:T.k,cls:'o-'+T.k,html:'<b>'+T.n+'</b><small>tónica en la '+T.pos+'</small>'};}),answer:w.type.k,explain:wordExplain(w)};}
+function qTilde(w){return {type:'tilde',w:w,tag:'¿Lleva tilde?',prompt:'Si la palabra lleva tilde, tocá la vocal donde va. Si no lleva, tocá «No lleva tilde».',explain:wordExplain(w)};}
+function wordsWhere(fn){return WORDS.filter(fn);}
+function balancedWords(n){var g=[wordsWhere(function(w){return w.type.k==='agu';}),wordsWhere(function(w){return w.type.k==='gra';}),wordsWhere(function(w){return w.type.k==='esd';})];
+  var out=[];for(var i=0;i<n;i++)out.push(g[i%3].splice(Math.floor(Math.random()*g[i%3].length),1)[0]);return shuffle(out);}
+
+/* =========================================================
+   TIEMPOS VERBALES
+   [oración con {v}, [perfecto simple, imperfecto, pluscuamperfecto], correcto, infinitivo, pista]
+   ========================================================= */
+var TENSES=[
+ {k:'pps',n:'Pretérito perfecto simple',use:'cuenta acciones terminadas que hacen avanzar la historia, una después de otra'},
+ {k:'pi',n:'Pretérito imperfecto',use:'describe o cuenta acciones que duraban, se repetían o pasaban al mismo tiempo que otras'},
+ {k:'ppc',n:'Pretérito pluscuamperfecto',use:'cuenta una acción que ya había pasado antes de otra acción del pasado'}
+];
+var VB=[
+ ['Un día, el faraón {v} a sus consejeros al palacio.',['llamó','llamaba','había llamado'],0,'llamar','«Un día» marca un momento puntual de la historia.'],
+ ['De repente, una tormenta de arena {v} el campamento.',['cubrió','cubría','había cubierto'],0,'cubrir','«De repente» anuncia una acción que hace avanzar la historia.'],
+ ['En 1922, Howard Carter {v} la tumba de Tutankamón.',['descubrió','descubría','había descubierto'],0,'descubrir','Es un hecho que pasó en un momento preciso y terminó.'],
+ ['Los obreros terminaron el muro y luego {v} a sus casas.',['volvieron','volvían','habían vuelto'],0,'volver','Son acciones que ocurren una después de otra: terminaron y luego volvieron.'],
+ ['Finalmente, el escriba {v} el papiro y se lo entregó al faraón.',['enrolló','enrollaba','había enrollado'],0,'enrollar','«Finalmente» marca una acción principal que hace avanzar la historia.'],
+ ['Ayer nosotros {v} un documental sobre las momias.',['vimos','veíamos','habíamos visto'],0,'ver','«Ayer» indica un hecho que pasó y ya terminó.'],
+ ['Esa mañana, Nefer {v} el pincel y empezó a escribir.',['tomó','tomaba','había tomado'],0,'tomar','Son acciones una después de otra: tomó el pincel y empezó a escribir.'],
+ ['El sacerdote abrió la puerta del templo y {v} una gata dormida.',['encontró','encontraba','había encontrado'],0,'encontrar','Primero abrió la puerta y después encontró la gata: acciones una tras otra.'],
+ ['Todos los años, el Nilo {v} los campos.',['inundó','inundaba','había inundado'],1,'inundar','«Todos los años» indica una acción que se repetía.'],
+ ['Mientras los obreros {v} los bloques, el arquitecto revisaba los planos.',['cortaron','cortaban','habían cortado'],1,'cortar','«Mientras» indica dos acciones que pasaban al mismo tiempo.'],
+ ['La esfinge {v} cuerpo de león y cabeza humana.',['tuvo','tenía','había tenido'],1,'tener','Es una descripción: el imperfecto sirve para describir.'],
+ ['Cada mañana, los niños {v} a la escuela de escribas.',['fueron','iban','habían ido'],1,'ir','«Cada mañana» indica una acción que se repetía.'],
+ ['El palacio {v} enorme y sus paredes estaban pintadas de colores.',['fue','era','había sido'],1,'ser','Es una descripción de un lugar en el pasado.'],
+ ['Mientras el faraón dormía, dos guardias {v} la puerta.',['vigilaron','vigilaban','habían vigilado'],1,'vigilar','«Mientras» indica acciones que pasaban al mismo tiempo.'],
+ ['En aquella época, la mayoría de las personas no {v} leer.',['supo','sabía','había sabido'],1,'saber','Describe cómo era la situación en el pasado.'],
+ ['Los campesinos siempre {v} trigo junto al río.',['sembraron','sembraban','habían sembrado'],1,'sembrar','«Siempre» indica una acción que se repetía.'],
+ ['Cuando llegaron los ladrones, los sacerdotes ya {v} el tesoro.',['escondieron','escondían','habían escondido'],2,'esconder','Los sacerdotes lo escondieron antes de que llegaran los ladrones.'],
+ ['Cuando empezaron la pirámide, los arquitectos ya {v} el terreno.',['midieron','medían','habían medido'],2,'medir','Primero midieron el terreno y después empezaron la pirámide.'],
+ ['Cuando el maestro tomó la prueba, Nefer ya {v} todos los signos.',['aprendió','aprendía','había aprendido'],2,'aprender','Nefer aprendió los signos antes de la prueba.'],
+ ['Cuando Carter entró a la tumba, nadie la {v} en más de tres mil años.',['abrió','abría','había abierto'],2,'abrir','Habla de lo que había pasado (o no) antes de que entrara Carter.'],
+ ['Al llegar a la tumba, vieron que alguien ya {v} el sello.',['rompió','rompía','había roto'],2,'romper','Alguien rompió el sello antes de que ellos llegaran.'],
+ ['Cuando salió el sol, los pescadores ya {v} las redes.',['prepararon','preparaban','habían preparado'],2,'preparar','Prepararon las redes antes de que saliera el sol.'],
+ ['Cuando el sacerdote despertó, la gata ya {v} al ratón.',['espantó','espantaba','había espantado'],2,'espantar','La gata lo espantó antes de que el sacerdote despertara.'],
+ ['Cuando llegamos al museo, la visita guiada ya {v}.',['empezó','empezaba','había empezado'],2,'empezar','La visita empezó antes de que llegáramos.']
+];
+// ejemplos de la lámina de la seño (solo para reconocer)
+var VB_LAMINA=[
+ ['Ayer {v} al cine con mis amigos.','fuimos',0],['Luego {v} pochoclos y entramos a la sala.','compramos',0],['La película {v} y nos fuimos a casa.','terminó',0],
+ ['Antes de viajar, {v} la valija.','había preparado',2],['{v} mucho para el examen.','Habían estudiado',2],['Ya {v} cuando llegamos a casa.','había anochecido',2]
+];
+function vbSentence(e,form,cls){return esc(e[0]).replace('{v}','<span class="vb '+(cls||'hl')+'">'+esc(form)+'</span>');}
+function tenseOpts(){return TENSES.map(function(T,i){return {v:i,cls:'o-'+T.k,html:'<b>'+T.n.replace('Pretérito ','Pretérito<br>')+'</b>'};});}
+function tenseExplain(i,cue){return (cue?cue+' ':'')+'El <b>'+TENSES[i].n.toLowerCase()+'</b> '+TENSES[i].use+'.';}
+function qTenseReco(e){var f=e[1][e[2]];return {type:'mc',tag:'¿Qué tiempo es?',visual:'<p class="sent">'+vbSentence(e,f)+'</p>',prompt:'¿En qué tiempo está el verbo «'+esc(f)+'»?',options:tenseOpts(),answer:e[2],explain:tenseExplain(e[2],e[4])};}
+function qTenseLam(e){return {type:'mc',tag:'¿Qué tiempo es?',visual:'<p class="sent">'+esc(e[0]).replace('{v}','<span class="vb hl">'+esc(e[1])+'</span>')+'</p>',prompt:'¿En qué tiempo está el verbo «'+esc(e[1])+'»?',options:tenseOpts(),answer:e[2],explain:tenseExplain(e[2])};}
+function qTenseChoose(e){return {type:'mc',tag:'Elegí el verbo',visual:'<p class="sent">'+esc(e[0]).replace('{v}','<span class="blank empty">_____</span>')+'</p>',prompt:'¿Qué forma del verbo «'+esc(e[3])+'» completa mejor la oración?',
+  options:shuffle(e[1].map(function(f,i){return {v:i,html:esc(f)};})),answer:e[2],explain:'Va «'+esc(e[1][e[2]])+'». '+tenseExplain(e[2],e[4])};}
+function qTenseType(e){var T=TENSES[e[2]];return {type:'type',tag:'Escribí el verbo',e:e,answer:e[1][e[2]],
+  visual:'<p class="sent">'+esc(e[0]).replace('{v}','<span class="blank empty">('+esc(e[3])+')</span>')+'</p>',
+  prompt:'Escribí el verbo <b>'+esc(e[3])+'</b> en <span class="reqtense" style="--c:var(--'+T.k+')">'+T.n.toLowerCase()+'</span>.',explain:tenseExplain(e[2],e[4])};}
+function qTenseSort(){var by=[0,1,2].map(function(k){return pick(VB.filter(function(e){return e[2]===k;}),2);});
+  return {type:'sort',tag:'Clasificá los verbos',prompt:'¿En qué tiempo está cada verbo?',cats:['Perfecto simple','Imperfecto','Pluscuamperfecto'],
+    items:shuffle(by[0].concat(by[1],by[2])).map(function(e){return [e[1][e[2]],e[2]];})};}
+var NARRS=[
+ {title:'Amón y el amuleto',t:'Amón {era|fue|había sido} un chico muy curioso que vivía junto al Nilo. Todas las mañanas {ayudaba|ayudó|había ayudado} a su padre con la barca. Un día, mientras pescaban, {vio|veía|había visto} algo brillante entre los juncos. Era un amuleto que alguien {había perdido|perdía|perdió} mucho tiempo atrás. Amón lo {llevó|llevaba|había llevado} enseguida al templo.',
+  why:['Describe cómo era Amón: imperfecto.','«Todas las mañanas»: acción que se repetía, imperfecto.','«Un día»: acción puntual que hace avanzar la historia, perfecto simple.','Alguien lo perdió antes de que Amón lo encontrara: pluscuamperfecto.','Acción principal que hace avanzar la historia: perfecto simple.']},
+ {title:'En la cantera',t:'Cuando el sol salió, los obreros ya {habían llegado|llegaron|llegaban} a la cantera. Siempre {trabajaban|trabajaron|habían trabajado} en equipos y {cantaban|cantaron|habían cantado} para darse ánimo. De pronto, un bloque enorme se {soltó|soltaba|había soltado} de las cuerdas. Por suerte, el capataz {gritó|gritaba|había gritado} a tiempo y nadie salió lastimado.',
+  why:['Llegaron antes de que saliera el sol: pluscuamperfecto.','«Siempre»: acción que se repetía, imperfecto.','Acción que pasaba al mismo tiempo que trabajaban: imperfecto.','«De pronto»: acción puntual, perfecto simple.','Acción principal que resuelve el problema: perfecto simple.']},
+ {title:'La gata del templo',t:'La gata Miu {vivía|vivió|había vivido} en el templo de la diosa Bastet. Cada noche {recorría|recorrió|había recorrido} los depósitos de granos. Una noche {escuchó|escuchaba|había escuchado} un ruido extraño. Un ratón {había entrado|entraba|entró} por una grieta de la pared y estaba comiendo el trigo. Miu {saltó|saltaba|había saltado} hacia él y el ratón escapó asustado.',
+  why:['Describe la situación inicial: imperfecto.','«Cada noche»: acción que se repetía, imperfecto.','«Una noche»: acción puntual, perfecto simple.','El ratón entró antes de que Miu lo escuchara: pluscuamperfecto.','Acción principal, una después de otra: perfecto simple.']}
+];
+function qNarr(N){var blanks=[];var t=N.t.replace(/\{([^}]+)\}/g,function(m,o){var opts=o.split('|');blanks.push({ans:opts[0],opts:shuffle(opts)});return '\u0001'+(blanks.length-1)+'\u0002';});
+  return {type:'narr',tag:'Completá la narración',title:N.title,text:t,blanks:blanks,why:N.why,prompt:'Elegí el verbo que corresponde en cada espacio.'};}
+
+/* =========================================================
+   SUJETO Y PREDICADO (oraciones sobre Egipto)
+   ========================================================= */
+var PRON={yo:'yo',vos:'vos',el:'él / ella',nos:'nosotros / nosotras',ellos:'ellos / ellas'};
+var PRON_SHORT={yo:'yo',vos:'vos',el:'él/ella',nos:'nosotros',ellos:'ellos'};
+var PRON_ORDER=['yo','vos','el','nos','ellos'];
+var BANK=[
+ ['S:Los antiguos *egipcios*|P:*construyeron* grandes templos.'],
+ ['S:El *faraón*|P:*gobernaba* todo Egipto.'],
+ ['S:Los *jeroglíficos*|P:*representan* ideas.'],
+ ['S:El *Nilo*|P:*atraviesa* el desierto.'],
+ ['S:Un *escriba* joven|P:*copiaba* textos en papiro.'],
+ ['S:La *reina*|P:*usaba* joyas de oro y turquesa.'],
+ ['S:Los *sacerdotes* del templo|P:*cuidaban* las estatuas.'],
+ ['S:Mi *hermana*|P:*leyó* un libro sobre momias.'],
+ ['S:*Ellos*|P:*navegaban* por el Nilo.'],
+ ['S:La gran *esfinge*|P:*mira* hacia el este.'],
+ ['S:Los *escribas* y los *sacerdotes*|P:*escribían* en papiros.'],
+ ['S:El *faraón* y la *reina*|P:*visitaron* el templo.'],
+ ['S:Las *pirámides* y la *esfinge*|P:*atraen* a miles de turistas.'],
+ ['S:Los *campesinos* y sus *hijos*|P:*sembraban* trigo junto al río.'],
+ ['S:*Nefer* y su *maestro*|P:*copiaron* un mensaje para el faraón.'],
+ ['S:Los *cocodrilos* e *hipopótamos*|P:*vivían* en el Nilo.'],
+ ['S:El *papiro* o la *piedra*|P:*servían* para escribir.'],
+ ['P:*Escribían* en las paredes del templo.','ellos'],
+ ['P:*Visitamos* el museo egipcio.','nos'],
+ ['P:*Dibujé* una pirámide en mi cuaderno.','yo'],
+ ['P:*Descubriste* el significado del jeroglífico.','vos'],
+ ['P:*Gobernó* Egipto durante muchos años.','el'],
+ ['P:*Leímos* un cuento sobre el Nilo y *dibujamos* un mapa.','nos'],
+ ['P:*Pintaban* los muros y *decoraban* las columnas.','ellos'],
+ ['P:*Encontré* una moneda antigua en la arena.','yo'],
+ ['S:Los *artistas*|P:*pintaban* los símbolos y *decoraban* los templos.'],
+ ['S:El *escriba*|P:*mojó* el pincel y *escribió* su nombre.'],
+ ['S:Los *campesinos*|P:*sembraban*, *regaban* y *cosechaban* el trigo.'],
+ ['S:La *gata* del templo|P:*saltó* y *espantó* al ratón.'],
+ ['S:Los *obreros* y los *arquitectos*|P:*midieron* el terreno y *cortaron* las piedras.'],
+ ['S:Mi *abuelo* y *yo*|P:*visitamos* el museo y *vimos* una momia.'],
+ ['P:Junto al río *vivían*|S:muchos *campesinos*.'],
+ ['P:En el desierto *brillaba*|S:el *sol*.'],
+ ['P:*Llegó*|S:el *faraón*|P:al templo.'],
+ ['P:Por el Nilo *navegaban*|S:las *barcas* y las *balsas*.']
+];
+var TOKRE=/^([¡¿«"(]*)(\*?)(.+?)(\*?)([.,;:!?»")]*)$/;
+function parse(src,tac){
+  var s={src:src,tac:tac||null,tokens:[],sIdx:[],nIdx:[],pIdx:[],nvIdx:[]};
+  src.split('|').forEach(function(part,si){
+    var role=part.charAt(0),text=part.slice(2).trim();
+    text.split(/\s+/).forEach(function(tok){
+      var m=tok.match(TOKRE);
+      var t={pre:m[1],word:m[3],post:m[5],nuc:m[2]==='*',role:role,seg:si,i:s.tokens.length};
+      s.tokens.push(t);
+      if(role==='S'){s.sIdx.push(t.i);if(t.nuc)s.nIdx.push(t.i);}else{s.pIdx.push(t.i);if(t.nuc)s.nvIdx.push(t.i);}
+    });
+  });
+  s.sType=s.sIdx.length===0?'ST':(s.nIdx.length>1?'SEC':'SES');
+  s.pType=s.nvIdx.length>1?'PVC':'PVS';
+  s.inv=s.sIdx.length>0&&s.sIdx[0]>s.pIdx[0];
+  s.text=s.tokens.map(function(t){return t.pre+t.word+t.post;}).join(' ');
+  return s;
+}
+var SENTS=BANK.map(function(b){return parse(b[0],b[1]);});
+function byType(fn){return SENTS.filter(fn);}
+function words(s,idx){return idx.map(function(i){return s.tokens[i].word;});}
+function phrase(s,idx){return idx.map(function(i){var t=s.tokens[i];return t.pre+t.word+t.post;}).join(' ').replace(/[.!?]$/,'');}
+function qq(w){return '«'+esc(w)+'»';}
+function listW(a){a=a.map(qq);return a.length<2?a.join(''):a.slice(0,-1).join(', ')+' y '+a[a.length-1];}
+var NUMW=['cero','un','dos','tres','cuatro'];
+function renderAn(s){
+  var h='<div class="an">';
+  if(s.sType==='ST')h+='<span class="seg seg-st"><span class="wrow"><span class="w">('+esc(PRON_SHORT[s.tac])+')</span></span><span class="brk">ST</span></span>';
+  var groups=[];
+  s.tokens.forEach(function(t){var g=groups[groups.length-1];if(!g||g.seg!==t.seg){g={seg:t.seg,role:t.role,toks:[]};groups.push(g);}g.toks.push(t);});
+  groups.forEach(function(g){var isS=g.role==='S';
+    h+='<span class="seg '+(isS?'seg-s':'seg-p')+'"><span class="wrow">'+g.toks.map(function(t){
+      return '<span class="w'+(t.nuc?' nuc':'')+'">'+(t.nuc?'<i class="mk">'+(isS?'n':'nv')+'</i>':'')+esc(t.pre+t.word+t.post)+'</span>';}).join('')+'</span><span class="brk">'+(isS?s.sType:s.pType)+'</span></span>';});
+  return h+'</div>';
+}
+function an(src,tac){return renderAn(parse(src,tac));}
+function explainS(s){
+  if(s.sType==='ST')return 'El sujeto no está escrito, pero el verbo '+listW(words(s,s.nvIdx.slice(0,1)))+' nos dice quién hace la acción: <b>'+PRON[s.tac]+'</b>. Es un <b>sujeto tácito (ST)</b>.';
+  var n=s.nIdx.length;
+  if(n===1)return 'El sujeto es '+qq(phrase(s,s.sIdx))+'. Tiene un solo núcleo, '+qq(words(s,s.nIdx)[0])+': es un <b>sujeto expreso simple (SES)</b>.';
+  return 'El sujeto es '+qq(phrase(s,s.sIdx))+'. Tiene '+NUMW[n]+' núcleos, '+listW(words(s,s.nIdx))+', unidos por una conjunción: es un <b>sujeto expreso compuesto (SEC)</b>.';
+}
+function explainP(s){
+  var n=s.nvIdx.length;
+  if(n===1)return 'El predicado tiene un solo núcleo verbal, '+qq(words(s,s.nvIdx)[0])+': es un <b>predicado verbal simple (PVS)</b>.';
+  return 'El predicado tiene '+NUMW[n]+' núcleos verbales, '+listW(words(s,s.nvIdx))+': es un <b>predicado verbal compuesto (PVC)</b>.';
+}
+var OPT_S=[{v:'ST',l:'Sujeto tácito'},{v:'SES',l:'Sujeto expreso simple'},{v:'SEC',l:'Sujeto expreso compuesto'}];
+var OPT_P=[{v:'PVS',l:'Predicado verbal simple'},{v:'PVC',l:'Predicado verbal compuesto'}];
+function sentBox(s){return '<p class="sent">'+esc(s.text)+'</p>';}
+function qPickS(s,x){return Object.assign({type:'pick',mode:'S',s:s,tag:'Buscá el sujeto',prompt:'Tocá todas las palabras del <b class="t-s">sujeto</b>. Si no está escrito, tocá «Sujeto tácito».',explain:explainS(s)},x||{});}
+function qPickN(s,x){return Object.assign({type:'pick',mode:'n',s:s,tag:'Núcleo del sujeto',prompt:'El <b class="t-s">sujeto</b> está pintado. Tocá su <b>núcleo</b>. Si tiene más de uno, tocalos todos.',explain:explainS(s)},x||{});}
+function qPickNv(s,x){return Object.assign({type:'pick',mode:'nv',s:s,tag:'Núcleo del predicado',prompt:'El <b class="t-p">predicado</b> está pintado. Tocá el o los <b>núcleos verbales</b>.',explain:explainP(s)},x||{});}
+function qClassS(s,x){return Object.assign({type:'mc',s:s,tag:'Tipo de sujeto',visual:sentBox(s),prompt:'¿Qué tipo de sujeto tiene esta oración?',
+  options:OPT_S.map(function(o){return {v:o.v,html:'<b>'+o.v+'</b><small>'+o.l+'</small>'};}),answer:s.sType,explain:explainS(s)},x||{});}
+function qTac(s,x){return Object.assign({type:'mc',s:s,tag:'Sujeto tácito',visual:sentBox(s),prompt:'El sujeto no está escrito. Mirá el verbo: ¿quién hace la acción?',
+  options:PRON_ORDER.map(function(k){return {v:k,html:esc(PRON[k])};}),answer:s.tac,explain:explainS(s)},x||{});}
+function qClassP(s,x){return Object.assign({type:'mc',s:s,tag:'Tipo de predicado',visual:sentBox(s),prompt:'¿Qué tipo de predicado tiene esta oración?',
+  options:OPT_P.map(function(o){return {v:o.v,html:'<b>'+o.v+'</b><small>'+o.l+'</small>'};}),answer:s.pType,explain:explainP(s)},x||{});}
+
+/* =========================================================
+   COMPRENSIÓN LECTORA
+   ========================================================= */
+var TEXTS=[
+ {id:'nilo',kind:'Texto informativo',title:'El Nilo, un regalo para Egipto',
+  sections:[
+   [null,'Egipto está en el norte de África y casi todo su territorio es desierto. Sin embargo, hace más de cinco mil años nació allí una de las civilizaciones más importantes de la historia. ¿Cómo fue posible? Gracias al río Nilo.'],
+   ['Un río en medio del desierto','El Nilo es uno de los ríos más largos del mundo: recorre más de seis mil kilómetros. En la época de los faraones, en sus orillas crecían juncos y papiros, y vivían peces, aves, cocodrilos e hipopótamos.'],
+   ['Las crecidas','Todos los años, durante el verano, el río crecía y cubría los campos cercanos. Cuando el agua bajaba, dejaba sobre la tierra una capa de barro negro muy fértil, llamado limo. Por eso los egipcios llamaban a su tierra Kemet, que significa «la tierra negra».'],
+   ['Campos y barcas','Los campesinos sembraban trigo, cebada y lino sobre el limo, y después cosechaban. El río también servía como camino: en barcas de papiro o de madera transportaban personas, alimentos y enormes bloques de piedra para construir templos y pirámides.']],
+  qs:[
+   {t:'mc',p:'¿Cuál es el tema principal del texto?',a:'La importancia del río Nilo para el antiguo Egipto',o:['Cómo se construyeron las pirámides','Los animales del desierto','El viaje en barca de un chico egipcio'],e:'Todos los párrafos explican por qué el Nilo fue tan importante para Egipto.'},
+   {t:'mc',p:'¿Por qué el título dice que el Nilo fue «un regalo» para Egipto?',a:'Porque gracias a sus aguas se pudo vivir y cultivar en medio del desierto',o:['Porque un faraón lo recibió de regalo','Porque sus aguas tenían oro','Porque hoy lo visitan muchos turistas'],e:'Es una inferencia: sin el Nilo, en el desierto no se podría haber cultivado ni vivido.'},
+   {t:'mc',p:'Según el texto, ¿qué es el limo?',a:'Un barro negro muy fértil que dejaba el río',o:['Un tipo de junco','Una barca de madera','El nombre de un faraón'],e:'El texto lo explica en el apartado «Las crecidas».'},
+   {t:'mc',p:'¿Qué significa «Kemet»?',a:'La tierra negra',o:['El río largo','El desierto rojo','La casa del faraón'],e:'Los egipcios llamaban así a su tierra por el color del limo.'},
+   {t:'order',p:'Ordená lo que pasaba cada año con el río y los campos.',items:['El río crecía y cubría los campos.','El agua bajaba y dejaba el limo.','Los campesinos sembraban sobre el limo.','Los campesinos cosechaban.'],e:''},
+   {t:'mc',p:'¿En qué subtítulo buscarías para qué servían las barcas?',a:'Campos y barcas',o:['Las crecidas','Un río en medio del desierto','El Nilo, un regalo para Egipto'],e:'Los subtítulos anticipan de qué trata cada parte del texto.'},
+   {t:'tense',s:'Todos los años, durante el verano, el río [crecía] y cubría los campos.',a:1,e:'«Todos los años» indica algo que se repetía.'},
+   {t:'word',w:'fér-til'},
+   {t:'pickN',src:'S:Los *campesinos*|P:*sembraban* trigo, cebada y lino.',p:'Esta oración es del texto. El <b class="t-s">sujeto</b> está pintado: tocá su núcleo.'},
+   {t:'classS',src:'S:*Cocodrilos* e *hipopótamos*|P:*vivían* en sus orillas.',p:'Esta oración resume una parte del texto. ¿Qué tipo de sujeto tiene?'}
+  ]},
+ {id:'nefer',kind:'Cuento',title:'El aprendiz de escriba',
+  body:['Hace muchos años, en la ciudad de Tebas, vivía un chico llamado Nefer. Su sueño era ser escriba, como su abuelo. Cada mañana caminaba hasta la escuela del templo y practicaba los jeroglíficos sobre trozos de cerámica rota, porque el papiro era muy caro.',
+   'Un día, el maestro Hori lo llamó aparte.<br>—El faraón necesita un mensaje para los sacerdotes de Menfis —le dijo—. Lo vas a copiar vos.',
+   'Nefer preparó la tinta, mojó el pincel y empezó a escribir con mucho cuidado. Pero, de repente, un gato saltó sobre la mesa y volcó el tintero. ¡El papiro quedó arruinado!',
+   'Nefer sintió que el mundo se le venía abajo. Entonces recordó algo: la noche anterior había guardado en su bolso un papiro nuevo que le había regalado su abuelo. Lo sacó, respiró hondo y copió el mensaje sin un solo error.',
+   'Cuando el maestro lo leyó, sonrió.<br>—Ya sos un verdadero escriba —le dijo.'],
+  qs:[
+   {t:'mc',p:'¿Dónde transcurre la historia?',a:'En la ciudad de Tebas',o:['En la ciudad de Menfis','Dentro de una pirámide','En un barco sobre el Nilo'],e:'Lo dice la primera oración: «en la ciudad de Tebas».'},
+   {t:'mc',p:'¿Cuál era el sueño de Nefer?',a:'Ser escriba, como su abuelo',o:['Ser faraón','Ser pescador en el Nilo','Construir una pirámide'],e:'«Su sueño era ser escriba, como su abuelo».'},
+   {t:'mc',p:'¿Por qué los alumnos practicaban sobre trozos de cerámica?',a:'Porque el papiro era muy caro',o:['Porque no sabían usar el papiro','Porque el maestro lo prohibía','Porque la cerámica era más linda'],e:'El texto lo explica con la palabra «porque».'},
+   {t:'mc',p:'¿Cuál es el conflicto del cuento?',a:'Un gato volcó el tintero y arruinó el papiro del mensaje',o:['Nefer no quería ser escriba','El maestro se enojó con Nefer','Nefer perdió su pincel en el templo'],e:'El problema aparece con «de repente»: el gato vuelca el tintero.'},
+   {t:'mc',p:'¿Cómo se resuelve el problema?',a:'Nefer usa un papiro nuevo que le había regalado su abuelo',o:['El maestro copia el mensaje','Nefer limpia la tinta del papiro','El faraón cancela el mensaje'],e:'Nefer recuerda el papiro que había guardado y copia el mensaje de nuevo.'},
+   {t:'order',p:'Ordená los hechos del cuento.',items:['El maestro le pide a Nefer que copie un mensaje.','Un gato vuelca el tintero sobre el papiro.','Nefer recuerda el papiro que le regaló su abuelo.','Nefer copia el mensaje sin errores.'],e:''},
+   {t:'mc',p:'¿Qué quiere decir que Nefer «sintió que el mundo se le venía abajo»?',a:'Que se sintió muy angustiado, como si todo estuviera perdido',o:['Que hubo un terremoto en Tebas','Que se cayó de la silla','Que se puso muy contento'],e:'Es una expresión: no se cae nada de verdad, muestra cómo se sentía.'},
+   {t:'tense',s:'Cada mañana [caminaba] hasta la escuela del templo.',a:1,e:'«Cada mañana» indica una acción que se repetía.'},
+   {t:'tense',s:'Nefer [preparó] la tinta, mojó el pincel y empezó a escribir.',a:0,e:'Son acciones una después de otra que hacen avanzar la historia.'},
+   {t:'tense',s:'La noche anterior [había guardado] en su bolso un papiro nuevo.',a:2,e:'Lo guardó antes de recordarlo: es una acción anterior a otra del pasado.'},
+   {t:'word',w:'ce-rá-mi-ca'},
+   {t:'classP',src:'P:Lo *sacó*, *respiró* hondo y *copió* el mensaje.',tac:'el',p:'Esta oración es del cuento. ¿Qué tipo de predicado tiene?'}
+  ]},
+ {id:'piramides',kind:'Texto informativo',title:'Las pirámides de Guiza',
+  sections:[
+   [null,'Cerca de la ciudad de El Cairo, en Egipto, se levantan tres pirámides famosas en todo el mundo. Fueron construidas hace unos cuatro mil quinientos años como tumbas para tres faraones: Keops, Kefrén y Micerino.'],
+   ['La Gran Pirámide','La más grande es la de Keops. Cuando la terminaron, medía unos ciento cuarenta y seis metros de alto, más o menos como un edificio de cuarenta pisos. Durante casi cuatro mil años fue la construcción más alta del planeta. Para levantarla usaron más de dos millones de bloques de piedra.'],
+   ['¿Quiénes las construyeron?','Durante mucho tiempo se creyó que las habían construido esclavos. Hoy los arqueólogos saben que trabajaron miles de obreros organizados en equipos. Vivían en un pueblo cercano, comían pan, cebolla y pescado, y recibían alimentos como pago por su trabajo.'],
+   ['La guardiana','Junto a las pirámides está la Gran Esfinge, una enorme escultura con cuerpo de león y cabeza humana. Está tallada en la roca y parece vigilar el desierto.']],
+  qs:[
+   {t:'mc',p:'¿Para qué se construyeron las pirámides de Guiza?',a:'Como tumbas para tres faraones',o:['Como palacios para vivir','Como depósitos de trigo','Como templos para los gatos'],e:'El primer párrafo dice que fueron tumbas para Keops, Kefrén y Micerino.'},
+   {t:'mc',p:'¿Cuánto medía la Gran Pirámide cuando la terminaron?',a:'Unos 146 metros',o:['Unos 40 metros','Unos 4.500 metros','Unos 20 metros'],e:'Medía unos ciento cuarenta y seis metros.'},
+   {t:'mc',p:'¿Para qué el texto compara la pirámide con un edificio de cuarenta pisos?',a:'Para que el lector se imagine mejor su altura',o:['Para decir que adentro hay cuarenta pisos','Para contar que la construyeron en cuarenta años','Para decir que es un edificio moderno'],e:'La comparación ayuda a entender un número muy grande.'},
+   {t:'mc',p:'¿Qué saben hoy los arqueólogos sobre quienes las construyeron?',a:'Que eran obreros organizados en equipos que recibían alimentos como pago',o:['Que eran esclavos','Que eran extraterrestres','Que eran los propios faraones'],e:'El texto aclara que antes se creía que eran esclavos, pero hoy se sabe que no.'},
+   {t:'mc',p:'¿Cómo es la Gran Esfinge?',a:'Tiene cuerpo de león y cabeza humana',o:['Tiene cuerpo humano y cabeza de león','Es una pirámide pequeña','Es una estatua de oro'],e:'Lo dice el apartado «La guardiana».'},
+   {t:'mc',p:'¿Qué tipo de texto es?',a:'Un texto informativo, porque da datos reales sobre un tema',o:['Un cuento, porque tiene personajes y un conflicto','Una poesía, porque tiene rima','Una historieta, porque tiene globos de diálogo'],e:'Explica datos reales y está organizado con subtítulos.'},
+   {t:'tense',s:'Durante mucho tiempo se creyó que las [habían construido] esclavos.',a:2,e:'Habla de algo que había pasado antes que otra acción del pasado.'},
+   {t:'tense',s:'Los obreros [vivían] en un pueblo cercano.',a:1,e:'Describe cómo era su vida en el pasado.'},
+   {t:'word',w:'ar-que-ó-lo-gos'},
+   {t:'pickS',src:'P:Junto a las pirámides *está*|S:la Gran *Esfinge*.',p:'Tocá todas las palabras del <b class="t-s">sujeto</b>. ¡Ojo, no está al principio!'},
+   {t:'classP',src:'S:Los *obreros*|P:*vivían* en un pueblo y *comían* pan y pescado.',p:'Esta oración resume una parte del texto. ¿Qué tipo de predicado tiene?'}
+  ]},
+ {id:'miu',kind:'Cuento',title:'La gata del templo',
+  body:['En el templo de la diosa Bastet vivía Miu, una gata de ojos dorados. Los sacerdotes la cuidaban y le daban leche todas las mañanas, porque en Egipto los gatos eran animales muy queridos.',
+   'Una noche, Miu escuchó un ruido extraño en el depósito de granos. Se acercó en silencio y descubrió a un ratón gordo que estaba comiendo el trigo del templo. Ese ratón ya había mordido tres bolsas.',
+   'Miu se agazapó, movió la cola y saltó. El ratón chilló y escapó por un agujero de la pared. ¡Nunca más volvió!',
+   'A la mañana siguiente, los sacerdotes encontraron las bolsas mordidas y a Miu dormida junto a la puerta. Entonces entendieron todo y, desde ese día, le regalaron un almohadón bordado para dormir.'],
+  qs:[
+   {t:'mc',p:'¿Quién es la protagonista del cuento?',a:'Miu, una gata de ojos dorados',o:['La diosa Bastet','Un ratón gordo','Un sacerdote del templo'],e:'La historia sigue a Miu, la gata del templo.'},
+   {t:'mc',p:'¿Cuál es el conflicto del cuento?',a:'Un ratón se estaba comiendo el trigo del templo',o:['Los sacerdotes no querían a Miu','Miu se perdió en el desierto','Se rompió la puerta del templo'],e:'El problema aparece «una noche», cuando Miu escucha el ruido.'},
+   {t:'mc',p:'¿Por qué los sacerdotes le regalaron un almohadón a Miu?',a:'Para agradecerle que había espantado al ratón',o:['Porque Miu tenía frío','Porque era su cumpleaños','Porque Miu se había portado mal'],e:'Es una inferencia: al ver las bolsas mordidas y a Miu en la puerta, entendieron que ella había cuidado el trigo.'},
+   {t:'mc',p:'¿Por qué los sacerdotes cuidaban a Miu?',a:'Porque en Egipto los gatos eran animales muy queridos',o:['Porque Miu era muy grande','Porque se lo ordenó el faraón','Porque Miu sabía leer'],e:'El texto lo explica con la palabra «porque».'},
+   {t:'order',p:'Ordená los hechos del cuento.',items:['Miu escucha un ruido en el depósito de granos.','Descubre a un ratón comiendo el trigo.','Miu salta y el ratón escapa.','Los sacerdotes le regalan un almohadón.'],e:''},
+   {t:'tense',s:'Ese ratón ya [había mordido] tres bolsas.',a:2,e:'El ratón mordió las bolsas antes de que Miu lo descubriera.'},
+   {t:'tense',s:'En el templo de la diosa Bastet [vivía] Miu.',a:1,e:'Describe la situación inicial del cuento.'},
+   {t:'tense',s:'Miu se agazapó, movió la cola y [saltó].',a:0,e:'Son acciones una después de otra.'},
+   {t:'word',w:'al-mo-ha-dón'},
+   {t:'classP',src:'S:Los *sacerdotes*|P:la *cuidaban* y le *daban* leche.',p:'Esta oración es del cuento. ¿Qué tipo de predicado tiene?'},
+   {t:'pickS',src:'P:A la mañana siguiente *encontraron* las bolsas mordidas.',tac:'ellos',p:'Tocá todas las palabras del <b class="t-s">sujeto</b>. Si no está escrito, tocá «Sujeto tácito».'}
+  ]}
+];
+function passageHTML(T){
+  var inner='<h4>'+esc(T.title)+'</h4>';
+  if(T.body)inner+=T.body.map(function(p){return '<p>'+p+'</p>';}).join('');
+  else inner+=T.sections.map(function(s){return (s[0]?'<h5>'+esc(s[0])+'</h5>':'')+'<p>'+s[1]+'</p>';}).join('');
+  return '<details class="passage" open><summary>Texto: '+esc(T.title)+'</summary><div class="ptext">'+inner+'</div></details>';
+}
+function textQs(T){
+  return T.qs.map(function(d){
+    var q;
+    if(d.t==='mc')q={type:'mc',prompt:esc(d.p),options:shuffle([d.a].concat(d.o)).map(function(o){return {v:o,html:esc(o)};}),answer:d.a,explain:d.e,optClass:'stack'};
+    else if(d.t==='order')q={type:'order',prompt:esc(d.p),items:d.items,explain:d.e};
+    else if(d.t==='tense'){var m=d.s.match(/\[([^\]]+)\]/);q={type:'mc',prompt:'En el texto dice: «'+esc(d.s).replace(/\[([^\]]+)\]/,'<span class="vb hl">$1</span>')+'». ¿En qué tiempo está «'+esc(m[1])+'»?',options:tenseOpts(),answer:d.a,explain:tenseExplain(d.a,d.e)};}
+    else if(d.t==='word'){var w=mkWord(d.w);q=qWType(w);q.visual='';q.prompt='La palabra «'+esc(w.word)+'» aparece en el texto. ¿Qué tipo de palabra es?';}
+    else{var s=parse(d.src,d.tac);
+      if(d.t==='classS')q=qClassS(s);else if(d.t==='classP')q=qClassP(s);else if(d.t==='pickN')q=qPickN(s);else if(d.t==='pickS')q=qPickS(s);
+      q.prompt=d.p;}
+    q.passage=T.id;q.tag=T.kind+' · '+T.title;q.sec='lec';
+    return q;
+  });
+}
+function textById(id){for(var i=0;i<TEXTS.length;i++)if(TEXTS[i].id===id)return TEXTS[i];return null;}
+
+/* =========================================================
+   TEMAS
+   ========================================================= */
+var LESSON_TIEMPOS=function(extra){return '<h3>Los tiempos verbales en la narración</h3><p>En una narración usamos distintos tiempos del pasado. Cada uno tiene una función especial y juntos hacen posible contar la historia.</p>'+
+ '<div class="tboxes"><div class="tbox t-pps"><h4>Pretérito perfecto simple</h4><p>Es el que más se usa. Cuenta las <b>acciones principales</b> y hace <b>avanzar la historia</b>.</p><ul><li>Hechos que pasaron y ya terminaron.</li><li>Acciones una después de otra.</li><li>Los momentos más importantes.</li></ul><p><i>Ayer <span class="vb pps">fuimos</span> al cine. Luego <span class="vb pps">compramos</span> pochoclos.</i></p></div>'+
+ '<div class="tbox t-pi"><h4>Pretérito imperfecto</h4><p>Sirve para <b>describir</b> y contar situaciones que <b>duraban</b>.</p><ul><li>Describir lugares, personas o situaciones.</li><li>Acciones que duraban o se repetían.</li><li>Acciones al mismo tiempo que otras.</li></ul><p><i>La esfinge <span class="vb pi">tenía</span> cuerpo de león. Cada mañana <span class="vb pi">iban</span> a la escuela.</i></p></div>'+
+ '<div class="tbox t-ppc"><h4>Pretérito pluscuamperfecto</h4><p>Cuenta acciones que pasaron <b>antes que otra acción del pasado</b>. Se forma con <b>había + verbo terminado en -ado / -ido</b>.</p><ul><li>Lo que ya había ocurrido antes.</li><li>Información que explica la historia.</li><li>La causa de algo que pasó después.</li></ul><p><i>Antes de viajar, <span class="vb ppc">había preparado</span> la valija.</i></p></div></div>'+
+ '<h3>Cómo se ven los verbos</h3><div class="tablewrap"><table class="conj"><tr><th>Verbo</th><th class="pps">Perfecto simple</th><th class="pi">Imperfecto</th><th class="ppc">Pluscuamperfecto</th></tr>'+
+ '<tr><td>cantar (yo)</td><td>canté</td><td>cantaba</td><td>había cantado</td></tr>'+
+ '<tr><td>comer (él)</td><td>comió</td><td>comía</td><td>había comido</td></tr>'+
+ '<tr><td>vivir (ellos)</td><td>vivieron</td><td>vivían</td><td>habían vivido</td></tr>'+
+ '<tr><td>ir (nosotros)</td><td>fuimos</td><td>íbamos</td><td>habíamos ido</td></tr></table></div>'+
+ '<div class="tip"><b>Pistas en la oración:</b><br><span class="vb pps">un día, de repente, ayer, luego, finalmente</span> → perfecto simple<br><span class="vb pi">siempre, todos los días, cada mañana, mientras</span> → imperfecto<br><span class="vb ppc">ya… cuando, antes de que</span> → pluscuamperfecto</div>'+(extra||'');};
+var LESSON_ACENTO=function(extra){return '<h3>La sílaba tónica</h3><p>En toda palabra hay una sílaba que se pronuncia con más fuerza: es la <b>sílaba tónica</b>. La <b>tilde</b> marca la sílaba tónica, pero solo en algunas palabras. Para saber cuáles, hay tres reglas.</p>'+
+ '<div class="tboxes"><div class="tbox t-agu"><h4>Agudas</h4><p>Tónica en la <b>última</b> sílaba.</p><p>Llevan tilde cuando terminan en <b>n, s o vocal</b>.</p><p><i>can-<b>ción</b>, ca-<b>fé</b> · pa-<b>pel</b> (sin tilde)</i></p></div>'+
+ '<div class="tbox t-gra"><h4>Graves</h4><p>Tónica en la <b>penúltima</b> sílaba.</p><p>Llevan tilde cuando <b>no</b> terminan en n, s o vocal.</p><p><i><b>ár</b>-bol, <b>már</b>-mol · <b>tem</b>-plo (sin tilde)</i></p></div>'+
+ '<div class="tbox t-esd"><h4>Esdrújulas</h4><p>Tónica en la <b>antepenúltima</b> sílaba.</p><p>Llevan tilde <b>¡siempre!</b></p><p><i><b>rá</b>-pi-do, <b>brú</b>-ju-la</i></p></div></div>'+(extra||'');};
+var SYL_TIPS='<h3>Cómo separar en sílabas</h3><ul><li>Cada sílaba tiene por lo menos una vocal.</li><li>Una consonante entre dos vocales va con la segunda: <b>pa-pel</b>, <b>Ni-lo</b>.</li><li>Dos consonantes juntas se separan: <b>tum-ba</b>, <b>ár-bol</b>… salvo <b>pl, pr, bl, br, cl, cr, dr, tr, fl, fr, gl, gr</b>, que van juntas: <b>tem-plo</b>, <b>co-co-dri-lo</b>.</li><li><b>ch, ll, rr</b> nunca se separan: <b>ca-me-llo</b>.</li><li>Dos vocales que se pronuncian en un solo golpe van juntas: <b>cie-lo</b>, <b>pa-la-cio</b>, <b>ciu-dad</b>.</li><li>Dos vocales fuertes (a, e, o) juntas se separan: <b>fa-ra-ón</b>.</li></ul>';
+var LESSON_SUJ=function(extra){return '<h3>Sujeto y predicado</h3><p>Toda oración se divide en dos partes: el <b class="t-s">sujeto</b> (de quién o de qué hablamos) y el <b class="t-p">predicado</b> (lo que se dice del sujeto: qué hace, qué es o qué le sucede).</p>'+
+ '<div class="ex">'+an('S:Los antiguos *egipcios*|P:*construyeron* grandes templos.')+'</div>'+
+ '<h3>Los núcleos</h3><ul><li><b class="t-s">Núcleo del sujeto (n)</b>: la palabra más importante del sujeto. Generalmente es un <b>sustantivo</b> o un <b>pronombre</b>. Se pregunta: ¿quién es? ¿de qué se habla?</li><li><b class="t-p">Núcleo del predicado (nv)</b>: la palabra más importante del predicado. Generalmente es un <b>verbo</b>. Se pregunta: ¿qué hace? ¿qué es? ¿qué le sucede?</li></ul>'+
+ '<h3>Tipos de sujeto</h3><ul><li><b>Sujeto expreso</b>: aparece escrito. Puede ser <b>simple (SES)</b>, con un solo núcleo, o <b>compuesto (SEC)</b>, con dos o más núcleos unidos por <b>y, e, o, u</b>.</li><li><b>Sujeto tácito (ST)</b>: no aparece escrito, pero lo descubrimos por el contexto o por la terminación del verbo.</li></ul>'+
+ '<div class="ex">'+an('S:Los *escribas* y los *sacerdotes*|P:*escribían* en papiros.')+'</div><div class="ex">'+an('P:*Escribían* en las paredes del templo.','ellos')+'</div>'+
+ '<h3>Tipos de predicado</h3><ul><li><b>Predicado verbal simple (PVS)</b>: un solo núcleo verbal.</li><li><b>Predicado verbal compuesto (PVC)</b>: dos o más núcleos verbales.</li></ul>'+
+ '<div class="ex">'+an('S:Los *artistas*|P:*pintaban* los símbolos y *decoraban* los templos.')+'</div>'+
+ '<div class="tip"><b>Para recordar:</b> 1. Buscá el sujeto (¿de quién o de qué hablamos?). 2. Buscá el predicado (¿qué se dice del sujeto?). 3. Descubrí el núcleo del sujeto y el núcleo del predicado.</div>'+(extra||'');};
+
+var TOPICS=[
+ {id:'t-reco',sec:'tie',title:'¿Qué tiempo es?',sub:'Reconocé el tiempo de cada verbo',lesson:function(){return LESSON_TIEMPOS();},
+  make:function(){var r=pick(VB,6).map(qTenseReco).concat(pick(VB_LAMINA,2).map(qTenseLam));return shuffle(r).concat([qTenseSort(),qTenseSort()]);}},
+ {id:'t-narr',sec:'tie',title:'Completá la narración',sub:'Elegí el verbo que corresponde',lesson:function(){return LESSON_TIEMPOS('<div class="tip">En este juego leé toda la oración antes de elegir. Buscá las pistas: ¿es una descripción? ¿algo que se repetía? ¿algo que pasó antes que otra cosa?</div>');},
+  make:function(){var by=[0,1,2].map(function(k){return pick(VB.filter(function(e){return e[2]===k;}),2);});return shuffle(by[0].concat(by[1],by[2])).map(qTenseChoose).concat(pick(NARRS,2).map(qNarr));}},
+ {id:'t-escr',sec:'tie',title:'Escribí el verbo',sub:'Conjugá en el tiempo que te piden',lesson:function(){return LESSON_TIEMPOS('<div class="tip">¡Ojo con las tildes! Muchas formas del perfecto simple llevan tilde (<b>llamó</b>, <b>descubrió</b>) y todas las del imperfecto terminadas en <b>-ía</b> también (<b>tenía</b>, <b>sabía</b>). Para escribir la tilde podés usar los botones que aparecen debajo.</div>');},
+  make:function(){var by=[0,1,2].map(function(k){return pick(VB.filter(function(e){return e[2]===k;}),3);});return shuffle(by[0].concat(by[1],by[2])).slice(0,8).map(qTenseType);}},
+ {id:'a-sil',sec:'ace',title:'Separá en sílabas',sub:'Cortá cada palabra en sus sílabas',lesson:function(){return SYL_TIPS+'<div class="tip">En el juego tocás el espacio entre dos letras para separarlas. Si te equivocás, volvé a tocar y se borra.</div>';},
+  make:function(){return balancedWords(9).map(qSyl);}},
+ {id:'a-ton',sec:'ace',title:'Sílaba tónica',sub:'Aguda, grave o esdrújula',lesson:function(){return LESSON_ACENTO('<div class="tip">Para encontrar la sílaba tónica, decí la palabra en voz alta como si llamaras a alguien desde lejos: la sílaba que se estira es la tónica. <b>pi-RÁ-mi-de</b>, <b>pa-PEL</b>.</div>');},
+  make:function(){var w=balancedWords(9);return w.slice(0,5).map(qTonic).concat(w.slice(5).map(qWType),[sortWords()]);}},
+ {id:'a-til',sec:'ace',title:'¿Lleva tilde?',sub:'Aplicá las reglas de acentuación',lesson:function(){return LESSON_ACENTO('<div class="tip">Paso a paso: 1. Separá en sílabas. 2. Encontrá la sílaba tónica. 3. Fijate si es aguda, grave o esdrújula. 4. Mirá cómo termina y aplicá la regla.</div>');},
+  make:function(){return balancedWords(10).map(qTilde);}},
+ {id:'s-suj',sec:'suj',title:'¿Dónde está el sujeto?',sub:'Separá sujeto y predicado',lesson:function(){return LESSON_SUJ('<div class="tip">¡Ojo! El sujeto no siempre va primero: <i>Junto al río vivían muchos campesinos.</i> ¿Quiénes vivían? Muchos campesinos.</div>');},
+  make:function(){var st=byType(function(s){return s.sType==='ST';}),inv=byType(function(s){return s.inv;}),rest=byType(function(s){return s.sType!=='ST'&&!s.inv;});return shuffle(pick(st,2).concat(pick(inv,3),pick(rest,5))).map(function(s){return qPickS(s);});}},
+ {id:'s-tip',sec:'suj',title:'Tipos de sujeto',sub:'Expreso simple, compuesto o tácito',lesson:function(){return LESSON_SUJ();},
+  make:function(){var ses=byType(function(s){return s.sType==='SES';}),sec=byType(function(s){return s.sType==='SEC';}),st=byType(function(s){return s.sType==='ST';});
+   var t=pick(st,3);return shuffle(pick(ses,3).concat(pick(sec,3),[t[0]]).map(function(s){return qClassS(s);})).concat(t.slice(1).map(function(s){return qTac(s);}));}},
+ {id:'s-nuc',sec:'suj',title:'Cazá los núcleos',sub:'Núcleo del sujeto y del predicado',lesson:function(){return LESSON_SUJ();},
+  make:function(){var withS=byType(function(s){return s.sType!=='ST';});return shuffle(pick(withS,5).map(function(s){return qPickN(s);}).concat(pick(SENTS,5).map(function(s){return qPickNv(s);})));}},
+ {id:'s-pre',sec:'suj',title:'Tipos de predicado',sub:'Verbal simple o compuesto',lesson:function(){return LESSON_SUJ();},
+  make:function(){var pvs=byType(function(s){return s.pType==='PVS';}),pvc=byType(function(s){return s.pType==='PVC';});return shuffle(pick(pvs,4).concat(pick(pvc,5)).map(function(s){return qClassP(s);}));}}
+];
+function sortWords(){var w=balancedWords(6);return {type:'sort',tag:'Clasificá las palabras',prompt:'¿Es aguda, grave o esdrújula?',cats:['Aguda','Grave','Esdrújula'],items:w.map(function(x){return [x.word,TYPES.indexOf(x.type)];}),wordsInfo:w};}
+var SECS=[
+ {k:'lec',n:'Comprensión lectora',d:'Dos cuentos y dos textos informativos sobre el Antiguo Egipto'},
+ {k:'tie',n:'Tiempos verbales en la narración',d:'Perfecto simple, imperfecto y pluscuamperfecto'},
+ {k:'ace',n:'Acentuación y tildación',d:'Sílabas, sílaba tónica y reglas de tilde'},
+ {k:'suj',n:'Sujeto, predicado y núcleos',d:'Tipos de sujeto y de predicado'}
+];
+TOPICS.forEach(function(t){var mk=t.make;t.make=function(){return mk.call(t).map(function(q){q.sec=t.sec;return q;});};});
+function topicById(id){for(var i=0;i<TOPICS.length;i++)if(TOPICS[i].id===id)return TOPICS[i];return null;}
+
+/* ---------- pantallas ---------- */
+var S=null,C=null;
+var EYE='<svg class="eye" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#ecbd4f"/><path d="M7 19 Q20 8 33 19 Q20 26 7 19 Z" fill="#fcf5e3" stroke="#0e2858" stroke-width="2"/><circle cx="20" cy="18.5" r="4" fill="#0e2858"/><path d="M16 24 L15 31 M15 31 Q13 33 11 31" fill="none" stroke="#0e2858" stroke-width="2" stroke-linecap="round"/><path d="M23 24 Q27 29 30 26" fill="none" stroke="#0e2858" stroke-width="2" stroke-linecap="round"/></svg>';
+function topbar(){
+  return '<div class="top"><button class="brand" data-act="home" aria-label="Volver a los temas">'+EYE+'Final de PDL</button><span class="sp"></span>'+
+   (HUB?'<a class="hub" href="'+HUB+'">Inicio</a>':'')+
+   '<button class="iconbtn" data-act="mute" aria-label="'+(muted?'Activar sonido':'Silenciar')+'">'+(muted?'🔇':'🔊')+'</button></div>';
+}
+function starsFor(p){return p>=0.9?3:p>=0.7?2:p>=0.5?1:0;}
+function starStr(p){if(p===undefined)return '<span class="stars none">Sin jugar todavía</span>';var n=starsFor(p);return '<span class="stars" aria-label="'+n+' de 3 estrellas">'+'★★★'.slice(0,n)+'<span class="off">'+'★★★'.slice(0,3-n)+'</span></span>';}
+function countdown(){var now=new Date();var a=new Date(now.getFullYear(),now.getMonth(),now.getDate());var d=Math.round((new Date(2026,10,16)-a)/86400000);
+  if(d>1)return 'Faltan '+d+' días para la semana de la evaluación';if(d===1)return '¡Mañana empieza la semana de la evaluación!';if(d>=-4)return '¡Es la semana de la evaluación!';return 'La evaluación ya pasó: podés seguir practicando';}
+function stopClock(){if(C&&C.timer)clearInterval(C.timer);C=null;}
+function lecMeta(best){var n=TEXTS.filter(function(T){return best['text:'+T.id]!==undefined;}).length;return '<span class="stars none">'+(n?n+' de '+TEXTS.length+' textos leídos':'Sin jugar todavía')+'</span>';}
+function renderHome(){
+  S=null;stopClock();var best=loadBest();
+  function card(t){return '<button class="card k-'+t.sec+'" data-act="lesson" data-id="'+t.id+'"><span class="tag label">'+esc(secName(t.sec))+'</span><span class="ct">'+esc(t.title)+'</span><span class="sub">'+esc(t.sub)+'</span><span class="meta">'+starStr(best[t.id])+'</span></button>';}
+  app.innerHTML=topbar()+
+   '<section class="hero"><div class="cartouche"><h1>Evaluación final de PDL</h1></div>'+
+   '<div class="chips"><span class="pill gold">Semana del 16 de noviembre</span><span class="pill">Se toma en dos veces</span></div>'+
+   '<p class="sub">'+countdown()+'. Repasá cada tema y jugá. Las estrellas guardan tu mejor resultado.</p>'+
+   '<svg class="nile" viewBox="0 0 560 30" preserveAspectRatio="none" aria-hidden="true"><path d="M0 12 Q35 2 70 12 T140 12 T210 12 T280 12 T350 12 T420 12 T490 12 T560 12"/><path d="M0 24 Q35 14 70 24 T140 24 T210 24 T280 24 T350 24 T420 24 T490 24 T560 24" opacity=".5"/></svg></section>'+
+   '<div class="big-actions"><button class="exam" data-act="start" data-id="exam"><span><span class="t">Prueba final de práctica</span><span class="s">20 preguntas de los cuatro temas, con un texto para leer</span></span>'+starStr(best.exam)+'</button>'+
+   '<button class="exam alt" data-act="clock"><span><span class="t">Desafío del faraón</span><span class="s">'+(best.reloj!==undefined?'Récord: '+best.reloj+' en 60 s':'¿Cuántas acertás en 60 segundos?')+'</span></span></button></div>'+
+   SECS.map(function(sc){var inner;
+     if(sc.k==='lec')inner='<div class="grid"><button class="card k-lec" data-act="lesson" data-id="lectura"><span class="tag label">Lectura</span><span class="ct">Textos del Antiguo Egipto</span><span class="sub">Leé y respondé: tema, inferencias, vocabulario y orden de los hechos</span><span class="meta">'+lecMeta(best)+'</span></button></div>';
+     else inner='<div class="grid">'+TOPICS.filter(function(t){return t.sec===sc.k;}).map(card).join('')+'</div>';
+     return '<section class="sec"><div class="sec-head"><h2>'+esc(sc.n)+'</h2><p>'+esc(sc.d)+'</p></div>'+inner+'</section>';}).join('')+
+   '<footer>Hecho para practicar en casa · ¡Vamos que se puede!</footer>';
+  window.scrollTo(0,0);
+}
+function secName(k){return {lec:'Lectura',tie:'Tiempos verbales',ace:'Acentuación',suj:'Sujeto y predicado'}[k];}
+function renderLesson(id){
+  stopClock();S=null;
+  if(id==='lectura')return renderLectura();
+  var t=topicById(id);
+  app.innerHTML=topbar()+'<div class="lesson-head"><span class="label">'+esc(secName(t.sec))+'</span><h1>'+esc(t.title)+'</h1></div>'+
+   '<div class="sheet">'+t.lesson()+'</div><div class="actions"><button class="btn gold" data-act="start" data-id="'+t.id+'">Empezar a practicar</button><button class="btn ghost" data-act="home">Volver a los temas</button></div>';
+  window.scrollTo(0,0);
+}
+function renderLectura(){
+  var best=loadBest();
+  app.innerHTML=topbar()+'<div class="lesson-head"><span class="label">Comprensión lectora</span><h1>Textos del Antiguo Egipto</h1></div>'+
+   '<div class="sheet"><h3>Antes de responder</h3><div class="tip">1. Leé el título y pensá de qué puede tratar.<br>2. Leé el texto completo una vez.<br>3. Leé cada pregunta y <b>volvé al texto</b> para buscar la respuesta.</div>'+
+   '<h3>Si es un cuento</h3><ul><li><b>Situación inicial</b>: dónde, cuándo y quiénes.</li><li><b>Conflicto</b>: el problema que aparece.</li><li><b>Resolución</b>: cómo se soluciona.</li><li><b>Situación final</b>: cómo quedan las cosas.</li></ul>'+
+   '<h3>Si es un texto informativo</h3><ul><li>Da <b>datos reales</b> sobre un <b>tema</b>.</li><li>Cada párrafo trata un <b>subtema</b>, y los <b>subtítulos</b> te ayudan a encontrar la información.</li></ul>'+
+   '<p>Algunas preguntas piden una <b>inferencia</b>: la respuesta no está escrita tal cual, pero la podés deducir. Y en cada texto también vas a encontrar preguntas de tiempos verbales, acentuación y sujeto y predicado.</p></div>'+
+   '<div class="sec-head" style="margin-top:24px"><h2>Elegí un texto</h2></div><div class="texts">'+
+   TEXTS.map(function(T){return '<button class="card k-lec" data-act="start" data-id="text:'+T.id+'"><span class="tag label">'+esc(T.kind)+'</span><span class="ct">'+esc(T.title)+'</span><span class="sub">'+T.qs.length+' preguntas</span><span class="meta">'+starStr(best['text:'+T.id])+'</span></button>';}).join('')+
+   '</div><div class="actions"><button class="btn ghost" data-act="home">Volver a los temas</button></div>';
+  window.scrollTo(0,0);
+}
+function examQs(){
+  var T=rnd(TEXTS),tq=textQs(T),lect=[tq[0]].concat(pick(tq.slice(1),3));lect.sort(function(a,b){return tq.indexOf(a)-tq.indexOf(b);});
+  var tie=pick(VB,2).map(qTenseReco).concat([qTenseChoose(rnd(VB)),qNarr(rnd(NARRS)),qTenseType(rnd(VB))]);
+  var w=balancedWords(5);var ace=[qSyl(w[0]),qTilde(w[1]),qTilde(w[2]),qWType(w[3]),qTonic(w[4])];
+  var withS=byType(function(s){return s.sType!=='ST';});
+  var suj=[qPickS(rnd(SENTS)),qClassS(rnd(withS)),qClassS(rnd(byType(function(s){return s.sType==='ST';}))),qPickN(rnd(withS)),qPickNv(rnd(SENTS)),qClassP(rnd(byType(function(s){return s.pType==='PVC';})))];
+  tie.forEach(function(q){q.sec='tie';});ace.forEach(function(q){q.sec='ace';});suj.forEach(function(q){q.sec='suj';});
+  return shuffle(tie.concat(ace,suj)).concat(lect);
+}
+function startRound(id,custom){
+  stopClock();var qs,title,topicId=id;
+  if(custom){qs=custom;title='Repaso de errores';topicId=null;}
+  else if(id==='exam'){qs=examQs();title='Prueba final de práctica';}
+  else if(id.indexOf('text:')===0){var T=textById(id.slice(5));qs=textQs(T);title=T.title;}
+  else{var t=topicById(id);qs=t.make();title=t.title;}
+  S={topicId:topicId,title:title,qs:qs,i:0,score:0,wrong:[],answered:false};
+  renderQ();
+}
+function renderQ(){
+  var q=S.qs[S.i];S.answered=false;S.sel={};S.order=[];S.gaps={};S.tv=null;S.nsel={};S.srt={};S.pickSyl=null;
+  var body='';
+  if(q.type==='mc'){
+    body='<div class="options '+(q.optClass||'')+'">'+q.options.map(function(o,k){return '<button class="opt '+(o.cls||'')+'" data-k="'+k+'">'+o.html+'</button>';}).join('')+'</div>';
+  }else if(q.type==='pick'){
+    var s=q.s;
+    body='<div class="toks" role="group" aria-label="Palabras de la oración">'+s.tokens.map(function(t){var cls='tok';if(q.mode==='n'&&t.role==='S')cls+=' in-s';if(q.mode==='nv'&&t.role==='P')cls+=' in-p';
+      return '<button class="'+cls+'" data-tok="'+t.i+'" aria-pressed="false">'+esc(t.pre+t.word+t.post)+'</button>';}).join('')+'</div>'+
+      (q.mode==='S'?'<div class="toks"><button class="tok tok-st" data-tok="st" aria-pressed="false">Sujeto tácito (no está escrito)</button></div>':'')+
+      '<div><button class="btn" data-act="check">Comprobar</button></div>';
+  }else if(q.type==='order'){
+    S.pool=shuffle(q.items.map(function(x,i){return i;}));
+    body='<div class="slots" id="slots"></div><div class="options stack" id="pool"></div><div class="actions" style="margin-top:0"><button class="btn" data-act="check" id="chk" disabled>Comprobar</button><button class="btn ghost" data-act="oreset">Empezar de nuevo</button></div>';
+  }else if(q.type==='syl'){
+    var L=Array.from(q.w.word);
+    body='<div class="split" aria-label="Palabra para separar">'+L.map(function(c,i){return '<span class="lt">'+esc(c)+'</span>'+(i<L.length-1?'<button class="gap" data-gap="'+(i+1)+'" aria-label="Separar después de la letra '+(i+1)+'"></button>':'');}).join('')+'</div>'+
+      '<p class="prompt" style="font-weight:400;font-size:1rem;margin:0">Así va quedando: <b id="sylprev">'+esc(q.w.word)+'</b></p><div><button class="btn" data-act="check">Comprobar</button></div>';
+  }else if(q.type==='tonic'){
+    body='<div class="sylbtns">'+q.w.syl.map(function(sy,i){return '<button class="sylb" data-sy="'+i+'">'+esc(sy)+'</button>';}).join('')+'</div>';
+  }else if(q.type==='tilde'){
+    var P=Array.from(q.w.plain);
+    body='<div class="letters">'+P.map(function(c,i){return /[aeiouAEIOU]/.test(c)?'<button class="vow" data-v="'+i+'" aria-label="Poner tilde en '+esc(c)+'">'+esc(c)+'</button>':'<span class="lt">'+esc(c)+'</span>';}).join('')+'</div>'+
+      '<button class="notilde" data-v="-1">No lleva tilde</button><div><button class="btn" data-act="check" id="chk" disabled>Comprobar</button></div>';
+  }else if(q.type==='narr'){
+    var html=esc(q.text).replace(/\u0001(\d+)\u0002/g,function(m,i){return '<span class="blank empty" data-bl="'+i+'">'+(+i+1)+'</span>';});
+    body='<p class="narr"><b>'+esc(q.title)+'.</b> '+html+'</p><div class="nrows">'+q.blanks.map(function(b,i){return '<div class="nrow"><span class="n">'+(i+1)+'.</span>'+b.opts.map(function(o,j){return '<button class="nopt" data-nb="'+i+'" data-no="'+j+'">'+esc(o)+'</button>';}).join('')+'</div>';}).join('')+'</div>'+
+      '<div><button class="btn" data-act="check" id="chk" disabled>Comprobar</button></div>';
+  }else if(q.type==='sort'){
+    body='<div class="sorts">'+q.items.map(function(it,i){return '<div class="srow" data-srow="'+i+'"><span class="it">'+esc(it[0])+'</span><span class="cats">'+q.cats.map(function(c,ci){return '<button class="cat" data-si="'+i+'" data-sc="'+ci+'">'+esc(c)+'</button>';}).join('')+'</span></div>';}).join('')+'</div><div><button class="btn" data-act="check" id="chk" disabled>Comprobar</button></div>';
+  }else if(q.type==='type'){
+    body='<form class="typeform" autocomplete="off"><input class="answer" id="ans" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Tu respuesta" placeholder="Escribí el verbo"><button class="btn" type="submit">Comprobar</button></form>'+
+      '<div class="accents" aria-label="Letras con tilde">'+['á','é','í','ó','ú'].map(function(c){return '<button class="acc" type="button" data-acc="'+c+'">'+c+'</button>';}).join('')+'</div>';
+  }
+  var passage=q.passage?passageHTML(textById(q.passage)):'';
+  app.innerHTML=topbar()+
+   '<div class="qhead"><button class="link" data-act="home">← Temas</button><span class="count">'+(S.i+1)+' / '+S.qs.length+'</span><span class="score" aria-label="Respuestas correctas">✔ '+S.score+'</span></div>'+
+   '<div class="bar"><span style="width:'+(S.i/S.qs.length*100)+'%"></span></div>'+
+   '<section class="qcard"><p class="qtag label">'+esc(q.tag||S.title)+'</p>'+passage+(q.visual||'')+'<h2 class="prompt">'+q.prompt+'</h2>'+body+'<div id="fb" aria-live="polite"></div></section>';
+  if(q.type==='order')drawOrder();
+  var a=document.getElementById('ans');if(a)a.focus({preventScroll:true});
+}
+function enableCheck(on){var b=document.getElementById('chk');if(b)b.disabled=!on||S.answered;}
+function drawOrder(){var q=S.qs[S.i];
+  document.getElementById('slots').innerHTML=q.items.map(function(x,i){var v=S.order[i];return '<div class="slot'+(v!==undefined?' filled':'')+'"><span class="n">'+(i+1)+'</span><span>'+(v!==undefined?esc(q.items[v]):'')+'</span></div>';}).join('');
+  document.getElementById('pool').innerHTML=S.pool.filter(function(i){return S.order.indexOf(i)<0;}).map(function(i){return '<button class="opt" data-oi="'+i+'">'+esc(q.items[i])+'</button>';}).join('');
+  enableCheck(S.order.length===q.items.length);}
+function sylBreaks(w){var b=[],n=0;w.syl.slice(0,-1).forEach(function(s){n+=Array.from(s).length;b.push(n);});return b;}
+function drawSyl(){var q=S.qs[S.i],L=Array.from(q.w.word),out='';L.forEach(function(c,i){out+=c;if(S.gaps[i+1])out+='-';});document.getElementById('sylprev').textContent=out;
+  all('.gap').forEach(function(g){g.classList.toggle('on',!!S.gaps[+g.dataset.gap]);});}
+function drawTilde(){all('[data-v]').forEach(function(el){el.classList.toggle('on',S.tv!==null&&+el.dataset.v===S.tv);});enableCheck(S.tv!==null);}
+function drawNarr(){var q=S.qs[S.i];
+  all('.nopt').forEach(function(el){el.classList.toggle('on',S.nsel[+el.dataset.nb]===+el.dataset.no);});
+  all('.blank[data-bl]').forEach(function(el){var i=+el.dataset.bl,v=S.nsel[i];el.textContent=v===undefined?(i+1):q.blanks[i].opts[v];el.classList.toggle('empty',v===undefined);});
+  enableCheck(Object.keys(S.nsel).length===q.blanks.length);}
+function drawSort(){var q=S.qs[S.i];all('.cat').forEach(function(el){el.classList.toggle('on',S.srt[+el.dataset.si]===+el.dataset.sc);});enableCheck(Object.keys(S.srt).length===q.items.length);}
+function sameSet(a,b){if(a.length!==b.length)return false;var m={};a.forEach(function(x){m[x]=1;});return b.every(function(x){return m[x];});}
+function norm(s){return s.trim().toLowerCase().replace(/\s+/g,' ').replace(/[.!¡]$/,'');}
+
+var PRAISE=['¡Muy bien!','¡Excelente!','¡Genial!','¡Perfecto!','¡Bravo!','¡Digno de un escriba!'];
+var OOPS=['Casi…','¡Ups! Revisemos','No es esa','Mirá bien'];
+function check(choice){
+  if(S.answered)return;
+  var q=S.qs[S.i],ok=false,extra='',showAn=false;
+  if(q.type==='mc'){
+    var o=q.options[choice];ok=o.v===q.answer;
+    all('.opt').forEach(function(el,k){el.disabled=true;if(q.options[k].v===q.answer)el.classList.add('right');else if(k===choice)el.classList.add('wrong');});
+    showAn=!!q.s;
+  }else if(q.type==='pick'){
+    var s=q.s,target=q.mode==='S'?s.sIdx:q.mode==='n'?s.nIdx:s.nvIdx;
+    var sel=Object.keys(S.sel).filter(function(k){return S.sel[k]&&k!=='st';}).map(Number);
+    if(q.mode==='S'&&s.sType==='ST')ok=!!S.sel.st&&sel.length===0;else ok=!S.sel.st&&sameSet(sel,target);
+    all('.tok').forEach(function(el){el.disabled=true;var k=el.dataset.tok;
+      if(k==='st'){if(s.sType==='ST')el.classList.add(S.sel.st?'right':'missed');else if(S.sel.st)el.classList.add('wrong');return;}
+      var i=+k,inT=target.indexOf(i)>=0,isSel=!!S.sel[i];el.classList.remove('sel');
+      if(isSel&&inT)el.classList.add('right');else if(isSel&&!inT)el.classList.add('wrong');else if(!isSel&&inT)el.classList.add('missed');});
+    showAn=true;
+  }else if(q.type==='order'){
+    ok=S.order.every(function(v,i){return v===i;});all('#pool .opt').forEach(function(el){el.disabled=true;});
+    if(!ok)extra='<p><b>El orden correcto es:</b></p><ol style="padding-left:1.4em">'+q.items.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>';
+  }else if(q.type==='syl'){
+    var br=sylBreaks(q.w),mine=Object.keys(S.gaps).filter(function(k){return S.gaps[k];}).map(Number);ok=sameSet(br,mine);
+    all('.gap').forEach(function(g){g.disabled=true;var i=+g.dataset.gap,on=!!S.gaps[i],should=br.indexOf(i)>=0;g.classList.remove('on');
+      if(on&&should)g.classList.add('right');else if(on&&!should)g.classList.add('wrong');else if(!on&&should)g.classList.add('missed');});
+  }else if(q.type==='tonic'){
+    ok=choice===q.w.tonic;all('.sylb').forEach(function(el){el.disabled=true;var i=+el.dataset.sy;if(i===q.w.tonic)el.classList.add('right');else if(i===choice)el.classList.add('wrong');});
+  }else if(q.type==='tilde'){
+    var P=Array.from(q.w.word),pos=-1;P.forEach(function(c,i){if(hasAcc(c))pos=i;});ok=S.tv===pos;
+    all('[data-v]').forEach(function(el){el.disabled=true;var v=+el.dataset.v;el.classList.remove('on');if(v===pos){el.classList.add('right');if(v>=0)el.textContent=P[v];}else if(v===S.tv)el.classList.add('wrong');});
+    extra='';
+  }else if(q.type==='narr'){
+    ok=true;var lines=[];
+    q.blanks.forEach(function(b,i){var g=b.opts[S.nsel[i]]===b.ans;if(!g)ok=false;var bl=document.querySelector('.blank[data-bl="'+i+'"]');bl.classList.add(g?'right':'wrong');
+      all('.nopt[data-nb="'+i+'"]').forEach(function(el){el.disabled=true;var oo=b.opts[+el.dataset.no];el.classList.remove('on');if(oo===b.ans)el.classList.add('right');else if(+el.dataset.no===S.nsel[i])el.classList.add('wrong');});
+      lines.push('<li><b>'+esc(b.ans)+'</b>: '+esc(q.why[i])+'</li>');});
+    extra='<ol style="padding-left:1.4em">'+lines.join('')+'</ol>';
+  }else if(q.type==='sort'){
+    ok=true;q.items.forEach(function(it,i){var g=S.srt[i]===it[1];if(!g)ok=false;var r=document.querySelector('.srow[data-srow="'+i+'"]');r.classList.add(g?'right':'wrong');
+      if(!g)r.querySelector('.it').innerHTML=esc(it[0])+'<span class="fix">Va en: '+esc(q.cats[it[1]])+'</span>';});
+    all('.cat').forEach(function(el){el.disabled=true;});
+    if(q.wordsInfo&&!ok)extra='<p>'+q.wordsInfo.filter(function(w,i){return S.srt[i]!==q.items[i][1];}).map(function(w){return sylHTML(w)+' → '+w.type.n.toLowerCase();}).join('<br>')+'</p>';
+  }else if(q.type==='type'){
+    var inp=document.getElementById('ans'),got=norm(inp.value),want=norm(q.answer);ok=got===want;
+    inp.disabled=true;inp.classList.add(ok?'right':'wrong');all('.typeform .btn,.acc').forEach(function(el){el.disabled=true;});
+    if(!ok){if(strip(got)===strip(want)&&got.length)extra='<p><b>¡Casi!</b> Escribiste bien las letras, pero revisá la tilde: es <b>'+esc(q.answer)+'</b>.</p>';
+      else extra='<p>La respuesta correcta es <b>'+esc(q.answer)+'</b>.</p>';}
+  }
+  S.answered=true;
+  if(ok){S.score++;sOk();}else{S.wrong.push(q);sBad();}
+  enableCheck(false);all('[data-act=check],[data-act=oreset]').forEach(function(el){el.disabled=true;});
+  var fb=document.getElementById('fb');
+  fb.innerHTML='<div class="fb '+(ok?'ok':'bad')+'"><p class="verdict">'+(ok?rnd(PRAISE):rnd(OOPS))+'</p>'+(ok?'':extra)+(q.explain?'<p>'+q.explain+'</p>':'')+(q.type==='narr'&&ok?extra:'')+
+   (showAn&&q.s?renderAn(q.s):'')+'<button class="btn" data-act="next">'+(S.i+1<S.qs.length?'Siguiente →':'Ver resultado')+'</button></div>';
+  var nb=fb.querySelector('[data-act=next]');nb.focus({preventScroll:true});fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function renderResult(){
+  var total=S.qs.length,pct=S.score/total,n=starsFor(pct);
+  if(S.topicId)saveBest(S.topicId,pct);if(n>=2)sWin();
+  var msg=n===3?'¡Lo sabés muy bien! Estás listo para la evaluación.':n===2?'¡Muy bien! Repasá los errores y vas a llegar a las tres estrellas.':n===1?'Vas bien. Volvé a leer el repaso y probá otra vez.':'Leé el repaso con calma y volvé a intentarlo. ¡Practicando se aprende!';
+  app.innerHTML=topbar()+'<section class="qcard result"><p class="qtag label">'+esc(S.title)+'</p><span class="big">'+S.score+' / '+total+'</span>'+starStr(pct)+'<p>'+msg+'</p>'+
+   '<div class="actions">'+(S.wrong.length?'<button class="btn gold" data-act="review">Repasar mis errores ('+S.wrong.length+')</button>':'')+
+   (S.topicId?'<button class="btn'+(S.wrong.length?' ghost':' gold')+'" data-act="start" data-id="'+S.topicId+'">Jugar otra vez</button>':'')+
+   '<button class="btn ghost" data-act="home">Volver a los temas</button></div></section>';
+  window.scrollTo(0,0);
+}
+/* ---------- Desafío del faraón ---------- */
+function quickQ(){
+  var r=Math.floor(Math.random()*4);
+  if(r===0){var e=rnd(VB);return {html:'<p class="sent">'+vbSentence(e,e[1][e[2]])+'</p><h2 class="prompt">¿En qué tiempo está el verbo marcado?</h2>',opts:TENSES.map(function(T,i){return {v:i,l:T.n.replace('Pretérito ','')};}),a:e[2]};}
+  if(r===1){var w=rnd(WORDS);return {html:'<div class="bigword">'+esc(w.word)+'</div><h2 class="prompt">¿Qué tipo de palabra es?</h2>',opts:TYPES.map(function(T,i){return {v:i,l:T.n};}),a:TYPES.indexOf(w.type)};}
+  if(r===2){var s=rnd(SENTS);return {html:sentBox(s)+'<h2 class="prompt">¿Qué tipo de sujeto tiene?</h2>',opts:OPT_S.map(function(o){return {v:o.v,l:o.v};}),a:s.sType};}
+  var w2=rnd(WORDS);return {html:'<div class="bigword">'+esc(w2.plain)+'</div><h2 class="prompt">Así está escrita sin tilde. ¿Debería llevar tilde?</h2>',opts:[{v:1,l:'Sí, lleva tilde'},{v:0,l:'No lleva tilde'}],a:w2.has?1:0,w:w2};
+}
+function startClock(){stopClock();S=null;C={left:60,score:0,tries:0,lock:false,timer:null};nextClock();
+  C.timer=setInterval(function(){if(!C)return;C.left--;var el=document.getElementById('ctime');if(el){el.textContent=C.left+' s';el.classList.toggle('low',C.left<=10);}if(C.left<=0)endClock();},1000);}
+function nextClock(){C.cur=quickQ();C.lock=false;
+  app.innerHTML=topbar()+'<div class="clock"><button class="link" data-act="home">← Salir</button><span>✔ '+C.score+'</span><span class="time'+(C.left<=10?' low':'')+'" id="ctime">'+C.left+' s</span></div>'+
+   '<section class="qcard" id="ccard" style="margin-top:14px"><p class="qtag label">Desafío del faraón</p>'+C.cur.html+'<div class="options">'+C.cur.opts.map(function(o){return '<button class="opt" data-cv="'+o.v+'">'+esc(o.l)+'</button>';}).join('')+'</div></section>';}
+function answerClock(v){if(!C||C.lock)return;C.lock=true;C.tries++;
+  var ok=String(v)===String(C.cur.a),card=document.getElementById('ccard');
+  all('.opt').forEach(function(el){el.disabled=true;if(el.dataset.cv===String(C.cur.a))el.classList.add('right');else if(el.dataset.cv===String(v))el.classList.add('wrong');});
+  if(ok){C.score++;sOk();card.classList.add('flash-ok');}else{sBad();card.classList.add('flash-bad');}
+  setTimeout(function(){if(C&&C.left>0)nextClock();},ok?450:1200);}
+function endClock(){var score=C.score,tries=C.tries;clearInterval(C.timer);C=null;var rec=saveBest('reloj',score);sWin();
+  app.innerHTML=topbar()+'<section class="qcard result"><p class="qtag label">Desafío del faraón</p><span class="big">'+score+'</span><p>aciertos en un minuto ('+tries+' respondidas)</p><p><b>'+(rec&&score>0?'¡Nuevo récord!':'Tu récord: '+(loadBest().reloj||0))+'</b></p>'+
+   '<div class="actions"><button class="btn gold" data-act="clock">Jugar otra vez</button><button class="btn ghost" data-act="home">Volver a los temas</button></div></section>';}
+
+/* ---------- eventos ---------- */
+app.addEventListener('submit',function(e){e.preventDefault();if(S&&!S.answered&&S.qs[S.i].type==='type'){var v=document.getElementById('ans').value;if(v.trim())check();}});
+app.addEventListener('click',function(e){
+  var el=e.target.closest('button');if(!el||el.disabled)return;
+  var d=el.dataset,act=d.act;
+  if(act==='home')return renderHome();
+  if(act==='mute'){muted=!muted;sset('-mute',muted);el.textContent=muted?'🔇':'🔊';el.setAttribute('aria-label',muted?'Activar sonido':'Silenciar');return;}
+  if(act==='lesson')return renderLesson(d.id);
+  if(act==='start')return startRound(d.id);
+  if(act==='clock')return startClock();
+  if(act==='review')return startRound(null,shuffle(S.wrong));
+  if(act==='next'){S.i++;if(S.i>=S.qs.length)return renderResult();renderQ();window.scrollTo({top:0});return;}
+  if(act==='check')return check();
+  if(act==='oreset'){S.order=[];drawOrder();return;}
+  if(d.cv!==undefined)return answerClock(d.cv);
+  if(!S||S.answered)return;
+  if(d.k!==undefined)return check(+d.k);
+  if(d.tok!==undefined){var k=d.tok;
+    if(k==='st'){S.sel={};all('.tok').forEach(function(t){t.classList.remove('sel');t.setAttribute('aria-pressed','false');});}
+    else if(S.sel.st){S.sel.st=false;var b=document.querySelector('.tok-st');b.classList.remove('sel');b.setAttribute('aria-pressed','false');}
+    S.sel[k]=!S.sel[k];el.classList.toggle('sel',S.sel[k]);el.setAttribute('aria-pressed',S.sel[k]?'true':'false');return;}
+  if(d.oi!==undefined){S.order.push(+d.oi);drawOrder();return;}
+  if(d.gap!==undefined){var g=+d.gap;S.gaps[g]=!S.gaps[g];drawSyl();return;}
+  if(d.sy!==undefined)return check(+d.sy);
+  if(d.v!==undefined){var v=+d.v;S.tv=S.tv===v?null:v;drawTilde();return;}
+  if(d.nb!==undefined){S.nsel[+d.nb]=+d.no;drawNarr();return;}
+  if(d.si!==undefined){S.srt[+d.si]=+d.sc;drawSort();return;}
+  if(d.acc!==undefined){var inp=document.getElementById('ans');if(inp){var st=inp.selectionStart||inp.value.length,en=inp.selectionEnd||st;inp.value=inp.value.slice(0,st)+d.acc+inp.value.slice(en);inp.focus();inp.setSelectionRange(st+1,st+1);}return;}
+});
+window.__F={cur:function(){return S&&S.qs[S.i];},st:function(){return S;},WORDS:WORDS,VB:VB,NARRS:NARRS,SENTS:SENTS,TEXTS:TEXTS,TOPICS:TOPICS,mkWord:mkWord,sylBreaks:sylBreaks,examQs:examQs,strip:strip};
+renderHome();
+})();
+</script>
+</body>
+</html>
